@@ -1,0 +1,236 @@
+[tool.poetry]
+name = "graphene-django-extensions"
+version = "0.0.1"
+description = "Extensions for graphene-django"
+authors = [
+    "Matti Lamppu <lamppu.matti.akseli@gmail.com>",
+]
+packages = [
+    { include = "graphene_django_extensions" },
+]
+license = "MIT"
+readme = "README.md"
+homepage = "https://mrthearman.github.io/graphene-django-extensions"
+repository = "https://github.com/MrThearMan/graphene-django-extensions"
+keywords = [
+    "django",
+    "graphene",
+    "extensions",
+    "graphql",
+    "graphene-django",
+    "mutations",
+    "queries",
+    "object_types",
+    "fields",
+]
+classifiers = [
+    "Environment :: Web Environment",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Pytest",
+]
+include = [
+    "README.md",
+    "LICENSE",
+]
+exclude = [
+    "tests",
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/MrThearMan/graphene-django-extensions/issues"
+
+[tool.poetry.plugins.pytest11]
+graphene_django_extensions = "graphene_django_extensions.testing.fixtures"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4"
+Django = ">=4.2"
+djangorestframework = ">=3.14.0"
+graphene-django = ">=3.1.5"
+django-settings-holder = ">=0.1.0"
+django-filter = ">=23.5"
+typing-extensions = {version = ">=4.4.0", python = "<3.11"}
+
+[tool.poetry.group.test.dependencies]
+pytest = "7.4.3"
+coverage = "7.3.2"
+pytest-django = "4.7.0"
+pre-commit = "3.6.0"
+tox = "4.11.4"
+tox-gh-actions = "3.1.3"
+factory-boy = "3.3.0"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "1.5.3"
+pymdown-extensions = "10.5"
+mkdocs-mermaid2-plugin = "1.1.1"
+
+[tool.poetry.group.lint.dependencies]
+mypy = "1.7.1"
+django-stubs = "4.2.7"
+djangorestframework-stubs = "3.14.5"
+
+[tool.ruff]
+fix = true
+line-length = 120
+extend-exclude = [
+    "tests/*",
+]
+typing-modules = [
+    "graphene_django_extensions.typing",
+]
+select = [
+    "A",        # flake8-builtins
+    "ANN",      # flake8-annotations
+    "ARG",      # flake8-unused-arguments
+    "B",        # flake8-bugbear
+    "BLE",      # flake8-blind-except
+    "C90",      # mccabe
+    "C4",       # flake8-comprehensions
+    "COM",      # flake8-commas
+    "D200",     # pydocstyle: One-line docstring should fit on one line
+    "D201",     # pydocstyle: No blank lines allowed before function docstring (found {num_lines})
+    "D202",     # pydocstyle: No blank lines allowed after function docstring (found {num_lines})
+    "D209",     # pydocstyle: Multi-line docstring closing quotes should be on a separate line
+    "D213",     # pydocstyle: Multi-line docstring summary should start at the second line
+    "DTZ",      # flake8-datetimez
+    "E",        # pycodestyle errors
+    "EM",       # flake8-errmsg
+    "F",        # pyflakes
+    "FBT",      # flake8-boolean-trap
+    "I",        # isort
+    "INP",      # flake8-no-pep420
+    "ISC",      # flake8-implicit-str-concat
+    "N",        # pep8-naming
+    "PERF",     # perflint
+    "PGH",      # pygrep-hooks
+    "PIE",      # flake8-pie
+    "PL",       # pylint
+    "PT",       # flake8-pytest-style
+    "PTH",      # flake8-use-pathlib
+    "PYI",      # flake8-pyi
+    "Q",        # flake8-quotes
+    "RET",      # flake8-return
+    "RSE",      # flake8-raise
+    "RUF",      # ruff-specific rules
+    "S",        # flake8-bandit
+    "SIM",      # flake8-simplify
+    "T20",      # flake8-print
+    "TCH",      # flake8-type-checking
+    "TRY",      # tryceratops
+    "UP",       # pyupgrade
+    "W",        # pycodestyle warnings
+]
+ignore = [
+    "ANN101",  # Missing type annotation for `self` in method
+    "ANN102",  # Missing type annotation for `cls` in method
+    "ANN401",  # Any-typing allowed
+    "ARG001",  # Unused function argument
+    "ARG002",  # Unused method argument
+    "ARG003",  # Unused class method argument
+    "RUF012",  # No need for ClassVar
+    #
+    # Conflicting with ruff-format
+    #
+    "COM812",   # missing-trailing-comma
+    "COM819",   # prohibited-trailing-comma
+    "D206",     # indent-with-spaces
+    "D300",     # triple-single-quotes
+    "E111",     # indentation-with-invalid-multiple
+    "E114",     # indentation-with-invalid-multiple-comment
+    "E117",     # over-indented
+    "ISC001",   # single-line-implicit-string-concatenation
+    "ISC002",   # multi-line-implicit-string-concatenation
+    "Q000",     # bad-quotes-inline-string
+    "Q001",     # bad-quotes-multiline-string
+    "Q002",     # bad-quotes-docstring
+    "Q003",     # avoidable-escaped-quote
+    "W191",     # tab-indentation
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = "True"
+warn_unused_configs = "True"
+ignore_missing_imports = "True"
+plugins = [
+    "mypy_django_plugin.main",
+    "mypy_drf_plugin.main",
+]
+
+[tool.django-stubs]
+django_settings_module = "tests.project.settings"
+
+[tool.coverage.run]
+relative_files = true
+
+[tool.coverage.report]
+omit = [
+    "tests/*",
+    "docs/*",
+    ".venv/*",
+    ".tox/*",
+]
+exclude_lines = [
+    "if TYPE_CHECKING:",
+    "except ImportError:",
+    "pragma: no cover",
+]
+
+[tool.pytest.ini_options]
+addopts = "-vv -s --log-cli-level=INFO"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{310, 311, 312}-django{42, 50}
+isolated_build = true
+
+[gh-actions]
+python =
+    3.10: py310
+    3.11: py311
+    3.12: py312
+
+[testenv]
+allowlist_externals =
+    poetry
+setenv =
+    PYTHONPATH = {toxinidir}
+    DJANGO_SETTINGS_MODULE = tests.project.settings
+deps =
+    django42: Django >=4.2,<4.3
+    django50: Django >=5.0,<5.1
+
+    djangorestframework
+    django-filter
+    django-settings-holder
+    graphene-django
+    typing-extensions
+
+    pytest
+    coverage
+    pytest-django
+    factory-boy
+
+    py312: setuptools
+commands =
+    coverage run -m pytest -vv -s --log-cli-level=INFO
+"""
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"
