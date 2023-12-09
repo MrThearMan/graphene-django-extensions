@@ -1,15 +1,24 @@
+from __future__ import annotations
+
 import json
-from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Self, TypedDict
+from typing import TYPE_CHECKING
 
 import pytest
 import sqlparse
 from django import db
-from django.http import HttpResponse
 from django.test import Client
 from graphene_django.utils.testing import graphql_query
+
+from ..typing import TypedDict
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from django.http import HttpResponse
+
+    from ..typing import Any, Self
 
 __all__ = [
     "GraphQLClient",

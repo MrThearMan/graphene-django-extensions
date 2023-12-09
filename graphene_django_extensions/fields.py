@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypedDict
-
 import graphene
 from django import forms
 from django.db import models  # noqa: TCH002
@@ -11,6 +9,7 @@ from graphene_django.registry import Registry  # noqa: TCH002
 from rest_framework import serializers
 from rest_framework.relations import PKOnlyObject
 
+from .typing import TYPE_CHECKING, Any, TypedDict
 from .utils import convert_typed_dict_to_graphene_type
 
 if TYPE_CHECKING:
@@ -36,10 +35,7 @@ class IntPkOnlyObject(PKOnlyObject):
 
 
 class IntegerPrimaryKeyField(serializers.PrimaryKeyRelatedField, serializers.IntegerField):
-    """
-    A field that refers to foreign keys by an integer primary key.
-    If `BaseModelSerializer` is used, this field is automatically used for foreign keys.
-    """
+    """A field that refers to foreign keys by an integer primary key."""
 
     def get_attribute(self, instance: models.Model) -> IntPkOnlyObject | None:
         attribute = super().get_attribute(instance)
@@ -64,15 +60,7 @@ class IntChoiceMixin:
 
 
 class IntChoiceField(IntChoiceMixin, forms.TypedChoiceField):
-    """
-    Allow plain integers as choices in GraphQL filters
-    (see `IntChoiceField` for motivation).
-    Supports a single choice.
-
-    This needs to be registered to graphene form field converters
-    so that when `IntChoiceFilter` is used,
-    graphene-django knows how to convert the filter to a graphene field.
-    """
+    """Allow plain integers as choices in GraphQL filters. Supports a single choice."""
 
 
 class IntMultipleChoiceField(IntChoiceMixin, forms.TypedMultipleChoiceField):
@@ -81,13 +69,8 @@ class IntMultipleChoiceField(IntChoiceMixin, forms.TypedMultipleChoiceField):
 
 class EnumChoiceField(forms.ChoiceField):
     """
-    Custom field for handling enums better in GraphQL filters.
-    Supports a single choice.
-
-    Using the regular `django_filters.ChoiceFilter` (which uses `forms.ChoiceField` under the hood)
-    causes the enum choices to be converted to strings in GraphQL filters.
-    Using `EnumChoiceFilter` (which uses this field under the hood)
-    uses GraphQL enums instead, which gives better autocomplete results.
+    Custom field for handling enums better in GraphQL filters. Supports a single choice.
+    See `EnumChoiceFilter` for motivation.
     """
 
     def __init__(self, enum: type[models.Choices], **kwargs: Any) -> None:
@@ -97,7 +80,7 @@ class EnumChoiceField(forms.ChoiceField):
 
 
 class EnumMultipleChoiceField(forms.MultipleChoiceField):
-    """Same as above but supports multiple choices."""
+    """Same as `EnumChoiceField` but supports multiple choices."""
 
     def __init__(self, enum: type[models.Choices], **kwargs: Any) -> None:
         self.enum = enum

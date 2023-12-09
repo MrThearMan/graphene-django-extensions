@@ -1,5 +1,6 @@
 import graphene
 
+from tests.example.mutations import ExampleCreateMutation, ExampleDeleteMutation, ExampleUpdateMutation
 from tests.example.nodes import (
     ExampleNode,
     ForwardManyToManyNode,
@@ -23,4 +24,10 @@ class Query(graphene.ObjectType):
     reverse_many_to_many = ReverseManyToManyNode.Node()
 
 
-schema = graphene.Schema(query=Query)
+class Mutation(graphene.ObjectType):
+    create_example = ExampleCreateMutation.Field()
+    update_example = ExampleUpdateMutation.Field()
+    delete_example = ExampleDeleteMutation.Field()
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation)

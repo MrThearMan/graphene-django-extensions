@@ -1,9 +1,15 @@
-from contextlib import AbstractContextManager
-from typing import Callable
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import pytest
 
 from .client import GraphQLClient, QueryData, capture_database_queries
+
+if TYPE_CHECKING:
+    from contextlib import AbstractContextManager
+
+    from ..typing import Callable
 
 
 @pytest.fixture()

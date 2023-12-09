@@ -1,4 +1,5 @@
 from graphene_django_extensions import DjangoNode
+from tests.example.filtersets import ExampleFilterSet
 from tests.example.models import (
     Example,
     ForwardManyToMany,
@@ -25,6 +26,7 @@ class ExampleNode(DjangoNode):
             "reverse_one_to_many_rels",
             "reverse_many_to_many_rels",
         ]
+        filterset_class = ExampleFilterSet
 
 
 class ForwardOneToOneNode(DjangoNode):

@@ -55,11 +55,12 @@ graphene_django_extensions = "graphene_django_extensions.testing.fixtures"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4"
-Django = ">=4.0"
-djangorestframework = ">=3.12.0"
+Django = ">=4.1"
+djangorestframework = ">=3.13.0"
 graphene-django = ">=3.1.5"
 django-settings-holder = "^0.1.0"
 django-filter = "^23.5"
+typing-extensions = {version = ">=4.4.0", python = "<3.11"}
 
 [tool.poetry.group.test.dependencies]
 pytest = "7.4.3"
@@ -196,7 +197,7 @@ addopts = "-vv -s --log-cli-level=INFO"
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{310, 311, 312}-drf{312, 313, 314}
+envlist = py{310, 311, 312}-drf{313, 314}
 isolated_build = true
 
 [gh-actions]
@@ -212,11 +213,9 @@ setenv =
     PYTHONPATH = {toxinidir}
     DJANGO_SETTINGS_MODULE = tests.project.settings
 deps =
-    drf312: Django >=4.0,<4.1
     drf313: Django >=4.1,<4.2
     drf314: Django >=4.2,<4.3
 
-    drf312: djangorestframework >=3.12.0,<3.13.0
     drf313: djangorestframework >=3.13.0,<3.14.0
     drf314: djangorestframework >=3.14.0,<3.15.0
 

@@ -1,15 +1,16 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass, field
 from enum import Enum
 from itertools import chain
-from typing import Any, NamedTuple
 
-from django.contrib.postgres import lookups as pg_lookups
 from django.db.models import lookups
 from django.db.models.constants import LOOKUP_SEP
 from graphene.utils.str_converters import to_camel_case
 
-from graphene_django_extensions.utils import get_nested
+from ..typing import Any, NamedTuple
+from ..utils import get_nested
 
 __all__ = [
     "build_query",
@@ -25,14 +26,16 @@ class FiltersAndFields(NamedTuple):
 @dataclass
 class FieldFilterParams:
     filters: list[str] = field(default_factory=list)
-    sub_filters: dict[str, "FieldFilterParams"] = field(default_factory=dict)
+    sub_filters: dict[str, FieldFilterParams] = field(default_factory=dict)
+
+    def __str__(self) -> str:
+        return f'({", ".join(self.filters)})'
 
 
 KNOWN_LOOKUP_FIELDS: set[str] = {
     val.lookup_name
     for val in chain(
         lookups.__dict__.values(),
-        pg_lookups.__dict__.values(),
     )
     if getattr(val, "lookup_name", None) is not None
 }
@@ -42,8 +45,7 @@ def build_query(__name: str, *, fields: str = "pk", connection: bool = False, **
     """
     Build a GraphQL query with the given field selections and filter parameters.
 
-    :param __name: Name of the query. Query name for an object type is taken from the graphene
-                   Fields defined as class variables on the graphene Schema Query class, converted to camelCase.
+    :param __name: Name of the query, in camelCase.
     :param fields: Field selections as a GraphQL string.
     :param connection: Whether to build a relay Connection query or basic one.
     :param filter_params: Parameters to use in the query. Will be converted to camelCase.
@@ -54,17 +56,15 @@ def build_query(__name: str, *, fields: str = "pk", connection: bool = False, **
     return f"query {{ {__name}{result.query_filters} {{ {fields} }} }}"
 
 
-def build_mutation(__name: str, __input_name: str, *, fields: str = "pk errors { messages field }") -> str:
+def build_mutation(__name: str, __mutation_class_name: str, *, fields: str = "pk errors { messages field }") -> str:
     """
     Build a GraphqQL mutation with the given field selections.
 
-    :param __name: Name of the mutation. These are taken from the graphene.Mutation-type class variables
-                   on the graphene.Schema Mutation-class, converted to camelCase.
-    :param __input_name: Name of the mutation input object. This is taken from the Mutation class name
-                         of the previously named mutation, converted to PascalCase.
+    :param __name: Name of the mutation, in camelCase.
+    :param __mutation_class_name: Name of the mutation ObjectType, in PascalCase.
     :param fields: Field selections as a GraphQL string.
     """
-    return f"mutation {__name}($input: {__input_name}Input!) {{ {__name}(input: $input) {{ {fields} }} }}"
+    return f"mutation {__name}($input: {__mutation_class_name}Input!) {{ {__name}(input: $input) {{ {fields} }} }}"
 
 
 def _build_filters(fields: str, /, **filter_params: Any) -> FiltersAndFields:
@@ -147,7 +147,7 @@ def _build_field_filter_params(field_filter_params: dict[str, Any]) -> dict[str,
         plain_key, lookup_field = _split_lookups(key)
         parts = plain_key.split(LOOKUP_SEP)
         last_index = len(parts) - 1
-        params[to_camel_case(parts[0])] = current_params = FieldFilterParams()
+        current_params = params.setdefault(to_camel_case(parts[0]), FieldFilterParams())
 
         for i, part in enumerate(parts[1:], start=1):
             if i != last_index:
@@ -174,7 +174,10 @@ def _add_filters_to_fields(fields: dict[str, dict | None], field_filter_params: 
     """
     for field_name, params in field_filter_params.items():
         if field_name not in fields:
-            msg = f"Field filters '{params}' defined for field '{field_name}' but not in selected fields: {fields}"
+            msg = (
+                f"Field filters '{params}' defined for field '{field_name}' "
+                f"but not in selected fields: '{_dict_to_fields(fields)}'"
+            )
             raise RuntimeError(msg)
 
         if params.sub_filters:

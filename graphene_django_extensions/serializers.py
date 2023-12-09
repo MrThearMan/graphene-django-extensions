@@ -1,24 +1,23 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING
 
-from django.shortcuts import get_object_or_404
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
 from .fields import IntegerPrimaryKeyField
-from .typing import AnyUser, SerializerMeta
-from .utils import RelatedFieldInfo, get_rel_field_info, handle_related
+from .typing import SerializerMeta
+from .utils import RelatedFieldInfo, get_object_or_404, get_rel_field_info, handle_related
 
 if TYPE_CHECKING:
     from django.db.models import Model
     from rest_framework.fields import Field
 
+    from .typing import Any, AnyUser, RelatedSerializer
+
+
 __all__ = [
     "BaseModelSerializer",
 ]
-
-
-RelatedSerializer = Union["BaseModelSerializer", ListSerializer]
 
 
 class BaseModelSerializer(ModelSerializer):
