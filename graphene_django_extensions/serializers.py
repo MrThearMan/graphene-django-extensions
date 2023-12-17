@@ -60,12 +60,14 @@ class NestingModelSerializer(ModelSerializer):
     when they are included as nested serializer fields:
 
     ```
-    class SubSerializer(ModelSerializer):
+    from graphene_django_extensions import NestingModelSerializer
+
+    class SubSerializer(NestingModelSerializer):
         class Meta:
             model = Sub
             fields = ["pk", "field"]
 
-    class MainSerializer(ModelSerializer):
+    class MainSerializer(NestingModelSerializer):
         sub_entry = SubSerializer()
 
         class Meta:
@@ -79,8 +81,8 @@ class NestingModelSerializer(ModelSerializer):
     {
         "pk": 1,
         "sub_entities": {
-            "field": "value",
-        },
+            "field": "value"
+        }
     }
     ```
 
@@ -93,13 +95,14 @@ class NestingModelSerializer(ModelSerializer):
     {
         "pk": 1,
         "sub_entities": {
-            "pk": 2,
-        },
+            "pk": 2
+        }
     }
     ```
 
     This will create the Main entity and link an existing Sub entity with pk=2 to it.
-    If the Sub entity does not exist, a 404 error will be raised.
+    If the Sub entity does not exist, a 404 error will be raised. If the sub entity
+    is already linked to another Main entity, this will be a no-op.
 
     If the 'pk' field is included with some other fields, the Sub entity will also be updated:
 
@@ -108,31 +111,29 @@ class NestingModelSerializer(ModelSerializer):
         "pk": 1,
         "sub_entities": {
             "pk": 2,
-            "field": "value",
-        },
+            "field": "value"
+        }
     }
     ```
 
     For "to_many" relations, the serializer field must be a ListSerializer:
 
     ```
-    class MainSerializer(serializers.ModelSerializer):
+    class MainSerializer(NestingModelSerializer):
         sub_entry = SubSerializer(many=True)
     ```
 
     Same logic applies for "to_many" relations, but if the relation is a 'one_to_many' relation,
-    and the relation is updated, any existing related entities that were not included in the request
-    will be deleted.
+    and the relation is updated. Any existing related entities that were not included in the request
+    will be deleted (e.g., `pk=1` could have been deleted here):
 
     ```
     {
         "pk": 1,
         "sub_entities": [
-            # If pk=1 was previously linked to the main entity, it will be deleted if not included
-            # {"pk": 1},
             {"pk": 2},
-            {"field": "value"},  # can also add new entities in the same request
-        ],
+            {"field": "value"}
+        ]
     }
     ```
     """

@@ -14,7 +14,7 @@ from .model_operations import get_model_lookup_field
 if TYPE_CHECKING:
     from graphene.types.unmountedtype import UnmountedType
 
-    from .typing import FieldName, SerializerMeta, TypedDict
+    from .typing import FieldNameStr, SerializerMeta, TypedDict
 
 
 __all__ = [
@@ -54,7 +54,7 @@ def convert_typed_dict_to_graphene_type(typed_dict: type[TypedDict]) -> type[gra
 
 def convert_serializer_fields_to_not_required(
     serializer_class: type[ModelSerializer],
-    lookup_field: FieldName | None,
+    lookup_field: FieldNameStr | None,
     *,
     top_level: bool = True,
 ) -> type[ModelSerializer | ListSerializer]:
@@ -102,7 +102,13 @@ def convert_serializer_fields_to_not_required(
     return new_class
 
 
-def _set_extra_kwargs(field_name: FieldName, meta: SerializerMeta, lookup_field: FieldName, *, top_level: bool) -> None:
+def _set_extra_kwargs(
+    field_name: FieldNameStr,
+    meta: SerializerMeta,
+    lookup_field: FieldNameStr,
+    *,
+    top_level: bool,
+) -> None:
     """Set `meta.extra_kwargs` settings for the given `field_name`."""
     # If the `field_name` is for a model property, should not set anything.
     attr = getattr(meta.model, field_name, None)

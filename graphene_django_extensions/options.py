@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from graphene_django_extensions.permissions import BasePermission
 
     from .bases import DjangoMutation, DjangoNode
-    from .typing import FieldName, Sequence
+    from .typing import FieldNameStr, Sequence
 
 
 __all__ = [
@@ -38,7 +38,7 @@ class DjangoMutationOptions(MutationOptions):
         class_type: type[DjangoMutation],
         model_class: type[models.Model],
         model_operation: Literal["create", "update", "delete", "custom"],
-        lookup_field: FieldName,
+        lookup_field: FieldNameStr,
         fields: dict[str, InputField],
         serializer_class: type[ModelSerializer] | None,
         output_serializer_class: type[ModelSerializer] | None,

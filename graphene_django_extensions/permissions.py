@@ -9,7 +9,7 @@ from .typing import ParamSpec, TypeVar
 if TYPE_CHECKING:
     from django.db.models import Model
 
-    from .typing import Any, Callable, GQLInfo, PermCheck
+    from .typing import Any, AnyUser, Callable, PermCheck
 
 
 T = TypeVar("T")
@@ -28,44 +28,80 @@ __all__ = [
 
 class BasePermission:
     @classmethod
-    def has_permission(cls, info: GQLInfo) -> bool:  # pragma: no cover
+    def has_permission(cls, user: AnyUser) -> bool:  # pragma: no cover
         return False
 
     @classmethod
-    def has_node_permission(cls, info: GQLInfo, pk: Any) -> bool:
-        return cls.has_permission(info)
+    def has_node_permission(cls, user: AnyUser, pk: Any, filters: dict[str, Any]) -> bool:
+        return cls.has_permission(user)
 
     @classmethod
-    def has_mutation_permission(cls, obj: Model, info: GQLInfo, input_data: dict[str, Any]) -> bool:
-        return cls.has_permission(info)
+    def has_filter_permission(cls, user: AnyUser, filters: dict[str, Any]) -> bool:
+        return cls.has_permission(user)
 
     @classmethod
-    def has_filter_permission(cls, info: GQLInfo) -> bool:
-        return cls.has_permission(info)
+    def has_mutation_permission(
+        cls,
+        obj: Model,
+        user: AnyUser,
+        input_data: dict[str, Any],
+        filters: dict[str, Any],
+    ) -> bool:
+        return cls.has_permission(user)
+
+    @classmethod
+    def has_create_permission(
+        cls,
+        obj: Model,
+        user: AnyUser,
+        input_data: dict[str, Any],
+        filters: dict[str, Any],
+    ) -> bool:
+        return cls.has_mutation_permission(obj, user, input_data, filters)
+
+    @classmethod
+    def has_update_permission(
+        cls,
+        obj: Model,
+        user: AnyUser,
+        input_data: dict[str, Any],
+        filters: dict[str, Any],
+    ) -> bool:
+        return cls.has_mutation_permission(obj, user, input_data, filters)
+
+    @classmethod
+    def has_delete_permission(
+        cls,
+        obj: Model,
+        user: AnyUser,
+        input_data: dict[str, Any],
+        filters: dict[str, Any],
+    ) -> bool:
+        return cls.has_mutation_permission(obj, user, input_data, filters)
 
 
 class AllowAny(BasePermission):
     @classmethod
-    def has_permission(cls, info: GQLInfo) -> bool:
+    def has_permission(cls, user: AnyUser) -> bool:
         return True
 
 
 class AllowAuthenticated(BasePermission):
     @classmethod
-    def has_permission(cls, info: GQLInfo) -> bool:  # pragma: no cover
-        return info.context.user.is_authenticated
+    def has_permission(cls, user: AnyUser) -> bool:  # pragma: no cover
+        return user.is_authenticated
 
 
 class AllowStaff(BasePermission):
     @classmethod
-    def has_permission(cls, info: GQLInfo) -> bool:  # pragma: no cover
-        return info.context.user.is_staff
+    def has_permission(cls, user: AnyUser) -> bool:  # pragma: no cover
+        return user.is_staff
 
 
 class AllowSuperuser(BasePermission):
     @classmethod
-    def has_permission(cls, info: GQLInfo) -> bool:  # pragma: no cover
-        return info.context.user.is_superuser
+    def has_permission(cls, user: AnyUser) -> bool:  # pragma: no cover
+        return user.is_superuser
 
 
 def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callable[P, T]], Callable[P, T]]:

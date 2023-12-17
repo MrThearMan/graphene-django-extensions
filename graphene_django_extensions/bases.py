@@ -31,6 +31,7 @@ from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
 from .typing import Sequence
+from .utils import get_filters_from_info
 
 if TYPE_CHECKING:
     from django.db import models
@@ -39,7 +40,7 @@ if TYPE_CHECKING:
     from graphene.types.mountedtype import MountedType
     from graphene.types.unmountedtype import UnmountedType
 
-    from .typing import Any, AnyUser, FieldName, GQLInfo, Literal, PermCheck, Self
+    from .typing import Any, AnyUser, FieldNameStr, GQLInfo, Literal, PermCheck, Self
 
 
 __all__ = [
@@ -70,13 +71,13 @@ class DjangoNode(DjangoObjectType):
 
     ---
 
-    The following options can be set in `Meta`-class.
+    The following options can be set in the `Meta`-class.
 
     `model: type[Model]`
 
     - Required. The model class for the node.
 
-    `fields: list[FieldName] | Literal["__all__"]`
+    `fields: list[FieldNameStr] | Literal["__all__"]`
 
     - Required. The fields to include in the node. If `__all__` is used, all fields are included.
 
@@ -84,7 +85,7 @@ class DjangoNode(DjangoObjectType):
 
     - Optional. Set permission classes for the node. Defaults to (`AllowAny`,).
 
-    `restricted_fields: dict[FieldName, PermCheck]`
+    `restricted_fields: dict[FieldNameStr, PermCheck]`
 
     - Optional. Adds permission checks to the resolvers of the fields as defined in the dict.
     """
@@ -123,9 +124,9 @@ class DjangoNode(DjangoObjectType):
     def __init_subclass_with_meta__(
         cls,
         model: type[models.Model] | None = None,
-        fields: list[FieldName] | Literal["__all__"] | None = None,
+        fields: list[FieldNameStr] | Literal["__all__"] | None = None,
         permission_classes: Sequence[type[BasePermission]] = (AllowAny,),
-        restricted_fields: dict[FieldName, PermCheck] | None = None,
+        restricted_fields: dict[FieldNameStr, PermCheck] | None = None,
         **options: Any,
     ) -> None:
         if model is None:  # pragma: no cover
@@ -141,7 +142,7 @@ class DjangoNode(DjangoObjectType):
             raise ValueError(msg)
 
         if not (fields == ALL_FIELDS or isinstance(fields, Sequence)):  # pragma: no cover
-            msg = f"`Meta.fields` is should be a Sequence or `{ALL_FIELDS}`, received: v{fields}`."
+            msg = f"`Meta.fields` is should be a Sequence of field names or `{ALL_FIELDS}`, received: `{fields}`."
             raise TypeError(msg)
 
         if not hasattr(cls, "pk") and (fields == ALL_FIELDS or "pk" in fields):
@@ -164,8 +165,8 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def _add_field_restrictions(
         cls,
-        fields: Sequence[FieldName] | Literal["__all__"],
-        restricted_fields: dict[FieldName, PermCheck],
+        fields: Sequence[FieldNameStr] | Literal["__all__"],
+        restricted_fields: dict[FieldNameStr, PermCheck],
     ) -> None:
         for field_name, check in restricted_fields.items():
             if fields != ALL_FIELDS and field_name not in fields:  # pragma: no cover
@@ -198,12 +199,14 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def has_filter_permissions(cls, info: GQLInfo) -> bool:
         """Check which permissions are required to access lists of this type."""
-        return all(perm.has_filter_permission(info) for perm in cls._meta.permission_classes)
+        filters = get_filters_from_info(info)
+        return all(perm.has_filter_permission(info.context.user, filters) for perm in cls._meta.permission_classes)
 
     @classmethod
     def has_node_permissions(cls, info: GQLInfo, pk: Any) -> bool:
         """Check which permissions are required to access single items of this type."""
-        return all(perm.has_node_permission(info, pk) for perm in cls._meta.permission_classes)
+        filters = get_filters_from_info(info)
+        return all(perm.has_node_permission(info.context.user, pk, filters) for perm in cls._meta.permission_classes)
 
     @classmethod
     def get_global_id(cls, pk: Any) -> str:
@@ -264,7 +267,7 @@ class DjangoMutation(ClientIDMutation):
     @classmethod
     def __init_subclass_with_meta__(  # noqa: PLR0913
         cls,
-        lookup_field: FieldName | None = None,
+        lookup_field: FieldNameStr | None = None,
         model: type[models.Model] | None = None,
         serializer_class: type[ModelSerializer] | None = None,
         output_serializer_class: type[ModelSerializer] | None = None,
@@ -348,7 +351,17 @@ class DjangoMutation(ClientIDMutation):
 
     @classmethod
     def has_permission(cls, root: Any, info: GQLInfo, input_data: dict[str, Any]) -> bool:
-        return all(perm.has_mutation_permission(root, info, input_data) for perm in cls._meta.permission_classes)
+        filters = get_filters_from_info(info)
+        user = info.context.user
+        perms = cls._meta.permission_classes
+
+        if cls._meta.model_operation == "create":
+            return all(perm.has_create_permission(root, user, input_data, filters) for perm in perms)
+        if cls._meta.model_operation == "update":
+            return all(perm.has_update_permission(root, user, input_data, filters) for perm in perms)
+        if cls._meta.model_operation == "delete":
+            return all(perm.has_delete_permission(root, user, input_data, filters) for perm in perms)
+        return all(perm.has_mutation_permission(root, user, input_data, filters) for perm in perms)
 
     @classmethod
     def mutate(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:

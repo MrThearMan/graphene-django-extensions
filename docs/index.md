@@ -28,30 +28,30 @@ Extensions for writing GraphQL schemas with the [graphene-django] library with l
 The main features are:
 
 - A new ObjectType `DjangoNode`, which:
-  - adds convenience methods for managing permissions for both the ObjectType and individual fields.
-  - adds a hook for adding filtering to both single items and lists returned by the ObjectType.
-  - adds convenience methods for creating graphene fields from the type.
+    - adds convenience methods for managing permissions for both the ObjectType and individual fields.
+    - adds a hook for adding filtering to both single items and lists returned by the ObjectType.
+    - adds convenience methods for creating graphene fields from the type.
 
 - A new MutationType `DjangoMutation`, which:
-  - adds convenience methods for managing permissions.
-  - adds `create`, `update` operation with serializers and `delete` operations with optional validation hook.
-  - adds an option for custom model operations.
-  - makes updates fully partial by default.
-  - adds better error handling.
+    - adds convenience methods for managing permissions.
+    - adds `create`, `update` operation with serializers and `delete` operations with optional validation hook.
+    - adds an option for custom model operations.
+    - makes updates fully partial by default.
+    - adds better error handling.
 
 - A new ModelSerializer `NestingModelSerializer`, which:
-  - adds pre and post save handlers for creating or updating related entities from nested serializer fields,
-    all within a single transaction to ensure atomicity.
-  - adds better handling of constraint integrity errors by finding `violation_error_message` from the constraint.
-  - adds `get_or_default` method for finding default values for field validation.
+    - adds pre and post save handlers for creating or updating related entities from nested serializer fields,
+      all within a single transaction to ensure atomicity.
+    - adds better handling of constraint integrity errors by finding `violation_error_message` from the constraint.
+    - adds `get_or_default` method for finding default values for field validation.
 
 - A new FilterSet `ModelFilterSet`, which:
-  - changes the default filters for related fields to the custom `IntChoiceFilter` and `IntMultipleChoiceFilter`
-    filters, which don't make database queries to check if the given primary keys for the filters actually
-    correspond to existing rows for the database model.
-  - adds a custom ordering filter automatically to all subclasses, with the default `pk` filter.
-  - allows adding new ordering filters with the `Meta.order_by` attribute.
-  - allows combining multiple method filters with the `Meta.combination_methods` attribute.
+    - changes the default filters for related fields to the custom `IntChoiceFilter` and `IntMultipleChoiceFilter`
+      filters, which don't make database queries to check if the given primary keys for the filters actually
+      correspond to existing rows for the database model.
+    - adds a custom ordering filter automatically to all subclasses, with the default `pk` filter.
+    - allows adding new ordering filters with the `Meta.order_by` attribute.
+    - allows combining multiple method filters with the `Meta.combination_methods` attribute.
 
 
 [coverage-badge]: https://coveralls.io/repos/github/MrThearMan/graphene-django-extensions/badge.svg?branch=main

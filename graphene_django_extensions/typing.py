@@ -43,7 +43,7 @@ __all__ = [
     "Any",
     "AnyUser",
     "Callable",
-    "FieldName",
+    "FieldNameStr",
     "FilterOverride",
     "FilterSetMeta",
     "Generic",
@@ -67,7 +67,11 @@ __all__ = [
 ]
 
 
-FieldName: TypeAlias = str
+FieldNameStr: TypeAlias = str
+FieldLookupStr: TypeAlias = str
+FilterAliasStr: TypeAlias = str
+LookupNameStr: TypeAlias = str
+MethodNameStr: TypeAlias = str
 AnyUser: TypeAlias = Union["User", "AnonymousUser"]
 PermCheck: TypeAlias = Callable[[AnyUser], bool] | Callable[[AnyUser, "Model"], bool]
 RelationType: TypeAlias = Literal["one_to_one", "many_to_one", "one_to_many", "many_to_many"]
@@ -103,19 +107,19 @@ class GQLInfo(GraphQLResolveInfo):
 
 class SerializerMeta:
     model: type[Model]
-    fields: Sequence[str] | Literal["__all__"]
-    read_only_fields: Sequence[str]
-    exclude: Sequence[str]
+    fields: Sequence[FieldNameStr] | Literal["__all__"]
+    read_only_fields: Sequence[FieldNameStr]
+    exclude: Sequence[FieldNameStr]
     depth: int
-    extra_kwargs: dict[str, dict[str, Any]]
+    extra_kwargs: Mapping[FieldNameStr, Mapping[str, Any]]
     node: DjangoNode
 
 
 class FilterSetMeta:
     model: type[Model] | None
-    fields: Sequence[str] | Mapping[str, Sequence[str]] | None
-    exclude: Sequence[str] | None
-    filter_overrides: dict[Field, FilterOverride]
+    fields: Sequence[FieldNameStr] | Mapping[FieldNameStr, Sequence[LookupNameStr]] | Literal["__all__"] | None
+    exclude: Sequence[FieldNameStr] | None
+    filter_overrides: Mapping[Field, FilterOverride]
     form: type[Form]
-    combination_methods: Sequence[str]
-    order_by: Sequence[str | tuple[str, str]]
+    combination_methods: Sequence[MethodNameStr]
+    order_by: Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasStr]]

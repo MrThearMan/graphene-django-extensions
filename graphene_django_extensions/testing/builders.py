@@ -47,7 +47,7 @@ def build_query(__name: str, *, fields: str = "pk", connection: bool = False, **
 
     :param __name: Name of the query, in camelCase.
     :param fields: Field selections as a GraphQL string.
-    :param connection: Whether to build a relay Connection query or basic one.
+    :param connection: Whether to build a Relay Connection query or basic one.
     :param filter_params: Parameters to use in the query. Will be converted to camelCase.
                           Use "__" to add filters to fields instead of the query.
     """

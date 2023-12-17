@@ -2,12 +2,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from graphql.language.ast import (
+    BooleanValueNode,
+    ConstListValueNode,
+    EnumValueNode,
+    FieldNode,
+    FloatValueNode,
+    IntValueNode,
+    ListValueNode,
+    StringValueNode,
+    ValueNode,
+    VariableNode,
+)
+
 if TYPE_CHECKING:
-    from .typing import Any
+    from .typing import Any, GQLInfo
 
 
 __all__ = [
     "get_nested",
+    "get_filters_from_info",
 ]
 
 
@@ -37,3 +51,28 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
 
     obj = obj or {}
     return get_nested(obj.get(arg), *args, default=default)
+
+
+def get_filters_from_info(info: GQLInfo) -> dict[str, Any]:
+    """Find filter arguments in the GraphQL query and return them as a dict."""
+    filters: dict[str, Any] = {}
+
+    for field in info.operation.selection_set.selections:
+        if not isinstance(field, FieldNode):  # pragma: no cover
+            continue
+        for argument in field.arguments:
+            filters[argument.name.value] = _get_filter_argument(argument.value, info.variable_values)
+
+    return filters
+
+
+def _get_filter_argument(value: ValueNode, variable_values: dict[str, Any]) -> Any:
+    if isinstance(value, (IntValueNode, FloatValueNode, StringValueNode, BooleanValueNode, EnumValueNode)):
+        return value.value
+    if isinstance(value, (ListValueNode, ConstListValueNode)):
+        return [_get_filter_argument(val, variable_values) for val in value.values]
+    if isinstance(value, VariableNode):  # pragma: no cover
+        return variable_values[value.name.value]
+
+    msg = f"Unsupported ValueNode for filter argument: '{type(value).__name__}'"  # pragma: no cover
+    raise ValueError(msg)  # pragma: no cover

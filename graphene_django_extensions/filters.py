@@ -34,7 +34,8 @@ __all__ = [
 class IntChoiceFilter(django_filters.TypedChoiceFilter):
     """
     Allow plain integers as choices in GraphQL filters.
-    See `IntChoiceField` for motivation.
+    Normally, integer enums are converted to string enums in GraphQL by prefixing
+    them with `A_`, but this filter allows using plain integers.
     """
 
     field_class = IntChoiceField
@@ -65,7 +66,10 @@ class EnumMultipleChoiceFilter(EnumChoiceFilterMixin, django_filters.TypedMultip
 
 
 class CustomOrderingFilter(django_filters.OrderingFilter):
-    """Ordering filter for handling custom orderings by defining `order_by_{name}` functions on its subclasses."""
+    """
+    Ordering filter for handling custom orderings by defining `order_by_{name}` functions
+    on its subclasses or filtersets it is defined on.
+    """
 
     def filter(self, qs: models.QuerySet, value: list[str]) -> models.QuerySet:  # noqa: A003
         if value in EMPTY_VALUES:
@@ -97,7 +101,53 @@ class CustomOrderingFilter(django_filters.OrderingFilter):
 
 
 class ModelFilterSet(django_filters.FilterSet):
-    """ """
+    """
+    Custom FilterSet class for optimizing the filtering of GraphQL queries.
+    Adds the following features to all types that inherit it:
+
+    - Adds a default ordering filter by primary key if none is defined.
+
+    - Changes the default filters for all relationships to not make a database
+      query to check if a filtered rows exists.
+
+    ---
+
+    The following options can be set in the `Meta`-class.
+
+    `model: type[models.Model]`
+
+    - Required. Model class for the model the filterset is for.
+
+    `fields: Sequence[FieldNameStr] | Mapping[FieldNameStr, Sequence[LookupNameStr]] | Literal["__all__"]`
+
+    - Required if no `exclude`. Fields to include in the filterset. Can be a list of field names
+      (lookup name will be `exact`), a mapping of field names to a list of lookup names, or the
+      special value `__all__` to include all fields.
+
+    `exclude: Sequence[FieldNameStr]`
+
+    - Required if no `fields`. Fields to exclude from the filterset.
+
+    `filter_overrides: dict[Field, FilterOverride]`
+
+    - Optional. Overrides for the default filters for specific fields.
+
+    `form: type[Form]`
+
+    - Optional. Form class to use for the filterset. Defaults to `django_filters.Form`.
+
+    `order_by: Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasStr]]`
+
+    - Optional. Ordering filters to add to the filterset. Can also add non-field orderings,
+      or customize field orderings by adding a `order_by_{field_name}` method to the
+      `ModelFilterSet` subclass.
+
+    `combination_methods: Sequence[MethodNameStr]`
+
+    - Optional. Allows combining method filters so that they will use the same filter function.
+      The combination method will always run, and its value will be a mapping of the
+      field names of the combined filters to their values.
+    """
 
     _meta: FilterSetMeta
     declared_filters: dict[str, django_filters.Filter]
