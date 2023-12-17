@@ -2,6 +2,11 @@ site_name: Graphene Django Extensions
 
 nav:
   - Home: index.md
+  - Querying: querying.md
+  - Filtering: filtering.md
+  - Permissions: permissions.md
+  - Mutations: mutations.md
+  - Testing: testing.md
 
 theme:
   name: readthedocs
@@ -21,6 +26,8 @@ markdown_extensions:
       - name: mermaid
         class: mermaid
         format: !!python/name:mermaid2.fence_mermaid
+  toc:
+    permalink: 🔗
 
 plugins:
   - search:
