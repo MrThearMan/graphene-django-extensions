@@ -30,7 +30,7 @@ Some new methods are also added. Here are the most useful ones:
 
 - args:
     - `queryset: QuerySet`
-    - `user: AnyUser`
+    - `info: GQLInfo`
 
 Can be used to filter available rows for both `get_queryset` and `get_node`.
 

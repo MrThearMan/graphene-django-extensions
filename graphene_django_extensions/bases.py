@@ -116,7 +116,7 @@ class DjangoNode(DjangoObjectType):
         return DjangoFilterConnectionField(cls, **kwargs)
 
     @classmethod
-    def filter_queryset(cls, queryset: models.QuerySet, user: AnyUser) -> models.QuerySet:
+    def filter_queryset(cls, queryset: models.QuerySet, info: GQLInfo) -> models.QuerySet:
         """Implement this method filter to the available rows from the model on this node."""
         return queryset
 
@@ -185,7 +185,7 @@ class DjangoNode(DjangoObjectType):
         if not cls.has_filter_permissions(info):
             msg = gdx_settings.FILTER_PERMISSION_ERROR_MESSAGE
             raise PermissionError(msg)
-        return cls.filter_queryset(queryset, info.context.user)
+        return cls.filter_queryset(queryset, info)
 
     @classmethod
     def get_node(cls, info: GQLInfo, pk: Any) -> models.Model | None:
@@ -194,7 +194,7 @@ class DjangoNode(DjangoObjectType):
             msg = gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE
             raise PermissionError(msg)
         queryset = cls._meta.model.objects.filter(pk=pk)
-        return cls.filter_queryset(queryset, info.context.user).first()
+        return cls.filter_queryset(queryset, info).first()
 
     @classmethod
     def has_filter_permissions(cls, info: GQLInfo) -> bool:
