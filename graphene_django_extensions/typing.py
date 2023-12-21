@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import sys
+from dataclasses import dataclass
+from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -30,7 +32,7 @@ from graphql import GraphQLResolveInfo
 if TYPE_CHECKING:
     import django_filters
     from django.contrib.auth.models import AnonymousUser, User
-    from django.db.models import Field, Model, QuerySet
+    from django.db.models import Field, Model, Q, QuerySet
     from django.forms import Form
     from graphql_relay import Edge, PageInfo
     from rest_framework.serializers import ListSerializer
@@ -76,6 +78,9 @@ AnyUser: TypeAlias = Union["User", "AnonymousUser"]
 PermCheck: TypeAlias = Callable[[AnyUser], bool] | Callable[[AnyUser, "Model"], bool]
 RelationType: TypeAlias = Literal["one_to_one", "many_to_one", "one_to_many", "many_to_many"]
 RelatedSerializer: TypeAlias = Union["NestingModelSerializer", "ListSerializer"]
+Fields: TypeAlias = Sequence[FieldNameStr] | Literal["__all__"]
+FieldAliasToLookup: TypeAlias = dict[FilterAliasStr, FieldLookupStr]
+FilterFields: TypeAlias = Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasStr]] | Literal["__all__"]
 
 T = TypeVar("T")
 
@@ -107,7 +112,7 @@ class GQLInfo(GraphQLResolveInfo):
 
 class SerializerMeta:
     model: type[Model]
-    fields: Sequence[FieldNameStr] | Literal["__all__"]
+    fields: Fields
     read_only_fields: Sequence[FieldNameStr]
     exclude: Sequence[FieldNameStr]
     depth: int
@@ -117,9 +122,61 @@ class SerializerMeta:
 
 class FilterSetMeta:
     model: type[Model] | None
-    fields: Sequence[FieldNameStr] | Mapping[FieldNameStr, Sequence[LookupNameStr]] | Literal["__all__"] | None
+    fields: Fields | Mapping[FieldNameStr, Sequence[LookupNameStr]] | None
     exclude: Sequence[FieldNameStr] | None
     filter_overrides: Mapping[Field, FilterOverride]
     form: type[Form]
     combination_methods: Sequence[MethodNameStr]
-    order_by: Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasStr]]
+    order_by: Sequence[FieldNameStr | tuple[FieldLookupStr, FilterAliasStr]]
+
+
+class Operation(Enum):
+    # Logical
+    AND = "AND"
+    OR = "OR"
+    XOR = "XOR"
+    NOT = "NOT"
+
+    # Comparison single value
+    EXACT = "EXACT"
+    IEXACT = "IEXACT"
+    GT = "GT"
+    GTE = "GTE"
+    LT = "LT"
+    LTE = "LTE"
+    CONTAINS = "CONTAINS"
+    ICONTAINS = "ICONTAINS"
+    STARTSWITH = "STARTSWITH"
+    ISTARTSWITH = "ISTARTSWITH"
+    ENDSWITH = "ENDSWITH"
+    IENDSWITH = "IENDSWITH"
+    ISNULL = "ISNULL"
+    REGEX = "REGEX"
+    IREGEX = "IREGEX"
+
+    # Comparison multiple values
+    IN = "IN"
+    RANGE = "RANGE"
+
+    @property
+    def is_logical(self) -> bool:
+        return self in (self.AND, self.OR, self.XOR, self.NOT)
+
+    @property
+    def lookup(self) -> str:
+        return self.value.lower()
+
+
+@dataclass
+class UserDefinedFilterInput:
+    operation: Operation
+    field: Enum | str | None = None
+    value: Any = None
+    operations: list[UserDefinedFilterInput] | None = None
+
+
+@dataclass
+class UserDefinedFilterResult:
+    filters: Q
+    annotations: dict[str, Any]
+    ordering: list[str]

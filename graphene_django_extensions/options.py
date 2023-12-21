@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 from graphene.types.mutation import MutationOptions
 from graphene_django.types import DjangoObjectTypeOptions
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from graphene_django_extensions.permissions import BasePermission
 
     from .bases import DjangoMutation, DjangoNode
-    from .typing import FieldNameStr, Sequence
+    from .typing import FieldNameStr, Literal, Sequence
 
 
 __all__ = [

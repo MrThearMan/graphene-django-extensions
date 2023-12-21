@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from django.core.management.utils import get_random_secret_key
+# from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = True
-SECRET_KEY = get_random_secret_key()
+SECRET_KEY = "foo"
 ROOT_URLCONF = "tests.project.urls"
 WSGI_APPLICATION = "tests.project.wsgi.application"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

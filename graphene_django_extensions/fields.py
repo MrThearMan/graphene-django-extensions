@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from contextlib import suppress
+from enum import Enum
 
 import graphene
 from aniso8601 import parse_time
 from django import forms
 from django.db import models  # noqa: TCH002
+from graphene.types.generic import GenericScalar
+from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene_django.converter import convert_django_field, get_django_field_description
 from graphene_django.forms.converter import convert_form_field, get_form_field_description
 from graphene_django.registry import Registry  # noqa: TCH002
@@ -13,11 +16,14 @@ from rest_framework import serializers
 from rest_framework.relations import PKOnlyObject
 
 from .converters import convert_typed_dict_to_graphene_type
-from .typing import TYPE_CHECKING
+from .typing import TYPE_CHECKING, FieldAliasToLookup, FilterAliasStr, Operation
 
 if TYPE_CHECKING:
     import datetime
-    from typing import Any, TypedDict
+
+    from django.db.models import Model
+
+    from .typing import Any, Self, TypedDict
 
 
 __all__ = [
@@ -60,13 +66,6 @@ class EnumChoiceFieldMixin:
         self.enum = enum
         kwargs["choices"] = enum.choices
         super().__init__(**kwargs)
-
-
-class EnumChoiceFilterMixin:
-    def __init__(self, enum: type[models.Choices], *args: Any, **kwargs: Any) -> None:
-        kwargs["enum"] = enum
-        kwargs["choices"] = enum.choices
-        super().__init__(*args, **kwargs)
 
 
 class TypedDictFieldMixin:
@@ -155,6 +154,70 @@ def convert_form_field_to_enum(field: EnumChoiceField) -> graphene.Enum:
 def convert_form_field_to_enum_list(field: EnumMultipleChoiceField) -> graphene.List:
     return graphene.List(
         graphene.Enum.from_enum(field.enum),
+        description=get_form_field_description(field),
+        required=field.required,
+    )
+
+
+class UserDefinedFilterInputType(graphene.InputObjectType):
+    """User defined filtering input."""
+
+    operation = graphene.Field(graphene.Enum.from_enum(Operation), required=True)
+    value = GenericScalar()
+    operations = graphene.List(graphene.NonNull(lambda: UserDefinedFilterInputType))
+
+    @classmethod
+    def create(cls, model: type[Model], fields: list[FilterAliasStr]) -> type[Self]:
+        name = f"{model.__name__}FilterInput"
+        meta_dict = {"model": model, "fields": fields}
+        attrs = {"Meta": type("Meta", (), meta_dict)}
+        return type(name, (UserDefinedFilterInputType,), attrs)
+
+    @classmethod
+    def __init_subclass_with_meta__(
+        cls,
+        model: type[Model] | None = None,
+        fields: list[FilterAliasStr] | None = None,
+        _meta: InputObjectTypeOptions | None = None,
+        **options: Any,
+    ) -> None:
+        if _meta is None:
+            _meta = InputObjectTypeOptions(cls)
+
+        if model is None:  # pragma: no cover
+            msg = "'Meta.model' is required."
+            raise TypeError(msg)
+
+        if fields is None:  # pragma: no cover
+            msg = "'Meta.fields' is required."
+            raise TypeError(msg)
+
+        fields_enum = Enum(f"{model.__name__}Fields", fields)
+        _meta.fields = {
+            "field": graphene.Field(
+                graphene.Enum.from_enum(
+                    enum=fields_enum,
+                    description=f"Filterable fields for the '{model.__name__}' model.",
+                ),
+            ),
+        }
+
+        super().__init_subclass_with_meta__(_meta=_meta, **options)
+
+
+class UserDefinedFilterField(forms.Field):
+    def __init__(self, model: type[Model], fields: FieldAliasToLookup, **kwargs: Any) -> None:
+        self.model = model
+        self.fields = fields
+        super().__init__(**kwargs)
+
+
+@convert_form_field.register
+def convert_user_defined_filter(field: UserDefinedFilterField) -> UserDefinedFilterInputType:
+    return UserDefinedFilterInputType.create(
+        model=field.model,
+        fields=list(field.fields),
+    )(
         description=get_form_field_description(field),
         required=field.required,
     )

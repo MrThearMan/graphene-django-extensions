@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import TYPE_CHECKING
 
 from django.apps import apps
 from django.db import models
 
+if TYPE_CHECKING:
+    from .typing import Any
+
+
 __all__ = [
     "get_constraint_message",
 ]
+
 
 CONSTRAINT_PATTERNS: tuple[re.Pattern, ...] = (
     # Postgres

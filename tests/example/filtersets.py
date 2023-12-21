@@ -5,6 +5,7 @@ from graphene_django_extensions.filters import (
     IntChoiceFilter,
     IntMultipleChoiceFilter,
     ModelFilterSet,
+    UserDefinedFilter,
 )
 from tests.example.models import Example, State
 
@@ -17,6 +18,17 @@ class ExampleFilterSet(ModelFilterSet):
 
     one = IntChoiceFilter(method="filter_by_custom")
     two = IntChoiceFilter(method="filter_by_custom")
+
+    filter = UserDefinedFilter(
+        model=Example,
+        fields=[
+            "pk",
+            "name",
+            "number",
+            "email",
+            ("forward_one_to_one_field__name", "foto_name"),
+        ],
+    )
 
     class Meta:
         model = Example

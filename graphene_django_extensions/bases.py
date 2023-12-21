@@ -30,7 +30,7 @@ from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
-from .typing import Sequence
+from .typing import Fields, Sequence
 from .utils import get_filters_from_info
 
 if TYPE_CHECKING:
@@ -124,7 +124,7 @@ class DjangoNode(DjangoObjectType):
     def __init_subclass_with_meta__(
         cls,
         model: type[models.Model] | None = None,
-        fields: list[FieldNameStr] | Literal["__all__"] | None = None,
+        fields: Fields | None = None,
         permission_classes: Sequence[type[BasePermission]] = (AllowAny,),
         restricted_fields: dict[FieldNameStr, PermCheck] | None = None,
         **options: Any,
@@ -163,11 +163,7 @@ class DjangoNode(DjangoObjectType):
         cls.resolve_pk = cls.resolve_id
 
     @classmethod
-    def _add_field_restrictions(
-        cls,
-        fields: Sequence[FieldNameStr] | Literal["__all__"],
-        restricted_fields: dict[FieldNameStr, PermCheck],
-    ) -> None:
+    def _add_field_restrictions(cls, fields: Fields, restricted_fields: dict[FieldNameStr, PermCheck]) -> None:
         for field_name, check in restricted_fields.items():
             if fields != ALL_FIELDS and field_name not in fields:  # pragma: no cover
                 msg = f"Field `{field_name}` not in `Meta.fields`."

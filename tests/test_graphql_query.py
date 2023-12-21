@@ -256,6 +256,66 @@ def test_graphql__filter__combination_filter(graphql: GraphQLClient):
     assert response.node(1) == {"pk": example_2.pk}
 
 
+def test_graphql__filter__user_defined(graphql: GraphQLClient):
+    example = ExampleFactory.create(name="foo")
+    ExampleFactory.create(name="foobar")
+
+    query = """
+        query {
+          examples(
+            filter: {
+              field: name,
+              operation: EXACT,
+              value: "foo",
+            }
+          ) {
+            edges {
+              node {
+                pk
+              }
+            }
+          }
+        }
+    """
+
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node() == {"pk": example.pk}
+
+
+def test_graphql__filter__user_defined__related_alias(graphql: GraphQLClient):
+    example = ExampleFactory.create(name="foo", forward_one_to_one_field__name="bar")
+    ExampleFactory.create(name="foobar")
+
+    query = """
+        query {
+          examples(
+            filter: {
+              field: foto_name,
+              operation: EXACT,
+              value: "bar",
+            }
+          ) {
+            edges {
+              node {
+                pk
+              }
+            }
+          }
+        }
+    """
+
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node() == {"pk": example.pk}
+
+
 def test_graphql__ordering(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(name="foo2")
     example_2 = ExampleFactory.create(name="foo1")

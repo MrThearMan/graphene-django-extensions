@@ -5,18 +5,27 @@ from typing import TYPE_CHECKING
 
 import django_filters
 from django.db import models
-from django_filters.constants import EMPTY_VALUES
+from django.db.models import Model, Q, QuerySet
+from django.db.models.constants import LOOKUP_SEP
+from django_filters.constants import ALL_FIELDS, EMPTY_VALUES
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 
 from .fields import (
     EnumChoiceField,
-    EnumChoiceFilterMixin,
     EnumMultipleChoiceField,
     IntChoiceField,
     IntMultipleChoiceField,
+    UserDefinedFilterField,
 )
 from .settings import gdx_settings
-from .typing import FilterSetMeta
+from .typing import (
+    FieldAliasToLookup,
+    FilterFields,
+    FilterSetMeta,
+    Operation,
+    UserDefinedFilterInput,
+    UserDefinedFilterResult,
+)
 
 if TYPE_CHECKING:
     from .typing import Any, OrderingFunc
@@ -29,6 +38,13 @@ __all__ = [
     "EnumChoiceFilter",
     "EnumMultipleChoiceFilter",
 ]
+
+
+class EnumChoiceFilterMixin:
+    def __init__(self, enum: type[models.Choices], *args: Any, **kwargs: Any) -> None:
+        kwargs["enum"] = enum
+        kwargs["choices"] = enum.choices
+        super().__init__(*args, **kwargs)
 
 
 class IntChoiceFilter(django_filters.TypedChoiceFilter):
@@ -63,6 +79,85 @@ class EnumMultipleChoiceFilter(EnumChoiceFilterMixin, django_filters.TypedMultip
     """Same as above but supports multiple choices."""
 
     field_class = EnumMultipleChoiceField
+
+
+class UserDefinedFilter(django_filters.Filter):
+    """Allows for user defined filter operations."""
+
+    field_class = UserDefinedFilterField
+
+    def __init__(self, model: type[Model], fields: FilterFields = ALL_FIELDS, **kwargs: Any) -> None:
+        kwargs["model"] = model
+        kwargs["fields"] = self._normalize_fields(model, fields)
+        super().__init__(**kwargs)
+
+    def filter(self, qs: QuerySet, data: UserDefinedFilterInput) -> QuerySet:  # noqa: A003
+        if data in EMPTY_VALUES:
+            return qs
+
+        result = self.build_user_defined_filters(data)
+
+        if result.annotations:  # pragma: no cover
+            qs = qs.annotate(**result.annotations)
+        if result.ordering:  # pragma: no cover
+            qs = qs.order_by(*qs.query.order_by, *result.ordering)
+
+        return qs.filter(result.filters)
+
+    def build_user_defined_filters(self, data: UserDefinedFilterInput) -> UserDefinedFilterResult:
+        filters: Q = Q()
+        ann: dict[str, Any] = {}
+        ordering: list[str] = []
+
+        if data.operation.is_logical:
+            if data.operations is None:
+                msg = "Logical filter operation requires 'operations' to be set."
+                raise ValueError(msg)
+
+            if data.operation == Operation.NOT and len(data.operations) != 1:
+                msg = "Logical filter operation 'NOT' requires exactly one operation."
+                raise ValueError(msg)
+
+            for operation in data.operations:
+                result = self.build_user_defined_filters(operation)
+                if result.annotations:  # pragma: no cover
+                    ann.update(result.annotations)
+                if result.ordering:  # pragma: no cover
+                    ordering.extend(result.ordering)
+
+                if data.operation == Operation.AND:
+                    filters &= result.filters
+                elif data.operation == Operation.OR:
+                    filters |= result.filters
+                elif data.operation == Operation.NOT:
+                    filters = ~result.filters
+                elif data.operation == Operation.XOR:
+                    filters ^= result.filters
+
+        else:
+            if data.field is None:
+                msg = "Comparison filter operation requires 'field' to be set."
+                raise ValueError(msg)
+
+            alias: str = getattr(data.field, "name", data.field)
+            field: str = self.extra["fields"][alias]
+            inputs: dict[str, Any] = {f"{field}{LOOKUP_SEP}{data.operation.lookup}": data.value}
+            filters = Q(**inputs)
+
+        return UserDefinedFilterResult(filters=filters, annotations=ann, ordering=ordering)
+
+    @staticmethod
+    def _normalize_fields(model: type[Model], fields: FilterFields) -> FieldAliasToLookup:
+        if fields == ALL_FIELDS:  # pragma: no cover
+            return {field.name: field.name for field in model._meta.get_fields()}
+
+        normalized_fields: FieldAliasToLookup = {}
+        for field in fields:
+            if isinstance(field, tuple):
+                normalized_fields[field[1]] = field[0]
+            else:
+                normalized_fields[field] = field
+        return normalized_fields
 
 
 class CustomOrderingFilter(django_filters.OrderingFilter):

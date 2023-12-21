@@ -5,11 +5,13 @@ from typing import TYPE_CHECKING
 from graphql.language.ast import (
     BooleanValueNode,
     ConstListValueNode,
+    ConstObjectValueNode,
     EnumValueNode,
     FieldNode,
     FloatValueNode,
     IntValueNode,
     ListValueNode,
+    ObjectValueNode,
     StringValueNode,
     ValueNode,
     VariableNode,
@@ -17,7 +19,6 @@ from graphql.language.ast import (
 
 if TYPE_CHECKING:
     from .typing import Any, GQLInfo
-
 
 __all__ = [
     "get_nested",
@@ -71,8 +72,10 @@ def _get_filter_argument(value: ValueNode, variable_values: dict[str, Any]) -> A
         return value.value
     if isinstance(value, (ListValueNode, ConstListValueNode)):
         return [_get_filter_argument(val, variable_values) for val in value.values]
+    if isinstance(value, (ObjectValueNode, ConstObjectValueNode)):
+        return {field.name.value: _get_filter_argument(field.value, variable_values) for field in value.fields}
     if isinstance(value, VariableNode):  # pragma: no cover
         return variable_values[value.name.value]
 
-    msg = f"Unsupported ValueNode for filter argument: '{type(value).__name__}'"  # pragma: no cover
+    msg = f"Unsupported ValueNode for filter argument type: '{type(value).__name__}'"  # pragma: no cover
     raise ValueError(msg)  # pragma: no cover
