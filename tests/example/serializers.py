@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from graphene_django_extensions import NestingModelSerializer
@@ -42,3 +43,11 @@ class ExampleSerializer(NestingModelSerializer):
         if value < 0:
             raise ValidationError("Number must be positive.")
         return value
+
+
+class ExampleCustomInputSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True)
+
+
+class ExampleCustomOutputSerializer(serializers.Serializer):
+    pk = serializers.IntegerField()

@@ -49,20 +49,23 @@ The following options can be set in the `Meta`-class.
 ### Custom mutations
 
 Custom mutations can be created by subclassing `DjangoMutation` and implementing
-the `custom_mutation` method. `input_fields` and `output_fields` can be
-set in the `Meta`-class, and will be added to the mutation's input and output types.
+the `custom_mutation` method. `serializer_class` and `output_serializer_class` can be
+set in the `Meta`-class, and will be converted to the mutation's input and output types.
+If `output_serializer_class` is not set, `serializer_class` will be used for both input
+and output types.
 
 ```python
 from graphene_django_extensions.bases import DjangoMutation
 
-class ExampleMutation(DjangoMutation):
+class ExampleCustomMutation(DjangoMutation):
     class Meta:
-        input_fields: dict[str, graphene.Field] = {...}
-        output_fields: dict[str, graphene.Field] = {...}
+        serializer_class = ExampleInputSerializer
+        output_serializer_class = ExampleOutputSerializer
 
     @classmethod
-    def custom_mutation(cls, root, info, **kwargs):
-        # Do custom logic here
+    def custom_mutation(cls, info, **kwargs):
+        # Do custom logic here.
+        # `kwargs` have already been validated by the serializer.
         return cls(...)
 ```
 

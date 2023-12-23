@@ -177,7 +177,7 @@ def test_graphql__custom(graphql: GraphQLClient):
     example = Example.objects.first()
 
     assert response.has_errors is False, response
-    assert response.first_query_object == {"pk": str(example.pk)}
+    assert response.first_query_object == {"pk": example.pk}
 
 
 def test_graphql__custom__permission_error(graphql: GraphQLClient):

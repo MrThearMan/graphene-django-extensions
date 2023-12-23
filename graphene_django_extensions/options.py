@@ -7,7 +7,6 @@ from graphene_django.types import DjangoObjectTypeOptions
 
 if TYPE_CHECKING:
     from django.db import models
-    from graphene import InputField
     from rest_framework.serializers import ModelSerializer
 
     from graphene_django_extensions.permissions import BasePermission
@@ -36,18 +35,16 @@ class DjangoMutationOptions(MutationOptions):
     def __init__(  # noqa: PLR0913
         self,
         class_type: type[DjangoMutation],
-        model_class: type[models.Model],
-        model_operation: Literal["create", "update", "delete", "custom"],
-        lookup_field: FieldNameStr,
-        fields: dict[str, InputField],
+        lookup_field: FieldNameStr | None,
+        model_class: type[models.Model] | None,
         serializer_class: type[ModelSerializer] | None,
         output_serializer_class: type[ModelSerializer] | None,
         permission_classes: Sequence[type[BasePermission]],
+        model_operation: Literal["create", "update", "delete", "custom"],
     ) -> None:
+        self.lookup_field = lookup_field
         self.model_class = model_class
         self.model_operation = model_operation
-        self.lookup_field = lookup_field
-        self.fields = fields  # type: ignore[assignment]
         self.serializer_class = serializer_class
         self.output_serializer_class = output_serializer_class
         self.permission_classes = permission_classes
