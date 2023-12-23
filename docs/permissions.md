@@ -17,8 +17,8 @@ and `has_mutation_permission` will default to this if not overridden.
 #### has_node_permission
 
 - args:
+    - `instance: Model`
     - `user: AnyUser`
-    - `pk: Any`
     - `filters: dict[str, Any]`
 
 Override this method to add specific permissions to a Relay Node field defined of a `DjangoNode`.
@@ -35,9 +35,7 @@ Override this method to add specific permissions to a Relay Connection field def
 
 - args:
     - `user: AnyUser`
-    - `obj: Model`
     - `input_data: dict[str, Any]`
-    - `filters: dict[str, Any]`
 
 Override this method to add specific permissions to all mutations. `has_create_permission`,
 `has_update_permission`, and `has_delete_permission` will default to this if not overridden.
@@ -46,29 +44,25 @@ Override this method to add specific permissions to all mutations. `has_create_p
 
 - args:
     - `user: AnyUser`
-    - `obj: Model`
     - `input_data: dict[str, Any]`
-    - `filters: dict[str, Any]`
 
 Override this method to add specific permissions to a create mutation defined by `CreateMutation`.
 
 #### has_update_permission
 
 - args:
+    - `instance: Model`
     - `user: AnyUser`
-    - `obj: Model`
     - `input_data: dict[str, Any]`
-    - `filters: dict[str, Any]`
 
 Override this method to add specific permissions to an update mutation defined by `UpdateMutation`.
 
 #### has_delete_permission
 
 - args:
+    - `instance: Model`
     - `user: AnyUser`
-    - `obj: Model`
     - `input_data: dict[str, Any]`
-    - `filters: dict[str, Any]`
 
 Override this method to add specific permissions to a delete mutation defined by `DeleteMutation`.
 

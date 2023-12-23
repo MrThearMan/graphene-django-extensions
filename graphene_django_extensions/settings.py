@@ -9,15 +9,20 @@ SETTING_NAME: str = "GRAPHENE_DJANGO_EXTENSIONS"
 class DefaultSettings(NamedTuple):
     QUERY_PERMISSION_ERROR_MESSAGE: str = "No permission to access node."
     FILTER_PERMISSION_ERROR_MESSAGE: str = "No permission to access node."
+    FIELD_PERMISSION_ERROR_MESSAGE: str = "No permission to access field."
     MUTATION_PERMISSION_ERROR_MESSAGE: str = "No permission to mutate."
+    CREATE_PERMISSION_ERROR_MESSAGE: str = "No permission to create."
+    UPDATE_PERMISSION_ERROR_MESSAGE: str = "No permission to update."
+    DELETE_PERMISSION_ERROR_MESSAGE: str = "No permission to delete."
     ORDERING_FILTER_NAME: str = "order_by"
-    PERMISSION_DENIED_MESSAGE: str = "You do not have permission to access this field."
 
 
 DEFAULTS: dict[str, Any] = DefaultSettings()._asdict()
 
 IMPORT_STRINGS: set[Union[bytes, str]] = set()
-REMOVED_SETTINGS: set[str] = set()
+REMOVED_SETTINGS: set[str] = {
+    "PERMISSION_DENIED_MESSAGE",
+}
 
 gdx_settings = SettingsHolder(
     setting_name=SETTING_NAME,

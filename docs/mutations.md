@@ -49,19 +49,19 @@ The following options can be set in the `Meta`-class.
 ### Custom mutations
 
 Custom mutations can be created by subclassing `DjangoMutation` and implementing
-the `custom_model_operation` method. `inptut_fields` and `output_fields` can be
+the `custom_mutation` method. `input_fields` and `output_fields` can be
 set in the `Meta`-class, and will be added to the mutation's input and output types.
 
 ```python
 from graphene_django_extensions.bases import DjangoMutation
 
-class ExampleCreateMutation(DjangoMutation):
+class ExampleMutation(DjangoMutation):
     class Meta:
         input_fields: dict[str, graphene.Field] = {...}
         output_fields: dict[str, graphene.Field] = {...}
 
     @classmethod
-    def custom_model_operation(cls, root, info, **kwargs):
+    def custom_mutation(cls, root, info, **kwargs):
         # Do custom logic here
         return cls(...)
 ```
@@ -101,7 +101,7 @@ When using the above serializers with the following data:
 ```
 
 This will create the Main entity and the Sub entity,
-and set the Sub entity's 'main' field to the Main entity.
+and link the Sub entity to the Main entity.
 
 If instead this is used:
 
@@ -114,11 +114,11 @@ If instead this is used:
 }
 ```
 
-This will create the Main entity and link an existing Sub entity with pk=2 to it.
+This will create the Main entity and link an existing Sub entity with `pk=2` to it.
 If the Sub entity does not exist, a 404 error will be raised. If the sub entity
 is already linked to another Main entity, this will be a no-op.
 
-If the 'pk' field is included with some other fields, the Sub entity will also be updated:
+If the `pk` field is included with some other fields, the Sub entity will also be updated:
 
 ```json
 {
@@ -130,16 +130,16 @@ If the 'pk' field is included with some other fields, the Sub entity will also b
 }
 ```
 
-For "to_many" relations, the serializer field must be a ListSerializer:
+For `to_many` relations, the serializer field must be a ListSerializer:
 
 ```python
 class MainSerializer(NestingModelSerializer):
     sub_entry = SubSerializer(many=True)
 ```
 
-Same logic applies for "to_many" relations, but if the relation is a 'one_to_many' relation,
-and the relation is updated. Any existing related entities that were not included in the request
-will be deleted (e.g., `pk=1` could have been deleted here):
+Same logic applies for `to_many` relations, but if the relation is a `one_to_many` relation,
+and the relation is updated, any existing related entities that were not included in the request
+will be deleted (e.g. Sub entity with `pk=1` could have been deleted here):
 
 ```json
 {

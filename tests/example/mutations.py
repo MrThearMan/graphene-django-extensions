@@ -36,6 +36,7 @@ class ExampleDeleteMutation(DeleteMutation):
 
 class ExampleCustomMutation(DjangoMutation):
     class Meta:
+        permission_classes = [AllowAuthenticated]
         input_fields = {
             "name": graphene.String(required=True),
         }
@@ -44,7 +45,7 @@ class ExampleCustomMutation(DjangoMutation):
         }
 
     @classmethod
-    def custom_model_operation(cls, root: Example, info: GQLInfo, **kwargs: Any) -> Self:
+    def custom_mutation(cls, info: GQLInfo, **kwargs: Any) -> Self:
         kwargs["number"] = 1
         kwargs["email"] = "example@email.com"
         kwargs["state"] = State.ACTIVE

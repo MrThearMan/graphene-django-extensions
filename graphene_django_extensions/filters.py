@@ -9,6 +9,7 @@ from django.db.models import Model, Q, QuerySet
 from django.db.models.constants import LOOKUP_SEP
 from django_filters.constants import ALL_FIELDS, EMPTY_VALUES
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
+from graphene.utils.str_converters import to_camel_case
 
 from .fields import (
     EnumChoiceField,
@@ -149,14 +150,14 @@ class UserDefinedFilter(django_filters.Filter):
     @staticmethod
     def _normalize_fields(model: type[Model], fields: FilterFields) -> FieldAliasToLookup:
         if fields == ALL_FIELDS:  # pragma: no cover
-            return {field.name: field.name for field in model._meta.get_fields()}
+            return {to_camel_case(field.name): field.name for field in model._meta.get_fields()}
 
         normalized_fields: FieldAliasToLookup = {}
         for field in fields:
             if isinstance(field, tuple):
-                normalized_fields[field[1]] = field[0]
+                normalized_fields[to_camel_case(field[1])] = field[0]
             else:
-                normalized_fields[field] = field
+                normalized_fields[to_camel_case(field)] = field
         return normalized_fields
 
 

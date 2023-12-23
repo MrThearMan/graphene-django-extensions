@@ -21,7 +21,6 @@ from graphql_relay import to_global_id
 from rest_framework.exceptions import ValidationError as SerializerValidationError
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ListSerializer, ModelSerializer, as_serializer_error
-from rest_framework.settings import api_settings
 
 from .connections import Connection
 from .converters import convert_serializer_fields_to_not_required
@@ -179,30 +178,42 @@ class DjangoNode(DjangoObjectType):
     def get_queryset(cls, queryset: models.QuerySet, info: GQLInfo) -> models.QuerySet:
         """Override `filter_queryset` instead of this method to add filtering of possible rows."""
         if not cls.has_filter_permissions(info):
-            msg = gdx_settings.FILTER_PERMISSION_ERROR_MESSAGE
-            raise PermissionError(msg)
+            raise PermissionError(gdx_settings.FILTER_PERMISSION_ERROR_MESSAGE)
         return cls.filter_queryset(queryset, info)
 
     @classmethod
     def get_node(cls, info: GQLInfo, pk: Any) -> models.Model | None:
         """Override `filter_queryset` instead of this method to add filtering of possible rows."""
-        if not cls.has_node_permissions(info, pk):
-            msg = gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE
-            raise PermissionError(msg)
         queryset = cls._meta.model.objects.filter(pk=pk)
-        return cls.filter_queryset(queryset, info).first()
+        instance = cls.filter_queryset(queryset, info).first()
+        if instance is not None and not cls.has_node_permissions(info, instance):
+            raise PermissionError(gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE)
+        return instance
+
+    @classmethod
+    def has_node_permissions(cls, info: GQLInfo, instance: models.Model) -> bool:
+        """Check which permissions are required to access single items of this type."""
+        filters = get_filters_from_info(info)
+        return all(
+            perm.has_node_permission(
+                instance=instance,
+                user=info.context.user,
+                filters=filters,
+            )
+            for perm in cls._meta.permission_classes
+        )
 
     @classmethod
     def has_filter_permissions(cls, info: GQLInfo) -> bool:
         """Check which permissions are required to access lists of this type."""
         filters = get_filters_from_info(info)
-        return all(perm.has_filter_permission(info.context.user, filters) for perm in cls._meta.permission_classes)
-
-    @classmethod
-    def has_node_permissions(cls, info: GQLInfo, pk: Any) -> bool:
-        """Check which permissions are required to access single items of this type."""
-        filters = get_filters_from_info(info)
-        return all(perm.has_node_permission(info.context.user, pk, filters) for perm in cls._meta.permission_classes)
+        return all(
+            perm.has_filter_permission(
+                user=info.context.user,
+                filters=filters,
+            )
+            for perm in cls._meta.permission_classes
+        )
 
     @classmethod
     def get_global_id(cls, pk: Any) -> str:
@@ -325,8 +336,8 @@ class DjangoMutation(ClientIDMutation):
                 lookup_field=lookup_field,
             )
 
-        elif cls.custom_model_operation == DjangoMutation.custom_model_operation:  # pragma: no cover
-            msg = "`custom_model_operation` must be overridden in subclasses for custom model operations."
+        elif cls.custom_mutation == DjangoMutation.custom_mutation:  # pragma: no cover
+            msg = "`custom_mutation` must be overridden in subclasses for custom model operations."
             raise ValueError(msg)
 
         input_fields = yank_fields_from_attrs(attrs=input_fields or {}, _as=InputField)
@@ -346,28 +357,9 @@ class DjangoMutation(ClientIDMutation):
         super().__init_subclass_with_meta__(_meta=_meta, input_fields=input_fields, **options)
 
     @classmethod
-    def has_permission(cls, root: Any, info: GQLInfo, input_data: dict[str, Any]) -> bool:
-        filters = get_filters_from_info(info)
-        user = info.context.user
-        perms = cls._meta.permission_classes
-
-        if cls._meta.model_operation == "create":
-            return all(perm.has_create_permission(root, user, input_data, filters) for perm in perms)
-        if cls._meta.model_operation == "update":
-            return all(perm.has_update_permission(root, user, input_data, filters) for perm in perms)
-        if cls._meta.model_operation == "delete":
-            return all(perm.has_delete_permission(root, user, input_data, filters) for perm in perms)
-        return all(perm.has_mutation_permission(root, user, input_data, filters) for perm in perms)
-
-    @classmethod
     def mutate(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:
-        if not cls.has_permission(root=root, info=info, input_data=kwargs["input"]):
-            detail = {api_settings.NON_FIELD_ERRORS_KEY: [gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE]}
-            errors = ErrorType.from_errors(detail)
-            return cls(errors=errors)  # type: ignore[arg-type]
-
         try:
-            return super().mutate(root=root, info=info, input=kwargs["input"])
+            return super().mutate(root, info, kwargs["input"])
         except (DjangoValidationError, SerializerValidationError) as error:
             detail = as_serializer_error(error)
             detail = camelize(detail) if graphene_settings.CAMELCASE_ERRORS else detail
@@ -378,17 +370,17 @@ class DjangoMutation(ClientIDMutation):
     @classmethod
     def mutate_and_get_payload(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:
         if cls._meta.model_operation == "delete":
-            return cls.delete(root=root, info=info, **kwargs)
+            return cls.delete(info, **kwargs)
         if cls._meta.model_operation in ("create", "update"):
-            return cls.update_or_delete(root=root, info=info, **kwargs)
-        return cls.custom_model_operation(root=root, info=info, **kwargs)
+            return cls.update_or_create(info, **kwargs)
+
+        if not cls.has_mutation_permission(info, kwargs):
+            raise SerializerValidationError(gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE)
+        return cls.custom_mutation(info, **kwargs)
 
     @classmethod
-    def custom_model_operation(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:  # pragma: no cover
-        """
-        Override this method to perform custom model operations in this mutation
-        instead of the regular create, update or delete.
-        """
+    def custom_mutation(cls, info: GQLInfo, **kwargs: Any) -> Self:  # pragma: no cover
+        """Override this method to perform custom mutations instead of the regular create, update or delete."""
         raise NotImplementedError(f"Custom model operation not defined for '{cls.__name__}'")  # noqa: EM102
 
     @classmethod
@@ -399,9 +391,16 @@ class DjangoMutation(ClientIDMutation):
         return get_object_or_404(cls._meta.model_class, **{lookup_field: kwargs[lookup_field]})
 
     @classmethod
-    def update_or_delete(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:
-        kwargs = cls.get_serializer_kwargs(info.context, **kwargs)
-        serializer = cls._meta.serializer_class(**kwargs)
+    def update_or_create(cls, info: GQLInfo, **kwargs: Any) -> Self:
+        serializer_kwargs = cls.get_serializer_kwargs(info.context, **kwargs)
+        instance: models.Model | None = serializer_kwargs["instance"]
+
+        if cls._meta.model_operation == "create" and not cls.has_create_permissions(info, kwargs):
+            raise SerializerValidationError(gdx_settings.CREATE_PERMISSION_ERROR_MESSAGE)
+        if cls._meta.model_operation == "update" and not cls.has_update_permissions(instance, info, kwargs):
+            raise SerializerValidationError(gdx_settings.UPDATE_PERMISSION_ERROR_MESSAGE)
+
+        serializer = cls._meta.serializer_class(**serializer_kwargs)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         output = cls.to_representation(obj)
@@ -425,21 +424,24 @@ class DjangoMutation(ClientIDMutation):
         }
 
     @classmethod
-    def to_representation(cls, obj: models.Model) -> dict[str, Any]:
-        serializer = cls._meta.output_serializer_class(instance=obj)
+    def to_representation(cls, instance: models.Model) -> dict[str, Any]:
+        serializer = cls._meta.output_serializer_class(instance=instance)
 
         kwargs: dict[str, Any] = {}
         for field_name, field in serializer.fields.items():
             if not field.write_only:
                 if isinstance(field, SerializerMethodField):  # pragma: no cover
-                    kwargs[field_name] = field.to_representation(obj)
+                    kwargs[field_name] = field.to_representation(instance)
                 else:
-                    kwargs[field_name] = field.get_attribute(obj)
+                    kwargs[field_name] = field.get_attribute(instance)
         return kwargs
 
     @classmethod
-    def delete(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:
+    def delete(cls, info: GQLInfo, **kwargs: Any) -> Self:
         instance = cls.get_instance(**kwargs)
+        if not cls.has_delete_permissions(instance, info, kwargs):
+            raise SerializerValidationError(gdx_settings.DELETE_PERMISSION_ERROR_MESSAGE)
+
         cls.validate_deletion(instance, info.context.user)
         count, _ = instance.delete()
         return cls(errors=None, deleted=bool(count))  # type: ignore[arg-type]
@@ -448,6 +450,48 @@ class DjangoMutation(ClientIDMutation):
     def validate_deletion(cls, instance: models.Model, user: AnyUser) -> None:
         """Implement to perform additional validation before the given instance is deleted."""
         return  # pragma: no cover
+
+    @classmethod
+    def has_mutation_permission(cls, info: GQLInfo, input_data: dict[str, Any]) -> bool:
+        return all(
+            perm.has_mutation_permission(
+                user=info.context.user,
+                input_data=input_data,
+            )
+            for perm in cls._meta.permission_classes
+        )
+
+    @classmethod
+    def has_create_permissions(cls, info: GQLInfo, input_data: dict[str, Any]) -> bool:
+        return all(
+            perm.has_create_permission(
+                user=info.context.user,
+                input_data=input_data,
+            )
+            for perm in cls._meta.permission_classes
+        )
+
+    @classmethod
+    def has_update_permissions(cls, instance: models.Model, info: GQLInfo, input_data: dict[str, Any]) -> bool:
+        return all(
+            perm.has_update_permission(
+                instance=instance,
+                user=info.context.user,
+                input_data=input_data,
+            )
+            for perm in cls._meta.permission_classes
+        )
+
+    @classmethod
+    def has_delete_permissions(cls, instance: models.Model, info: GQLInfo, input_data: dict[str, Any]) -> bool:
+        return all(
+            perm.has_delete_permission(
+                instance=instance,
+                user=info.context.user,
+                input_data=input_data,
+            )
+            for perm in cls._meta.permission_classes
+        )
 
 
 class CreateMutation(DjangoMutation):

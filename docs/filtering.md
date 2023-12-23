@@ -55,6 +55,104 @@ class ExampleFilterSet(ModelFilterSet):
 
 ---
 
+# UserDefinedFilter
+
+A filter which allows users to define custom filtering rules for a set of predefined model fields.
+The idea is similar in concept to the GraphQL itself; allowing users to select which data they actually
+need vs. what has been predefined.
+
+```python
+from graphene_django_extensions.filters import ModelFilterSet, UserDefinedFilter
+
+class ExampleFilterSet(ModelFilterSet):
+    filter = UserDefinedFilter(
+        model=Example,
+        fields=["name", "number", "email"],
+    )
+```
+
+Given the above filter, the user can define the following filter:
+
+```graphql
+query {
+    examples(
+        filter: {
+            field: name,
+            operator: CONTAINS,
+            value: "foo",
+        }
+    ) {
+        edges {
+            node {
+                pk
+            }
+        }
+    }
+}
+```
+
+This creates a simple `Q(name__contains="foo")` filter for the queryset.
+
+Notice that the `field` values are enums created from the defined fields in the UserDefinedFilter.
+If no fields are given, all fields from the given model can be filtered on. Related fields can also be
+added via the "__" lookup syntax. Filter aliases can be given by specifying a tuple of
+`("field_lookup", "alias")` in the fields list.
+
+The model argument is mandatory, and is used to rename the filter input type after the `field` enum field
+has been added to it (in additions fetching the default fields if no fields are defined).
+
+Let's see a more complex example:
+
+```graphql
+query {
+    examples(
+        filter: {
+            operator: AND,
+            operations: [
+                {
+                    operator: OR,
+                    operations: [
+                        {
+                            field: name,
+                            operator: CONTAINS,
+                            value: "foo",
+                        },
+                        {
+                            field: email,
+                            operator: CONTAINS,
+                            value: "foo",
+                        },
+                    ],
+                },
+                {
+                    operator: NOT,
+                    operations: [
+                        {
+                            field: number,
+                            operator: LT,
+                            value: 10,
+                        }
+                    ]
+                },
+            ],
+        }
+    ) {
+        edges {
+            node {
+                pk
+            }
+        }
+    }
+}
+```
+
+This configuration corresponds to `(Q(name__contains="foo") | Q(email__contains="foo") & ~Q(number__lt=10))`.
+
+As the above example demonstrates, logical operations can also be used, allowing for complex
+filtering rules to be defined, which regular filter fields cannot do.
+
+---
+
 ## EnumChoiceFilter & EnumMultipleChoiceFilter
 
 Custom fields for handling enums better in GraphQL filters.

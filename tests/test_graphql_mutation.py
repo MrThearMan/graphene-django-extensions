@@ -74,7 +74,7 @@ def test_graphql__create__permission_error(graphql: GraphQLClient):
     mutation = build_mutation("createExample", "ExampleCreateMutation")
     response = graphql(mutation, input_data=input_data)
 
-    assert response.field_error_messages() == ["No permission to mutate."]
+    assert response.field_error_messages() == ["No permission to create."]
 
 
 def test_graphql__update(graphql: GraphQLClient):
@@ -130,7 +130,7 @@ def test_graphql__update__permission_errors(graphql: GraphQLClient):
     mutation = build_mutation("updateExample", "ExampleUpdateMutation")
     response = graphql(mutation, input_data=input_data)
 
-    assert response.field_error_messages() == ["No permission to mutate."]
+    assert response.field_error_messages() == ["No permission to update."]
 
 
 def test_graphql__delete(graphql: GraphQLClient):
@@ -165,15 +165,24 @@ def test_graphql__delete__permission_error(graphql: GraphQLClient):
     mutation = build_mutation("deleteExample", "ExampleDeleteMutation", fields="deleted errors { messages field }")
     response = graphql(mutation, input_data=input_data)
 
-    assert response.field_error_messages() == ["No permission to mutate."]
+    assert response.field_error_messages() == ["No permission to delete."]
 
 
 def test_graphql__custom(graphql: GraphQLClient):
     input_data = {"name": "foo"}
     mutation = build_mutation("customExample", "ExampleCustomMutation", fields="pk")
 
+    graphql.login_with_superuser()
     response = graphql(mutation, input_data=input_data)
     example = Example.objects.first()
 
     assert response.has_errors is False, response
     assert response.first_query_object == {"pk": str(example.pk)}
+
+
+def test_graphql__custom__permission_error(graphql: GraphQLClient):
+    input_data = {"name": "foo"}
+    mutation = build_mutation("customExample", "ExampleCustomMutation", fields="pk errors { messages field }")
+    response = graphql(mutation, input_data=input_data)
+
+    assert response.field_error_messages() == ["No permission to mutate."]

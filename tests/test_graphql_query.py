@@ -188,7 +188,7 @@ def test_graphql__query__restricted_field__no_perms(graphql: GraphQLClient):
     graphql.login_with_regular_user()
     response = graphql(query)
 
-    assert response.error_message("email") == "You do not have permission to access this field."
+    assert response.error_message("email") == "No permission to access field."
 
 
 def test_graphql__query__restricted_field__has_perms(graphql: GraphQLClient):
@@ -294,7 +294,7 @@ def test_graphql__filter__user_defined__related_alias(graphql: GraphQLClient):
         query {
           examples(
             filter: {
-              field: foto_name,
+              field: fotoName,
               operation: EXACT,
               value: "bar",
             }

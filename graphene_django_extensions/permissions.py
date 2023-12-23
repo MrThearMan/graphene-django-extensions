@@ -17,11 +17,11 @@ P = ParamSpec("P")
 
 
 __all__ = [
-    "BasePermission",
     "AllowAny",
     "AllowAuthenticated",
     "AllowStaff",
     "AllowSuperuser",
+    "BasePermission",
     "restricted_field",
 ]
 
@@ -32,7 +32,7 @@ class BasePermission:
         return False
 
     @classmethod
-    def has_node_permission(cls, user: AnyUser, pk: Any, filters: dict[str, Any]) -> bool:
+    def has_node_permission(cls, instance: Model, user: AnyUser, filters: dict[str, Any]) -> bool:
         return cls.has_permission(user)
 
     @classmethod
@@ -40,44 +40,20 @@ class BasePermission:
         return cls.has_permission(user)
 
     @classmethod
-    def has_mutation_permission(
-        cls,
-        obj: Model,
-        user: AnyUser,
-        input_data: dict[str, Any],
-        filters: dict[str, Any],
-    ) -> bool:
+    def has_mutation_permission(cls, user: AnyUser, input_data: dict[str, Any]) -> bool:
         return cls.has_permission(user)
 
     @classmethod
-    def has_create_permission(
-        cls,
-        obj: Model,
-        user: AnyUser,
-        input_data: dict[str, Any],
-        filters: dict[str, Any],
-    ) -> bool:
-        return cls.has_mutation_permission(obj, user, input_data, filters)
+    def has_create_permission(cls, user: AnyUser, input_data: dict[str, Any]) -> bool:
+        return cls.has_mutation_permission(user, input_data)
 
     @classmethod
-    def has_update_permission(
-        cls,
-        obj: Model,
-        user: AnyUser,
-        input_data: dict[str, Any],
-        filters: dict[str, Any],
-    ) -> bool:
-        return cls.has_mutation_permission(obj, user, input_data, filters)
+    def has_update_permission(cls, instance: Model, user: AnyUser, input_data: dict[str, Any]) -> bool:
+        return cls.has_mutation_permission(user, input_data)
 
     @classmethod
-    def has_delete_permission(
-        cls,
-        obj: Model,
-        user: AnyUser,
-        input_data: dict[str, Any],
-        filters: dict[str, Any],
-    ) -> bool:
-        return cls.has_mutation_permission(obj, user, input_data, filters)
+    def has_delete_permission(cls, instance: Model, user: AnyUser, input_data: dict[str, Any]) -> bool:
+        return cls.has_mutation_permission(user, input_data)
 
 
 class AllowAny(BasePermission):
@@ -106,16 +82,16 @@ class AllowSuperuser(BasePermission):
 
 def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
     """
-    Decorator for GraphQL field resolvers, which will return
+    Decorator for GraphQL field resolvers, which will raise
     a PermissionError if the request user does not have
     appropriate permissions based on the given check.
 
     :param check: A callable, which takes the request user, and the ObjectType's Model instance
                   (or just the request user) as its arguments.
-    :param message: The message to return in the PermissionError.
+    :param message: The message to raise in the PermissionError.
                     If not given, use default message from settings.
     """
-    message = message or gdx_settings.PERMISSION_DENIED_MESSAGE
+    message = message or gdx_settings.FIELD_PERMISSION_ERROR_MESSAGE
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @wraps(func)
@@ -127,7 +103,7 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
                 if check(args[1].context.user):
                     return func(*args, **kwargs)  # pragma: no cover
 
-            return PermissionError(message)
+            raise PermissionError(message)
 
         return wrapper
 
