@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Filtering - Graphene Django Extensions</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/docs.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Filtering";
+        var mkdocs_page_input_path = "filtering.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/console.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Graphene Django Extensions
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../querying/">Querying</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Filtering</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#modelfilterset">ModelFilterSet</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#customorderingfilter">CustomOrderingFilter</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../permissions/">Permissions</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mutations/">Mutations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../testing/">Testing</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Graphene Django Extensions</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Filtering</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="filtering">Filtering<a class="headerlink" href="#filtering" title="Permanent link">🔗</a></h1>
+<h2 id="modelfilterset">ModelFilterSet<a class="headerlink" href="#modelfilterset" title="Permanent link">🔗</a></h2>
+<p>A custom FilterSet class for optimizing the filtering of GraphQL queries.</p>
+<pre class="highlight"><code class="language-python">from graphene_django_extensions import ModelFilterSet
+from example.models import Example
+
+class ExampleFilterSet(ModelFilterSet):
+    class Meta:
+        model = Example
+        fields = [...]</code></pre>
+<p>Extends from <code>django_filters.filterset.FilterSet</code> and adds the following features:</p>
+<ul>
+<li>Automatically a <code>order_by = CustomOrderingFilter(fields=["pk"])</code> to the class for ordering the filterset.</li>
+<li>Changes the default filters for all relationships (<code>one-to-one</code>, <code>many-to-one</code>, etc.) to not make a database
+  queries to check if the filtered rows exists.</li>
+</ul>
+<hr />
+<p>Subclasses can be configured through the <code>Meta</code>-class. Here are the most useful options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>model</code></td>
+<td><code>type[Model]</code></td>
+<td>Required. The model class for the filterset.</td>
+</tr>
+<tr>
+<td><code>fields</code></td>
+<td><code>list[str]</code> or <code>dict[str, list[str]]</code> or <code>__all__</code></td>
+<td>Required. The fields to include in the node. If <code>__all__</code> is used, all fields are included.</td>
+</tr>
+<tr>
+<td><code>order_by</code></td>
+<td><code>list[str]</code> or <code>list[tuple[str, str]]</code></td>
+<td>Optional. Ordering filters to add to the filterset. Can also add non-field orderings, or customize field orderings by adding a <code>order_by_{field_name}</code> method to the <code>ModelFilterSet</code> subclass.</td>
+</tr>
+<tr>
+<td><code>combination_methods</code></td>
+<td><code>list[str]</code></td>
+<td>Optional. Allows combining <a href="https://django-filter.readthedocs.io/en/stable/guide/usage.html#customize-filtering-with-filter-method">method filters</a> so that they will use the same filter function. The combination method will always run, and its value will be a mapping of the field names of the combined filters to their values.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="customorderingfilter">CustomOrderingFilter<a class="headerlink" href="#customorderingfilter" title="Permanent link">🔗</a></h2>
+<p>Extends <code>django_filters.filters.OrderingFilter</code> by adding option for custom orderings
+by defining <code>order_by_{name}</code> functions on its subclasses or filtersets it is defined on.
+This filter is automatically added to <code>ModelFilterSet</code> subclasses, and its <code>Meta.order_by</code>
+can be used to add custom orderings.</p>
+<pre class="highlight"><code class="language-python">from graphene_django_extensions import ModelFilterSet
+
+class ExampleFilterSet(ModelFilterSet):
+    class Meta:
+        model = Example
+        fields = [...]
+        order_by = ["-name", "order_by_name"]
+
+    def order_by_name(self, qs: QuerySet, desc: bool) -&gt; QuerySet:
+        return qs.order_by("name")</code></pre>
+<hr />
+<h1 id="userdefinedfilter">UserDefinedFilter<a class="headerlink" href="#userdefinedfilter" title="Permanent link">🔗</a></h1>
+<p>A filter which allows users to define custom filtering rules for a set of predefined model fields.
+The idea is similar in concept to the GraphQL itself; allowing users to select which data they actually
+need vs. what has been predefined.</p>
+<pre class="highlight"><code class="language-python">from graphene_django_extensions.filters import ModelFilterSet, UserDefinedFilter
+
+class ExampleFilterSet(ModelFilterSet):
+    filter = UserDefinedFilter(
+        model=Example,
+        fields=["name", "number", "email"],
+    )</code></pre>
+<p>Given the above filter, the user can define the following filter:</p>
+<pre class="highlight"><code class="language-graphql">query {
+    examples(
+        filter: {
+            field: name,
+            operator: CONTAINS,
+            value: "foo",
+        }
+    ) {
+        edges {
+            node {
+                pk
+            }
+        }
+    }
+}</code></pre>
+<p>This creates a simple <code>Q(name__contains="foo")</code> filter for the queryset.</p>
+<p>Notice that the <code>field</code> values are enums created from the defined fields in the UserDefinedFilter.
+If no fields are given, all fields from the given model can be filtered on. Related fields can also be
+added via the "__" lookup syntax. Filter aliases can be given by specifying a tuple of
+<code>("field_lookup", "alias")</code> in the fields list.</p>
+<p>The model argument is mandatory, and is used to rename the filter input type after the <code>field</code> enum field
+has been added to it (in additions fetching the default fields if no fields are defined).</p>
+<p>Let's see a more complex example:</p>
+<pre class="highlight"><code class="language-graphql">query {
+    examples(
+        filter: {
+            operator: AND,
+            operations: [
+                {
+                    operator: OR,
+                    operations: [
+                        {
+                            field: name,
+                            operator: CONTAINS,
+                            value: "foo",
+                        },
+                        {
+                            field: email,
+                            operator: CONTAINS,
+                            value: "foo",
+                        },
+                    ],
+                },
+                {
+                    operator: NOT,
+                    operations: [
+                        {
+                            field: number,
+                            operator: LT,
+                            value: 10,
+                        }
+                    ]
+                },
+            ],
+        }
+    ) {
+        edges {
+            node {
+                pk
+            }
+        }
+    }
+}</code></pre>
+<p>This configuration corresponds to <code>(Q(name__contains="foo") | Q(email__contains="foo") &amp; ~Q(number__lt=10))</code>.</p>
+<p>As the above example demonstrates, logical operations can also be used, allowing for complex
+filtering rules to be defined, which regular filter fields cannot do.</p>
+<hr />
+<h2 id="enumchoicefilter-enummultiplechoicefilter">EnumChoiceFilter &amp; EnumMultipleChoiceFilter<a class="headerlink" href="#enumchoicefilter-enummultiplechoicefilter" title="Permanent link">🔗</a></h2>
+<p>Custom fields for handling enums better in GraphQL filters.
+Using <code>django_filters.ChoiceFilter</code> causes the Enums to be converted to strings in GraphQL filters.
+This class uses GraphQL Enums instead, which gives better autocomplete results.</p>
+<hr />
+<h2 id="integerchoicefilter-integermultiplechoicefilter">IntegerChoiceFilter &amp; IntegerMultipleChoiceFilter<a class="headerlink" href="#integerchoicefilter-integermultiplechoicefilter" title="Permanent link">🔗</a></h2>
+<p>Allows plain integers as choices in GraphQL filters. Normally, integer enums are converted
+to string enums in GraphQL by prefixing them with <code>A_</code>, but this filter allows using plain integers.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../querying/" class="btn btn-neutral float-left" title="Querying"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../permissions/" class="btn btn-neutral float-right" title="Permissions">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../querying/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../permissions/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
