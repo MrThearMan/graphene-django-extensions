@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.db import models
+from django.forms import Field, Form, ModelForm
 from graphene_django.converter import convert_django_field
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
@@ -18,8 +19,9 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    "convert_typed_dict_to_graphene_type",
+    "convert_form_fields_to_not_required",
     "convert_serializer_fields_to_not_required",
+    "convert_typed_dict_to_graphene_type",
 ]
 
 
@@ -125,3 +127,13 @@ def _set_extra_kwargs(
     # serializer doesn't remove it during validation.
     if field_name == lookup_field:
         meta.extra_kwargs.setdefault(field_name, {})["read_only"] = False
+
+
+def convert_form_fields_to_not_required(form_class: type[ModelForm | Form]) -> type[ModelForm | Form]:
+    form_fields: dict[str, Field] = {}
+    for field_name, field in form_class.base_fields.items():
+        new_field = deepcopy(field)
+        new_field.required = False
+        form_fields[field_name] = new_field
+
+    return type(form_class.__name__, (form_class,), form_fields)  # type: ignore[return-value]

@@ -43,6 +43,8 @@ The following options can be set in the `Meta`-class.
 | `output_serializer_class` | `type[ModelSerializer]`      | Optional. The serializer used for the output data. If not set, `serializer_class` is used. Serializer fields are modified so that all fields are optional, enabling partial updates.                                                        |
 | `permission_classes`      | `list[type[BasePermission]]` | Optional. Set permission classes for the mutation. Defaults to (`AllowAny`,).                                                                                                                                                               |
 | `lookup_field`            | `str`                        | Optional. The field used for looking up the instance to be mutated. Defaults to the object's primary key, which is usually `id`. Note that the `lookup_field` attribute has to be available from the serializer's `Meta.fields` definition. |
+| `form_class`              | `type[ModelForm]`            | Optional. Can be used instead of `serializer_class`.                                                                                                                                                                                        |
+| `output_form_class`       | `type[ModelForm]`            | Optional. Can be used instead of `output_serializer_class`                                                                                                                                                                                  |
 
 ---
 
@@ -68,6 +70,9 @@ class ExampleCustomMutation(DjangoMutation):
         # `kwargs` have already been validated by the serializer.
         return cls(...)
 ```
+
+> Like model mutations, `form_class` and `output_form_class` can be used instead of
+> `serializer_class` and `output_serializer_class`.
 
 ---
 

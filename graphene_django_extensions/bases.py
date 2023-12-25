@@ -6,12 +6,14 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.forms import Form, ModelForm
 from graphene import ClientIDMutation, Field, InputField
 from graphene.types.resolver import attr_resolver
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django import DjangoConnectionField, DjangoListField, DjangoObjectType
 from graphene_django.converter import convert_django_field
 from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django.forms.mutation import fields_for_form
 from graphene_django.registry import get_global_registry
 from graphene_django.rest_framework.mutation import fields_for_serializer
 from graphene_django.settings import graphene_settings
@@ -19,11 +21,11 @@ from graphene_django.types import ALL_FIELDS, ErrorType
 from graphene_django.utils import camelize, is_valid_django_model
 from graphql_relay import to_global_id
 from rest_framework.exceptions import ValidationError as SerializerValidationError
-from rest_framework.fields import SerializerMethodField
+from rest_framework.fields import SerializerMethodField, get_attribute
 from rest_framework.serializers import ListSerializer, ModelSerializer, Serializer, as_serializer_error
 
 from .connections import Connection
-from .converters import convert_serializer_fields_to_not_required
+from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
 from .errors import flatten_errors
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
@@ -34,7 +36,6 @@ from .utils import get_filters_from_info
 
 if TYPE_CHECKING:
     from django.db import models
-    from django.http import HttpRequest
     from graphene.relay.node import NodeField
     from graphene.types.mountedtype import MountedType
     from graphene.types.unmountedtype import UnmountedType
@@ -244,13 +245,15 @@ class DjangoMutation(ClientIDMutation):
 
     - Required (delete only). Model class for the model the operation is performed on.
 
-    `serializer_class: type[ModelSerializer]`
+    `serializer_class: type[ModelSerializer | Serializer]`
 
     - Required (create and update only). The serializer used for the mutation.
+      Type should be ModelSerializer for update and create operations, and Serializer for custom ones.
 
-    `output_serializer_class: type[ModelSerializer]`
+    `output_serializer_class: type[ModelSerializer | Serializer]`
 
     - Optional. The serializer used for the output data. If not set, `serializer_class` is used.
+      Type should be ModelSerializer for update and create operations, and Serializer for custom ones.
       Serializer fields are modified so that all fields are optional, enabling partial updates.
 
     `permission_classes: Sequence[type[BasePermission]]`
@@ -262,6 +265,16 @@ class DjangoMutation(ClientIDMutation):
     - Optional. The field used for looking up the instance to be mutated. Defaults to the object's
       primary key, which is usually `id`. Note that the `lookup_field` attribute has to be available
       from the serializer's `Meta.fields` definition.
+
+    `form_class: type[ModelForm | Form]`
+
+    - Optional. Can be used instead of `serializer_class`.
+      Type should be ModelForm for update and create operations, and Form for custom ones.
+
+    `output_form_class: type[ModelForm | Form]`
+
+    - Optional. Can be used instead of `output_serializer_class`.
+      Type should be ModelForm for update and create operations, and Form for custom ones.
     """
 
     _meta: DjangoMutationOptions
@@ -274,35 +287,51 @@ class DjangoMutation(ClientIDMutation):
     @classmethod
     def __init_subclass_with_meta__(  # noqa: PLR0913
         cls,
-        _meta: DjangoMutationOptions | None = None,
         lookup_field: FieldNameStr | None = None,
         model: type[models.Model] | None = None,
-        serializer_class: type[ModelSerializer] | None = None,
-        output_serializer_class: type[ModelSerializer] | None = None,
+        serializer_class: type[ModelSerializer | Serializer] = None,
+        output_serializer_class: type[ModelSerializer | Serializer] = None,
+        form_class: type[ModelForm | Form] | None = None,
+        output_form_class: type[ModelForm | Form] | None = None,
         permission_classes: Sequence[type[BasePermission]] = (AllowAny,),
         model_operation: Literal["create", "update", "delete", "custom"] = "custom",
         **options: Any,
     ) -> None:
-        if _meta is None:
-            _meta = DjangoMutationOptions(
-                class_type=cls,
-                lookup_field=lookup_field,
-                model_class=model,
-                serializer_class=serializer_class,
-                output_serializer_class=output_serializer_class,
-                permission_classes=permission_classes,
-                model_operation=model_operation,
-            )
+        _meta = DjangoMutationOptions(
+            class_type=cls,
+            lookup_field=lookup_field,
+            model_class=model,
+            serializer_class=serializer_class,
+            output_serializer_class=output_serializer_class,
+            form_class=form_class,
+            output_form_class=output_form_class,
+            permission_classes=permission_classes,
+            model_operation=model_operation,
+        )
 
         if model_operation in ("create", "update"):
-            return cls.__init_subclass_update_or_create__(
-                _meta,
-                lookup_field,
-                serializer_class,
-                output_serializer_class,
-                model_operation,  # type: ignore[arg-type]
-                **options,
+            if serializer_class is not None:
+                return cls.__init_subclass_update_or_create__(
+                    _meta,
+                    lookup_field,
+                    serializer_class,
+                    output_serializer_class,
+                    model_operation,  # type: ignore[arg-type]
+                    **options,
+                )
+            if form_class is not None:
+                return cls.__init_subclass_form__(
+                    _meta,
+                    ModelForm,
+                    form_class,
+                    output_form_class,
+                    **options,
+                )
+
+            msg = (  # pragma: no cover
+                "`Meta.serializer_class` or `Meta.form_class` is required for create and update mutations."
             )
+            raise ValueError(msg)  # pragma: no cover
 
         if model_operation == "delete":
             return cls.__init_subclass_delete__(
@@ -312,29 +341,41 @@ class DjangoMutation(ClientIDMutation):
                 **options,
             )
 
-        return cls.__init_subclass_custom__(
-            _meta,
-            serializer_class,
-            output_serializer_class,
-            **options,
-        )
+        if cls.custom_mutation == DjangoMutation.custom_mutation:  # pragma: no cover
+            msg = "`custom_mutation` must be overridden in subclasses for custom mutations."
+            raise ValueError(msg)
+
+        if serializer_class is not None:
+            return cls.__init_subclass_custom__(
+                _meta,
+                serializer_class,
+                output_serializer_class,
+                **options,
+            )
+        if form_class is not None:
+            return cls.__init_subclass_form__(
+                _meta,
+                Form,
+                form_class,
+                output_form_class,
+                **options,
+            )
+
+        msg = "`Meta.serializer_class` or `Meta.form_class` is required for custom mutations."  # pragma: no cover
+        raise ValueError(msg)  # pragma: no cover
 
     @classmethod
     def __init_subclass_update_or_create__(
         cls,
         _meta: DjangoMutationOptions,
         lookup_field: FieldNameStr | None,
-        serializer_class: type[ModelSerializer] | None,
+        serializer_class: type[ModelSerializer],
         output_serializer_class: type[ModelSerializer] | None,
         model_operation: Literal["create", "update"],
         **options: Any,
     ) -> None:
-        if serializer_class is None:  # pragma: no cover
-            msg = "`Meta.serializer_class` is required for create and update mutations."
-            raise ValueError(msg)
-
         if not issubclass(serializer_class, ModelSerializer):  # pragma: no cover
-            msg = "`Meta.serializer_class` needs to be a ModelSerializer."
+            msg = "`Meta.serializer_class` needs to be a ModelSerializer subclass."
             raise TypeError(msg)
 
         model = serializer_class.Meta.model
@@ -343,17 +384,13 @@ class DjangoMutation(ClientIDMutation):
         if model_operation == "update":
             serializer_class = convert_serializer_fields_to_not_required(serializer_class, lookup_field)
 
-        serializer = output_serializer = serializer_class()
+        output_serializer_class = output_serializer_class or serializer_class
+        if not issubclass(output_serializer_class, ModelSerializer):  # pragma: no cover
+            msg = "`Meta.output_serializer_class` needs to be a ModelSerializer subclass."
+            raise TypeError(msg)
 
-        if output_serializer_class is None:
-            output_serializer_class = serializer_class
-
-        else:  # pragma: no cover
-            if not issubclass(output_serializer_class, ModelSerializer):
-                msg = "`Meta.output_serializer_class` needs to be a ModelSerializer."
-                raise TypeError(msg)
-
-            output_serializer = output_serializer_class()
+        serializer = serializer_class()
+        output_serializer = output_serializer_class()
 
         _check_serializer_field_models_in_registry(cls, output_serializer)
 
@@ -407,49 +444,57 @@ class DjangoMutation(ClientIDMutation):
     def __init_subclass_custom__(
         cls,
         _meta: DjangoMutationOptions,
-        serializer_class: type[Serializer] | None,
+        serializer_class: type[Serializer],
         output_serializer_class: type[Serializer] | None,
         **options: Any,
     ) -> None:
-        if cls.custom_mutation == DjangoMutation.custom_mutation:  # pragma: no cover
-            msg = "`custom_mutation` must be overridden in subclasses for custom mutations."
-            raise ValueError(msg)
-
-        if serializer_class is None:  # pragma: no cover
-            msg = "`Meta.serializer_class` is required for custom mutations."
-            raise ValueError(msg)
-
         if not issubclass(serializer_class, Serializer):  # pragma: no cover
-            msg = "`Meta.serializer_class` needs to be a Serializer."
+            msg = "`Meta.serializer_class` needs to be a Serializer subclass."
             raise TypeError(msg)
 
-        serializer = output_serializer = serializer_class()
+        output_serializer_class = output_serializer_class or serializer_class
+        if not issubclass(output_serializer_class, Serializer):  # pragma: no cover
+            msg = "`Meta.output_serializer_class` needs to be a Serializer subclass."
+            raise TypeError(msg)
 
-        if output_serializer_class is None:  # pragma: no cover
-            output_serializer_class = serializer_class
+        serializer = serializer_class()
+        output_serializer = output_serializer_class()
 
-        else:
-            if not issubclass(output_serializer_class, Serializer):  # pragma: no cover
-                msg = "`Meta.output_serializer_class` needs to be a Serializer."
-                raise TypeError(msg)
-
-            output_serializer = output_serializer_class()
-
-        input_fields = fields_for_serializer(
-            serializer,
-            only_fields=(),
-            exclude_fields=(),
-            is_input=True,
-        )
-
-        output_fields = fields_for_serializer(
-            output_serializer,
-            only_fields=(),
-            exclude_fields=(),
-        )
+        input_fields = fields_for_serializer(serializer, only_fields=(), exclude_fields=(), is_input=True)
+        output_fields = fields_for_serializer(output_serializer, only_fields=(), exclude_fields=())
 
         _meta.serializer_class = serializer_class
         _meta.output_serializer_class = output_serializer_class
+
+        return cls.__finish_init_subclass__(_meta, input_fields, output_fields, **options)
+
+    @classmethod
+    def __init_subclass_form__(
+        cls,
+        _meta: DjangoMutationOptions,
+        required_form_class: type[ModelForm | Form],
+        form_class: type[ModelForm, Form],
+        output_form_class: type[ModelForm, Form] | None,
+        **options: Any,
+    ) -> None:
+        if not issubclass(form_class, required_form_class):  # pragma: no cover
+            msg = f"`Meta.form_class` needs to be a {required_form_class.__name__} subclass."
+            raise TypeError(msg)
+
+        output_form_class = output_form_class or form_class
+        if not issubclass(output_form_class, required_form_class):  # pragma: no cover
+            msg = f"`Meta.output_form_class` needs to be a {required_form_class.__name__} subclass."
+            raise TypeError(msg)
+
+        form = form_class()
+        output_form_class = convert_form_fields_to_not_required(output_form_class)
+        output_form = output_form_class()
+
+        input_fields = fields_for_form(form, only_fields=(), exclude_fields=())
+        output_fields = fields_for_form(output_form, only_fields=(), exclude_fields=())
+
+        _meta.form_class = form_class
+        _meta.output_form_class = output_form_class
 
         return cls.__finish_init_subclass__(_meta, input_fields, output_fields, **options)
 
@@ -486,9 +531,7 @@ class DjangoMutation(ClientIDMutation):
         if not cls.has_mutation_permission(info, kwargs):
             raise SerializerValidationError(gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE)
 
-        serializer = cls._meta.serializer_class(data=kwargs)
-        serializer.is_valid(raise_exception=True)
-        kwargs = serializer.validated_data
+        cls.run_validation(data=kwargs)
         return cls.custom_mutation(info, **kwargs)
 
     @classmethod
@@ -497,7 +540,9 @@ class DjangoMutation(ClientIDMutation):
         raise NotImplementedError(f"Custom model operation not defined for '{cls.__name__}'")  # noqa: EM102
 
     @classmethod
-    def get_instance(cls, **kwargs: Any) -> models.Model:
+    def get_instance(cls, **kwargs: Any) -> models.Model | None:
+        if cls._meta.model_operation == "create":
+            return None
         lookup_field: str = cls._meta.lookup_field
         if lookup_field not in kwargs:  # pragma: no cover
             raise SerializerValidationError({lookup_field: "This field is required."})
@@ -505,40 +550,48 @@ class DjangoMutation(ClientIDMutation):
 
     @classmethod
     def update_or_create(cls, info: GQLInfo, **kwargs: Any) -> Self:
-        serializer_kwargs = cls.get_serializer_kwargs(info.context, **kwargs)
-        instance: models.Model | None = serializer_kwargs["instance"]
+        maybe_instance = cls.get_instance(**kwargs)
 
         if cls._meta.model_operation == "create" and not cls.has_create_permissions(info, kwargs):
             raise SerializerValidationError(gdx_settings.CREATE_PERMISSION_ERROR_MESSAGE)
-        if cls._meta.model_operation == "update" and not cls.has_update_permissions(instance, info, kwargs):
+        if cls._meta.model_operation == "update" and not cls.has_update_permissions(maybe_instance, info, kwargs):
             raise SerializerValidationError(gdx_settings.UPDATE_PERMISSION_ERROR_MESSAGE)
 
-        serializer = cls._meta.serializer_class(**serializer_kwargs)
-        serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
-        output = cls.to_representation(obj)
+        validator_kwargs = cls.get_validator_kwargs(maybe_instance, info, kwargs)
+        validator = cls.run_validation(**validator_kwargs)
+        instance = validator.save()
+
+        if cls._meta.serializer_class is not None:
+            output = cls.get_serializer_output(instance)
+        else:
+            output = cls.get_form_output(instance)
+
         return cls(errors=None, **output)  # type: ignore[arg-type]
 
     @classmethod
-    def get_serializer_kwargs(cls, request: HttpRequest, **kwargs: Any) -> dict[str, Any]:
-        for input_dict_key, maybe_enum in kwargs.items():
+    def get_validator_kwargs(cls, instance: models.Model | None, info: GQLInfo, data: dict[str, Any]) -> dict[str, Any]:
+        for input_dict_key, maybe_enum in data.items():
             if isinstance(maybe_enum, Enum):
-                kwargs[input_dict_key] = maybe_enum.value
+                data[input_dict_key] = maybe_enum.value
 
-        instance: models.Model | None = None
-        if cls._meta.model_operation == "update":
-            instance = cls.get_instance(**kwargs)
+        validator_kwargs: dict[str, Any] = {"instance": instance, "data": data}
+        if cls._meta.serializer_class is not None:
+            validator_kwargs["context"] = {"request": info.context}
+            validator_kwargs["partial"] = instance is not None
 
-        return {
-            "instance": instance,
-            "data": kwargs,
-            "context": {"request": request},
-            "partial": instance is not None,
-        }
+        return validator_kwargs
 
     @classmethod
-    def to_representation(cls, instance: models.Model) -> dict[str, Any]:
-        serializer = cls._meta.output_serializer_class(instance=instance)
+    def run_validation(cls, **kwargs: Any) -> Serializer | Form:
+        validator_class = cls._meta.serializer_class or cls._meta.form_class
+        validator = validator_class(**kwargs)
+        if not validator.is_valid():
+            raise SerializerValidationError(validator.errors)
+        return validator
+
+    @classmethod
+    def get_serializer_output(cls, instance: models.Model) -> dict[str, Any]:
+        serializer = cls._meta.output_serializer_class()
 
         kwargs: dict[str, Any] = {}
         for field_name, field in serializer.fields.items():
@@ -548,6 +601,11 @@ class DjangoMutation(ClientIDMutation):
                 else:
                     kwargs[field_name] = field.get_attribute(instance)
         return kwargs
+
+    @classmethod
+    def get_form_output(cls, instance: models.Model) -> dict[str, Any]:
+        form = cls._meta.output_form_class()
+        return {field_name: get_attribute(instance, [field_name]) for field_name in form.fields}
 
     @classmethod
     def delete(cls, info: GQLInfo, **kwargs: Any) -> Self:

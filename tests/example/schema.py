@@ -8,6 +8,8 @@ from tests.example.mutations import (
     ExampleCreateMutation,
     ExampleCustomMutation,
     ExampleDeleteMutation,
+    ExampleFormCustomMutation,
+    ExampleFormMutation,
     ExampleUpdateMutation,
 )
 from tests.example.nodes import (
@@ -46,6 +48,9 @@ class Mutation(graphene.ObjectType):
     update_example = ExampleUpdateMutation.Field()
     delete_example = ExampleDeleteMutation.Field()
     custom_example = ExampleCustomMutation.Field()
+
+    form_mutation = ExampleFormMutation.Field()
+    form_custom_mutation = ExampleFormCustomMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
