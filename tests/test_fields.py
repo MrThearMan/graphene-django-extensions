@@ -15,7 +15,7 @@ from graphene_django_extensions.fields import (
     convert_form_field_to_time,
     convert_time_to_string,
 )
-from tests.example.models import State
+from tests.example.models import ExampleState
 
 
 def test_time_field_serialize():
@@ -53,14 +53,14 @@ def test_convert_form_field_to_list_of_int():
 
 
 def test_convert_form_field_to_enum():
-    obj = convert_form_field_to_enum(field=EnumChoiceField(enum=State, help_text="test help text"))
+    obj = convert_form_field_to_enum(field=EnumChoiceField(enum=ExampleState, help_text="test help text"))
     assert issubclass(type(obj), graphene.Enum)
     assert obj.kwargs["description"] == "test help text"
     assert obj.kwargs["required"] is True
 
 
 def test_convert_form_field_to_enum_list():
-    obj = convert_form_field_to_enum_list(field=EnumMultipleChoiceField(enum=State, help_text="test help text"))
+    obj = convert_form_field_to_enum_list(field=EnumMultipleChoiceField(enum=ExampleState, help_text="test help text"))
     assert type(obj) is graphene.List
     assert issubclass(obj.of_type, graphene.Enum)
     assert obj.kwargs["description"] == "test help text"

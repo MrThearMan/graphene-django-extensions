@@ -1,7 +1,7 @@
 import pytest
 
 from graphene_django_extensions.testing import GraphQLClient, build_mutation
-from tests.example.models import Example, State
+from tests.example.models import Example, ExampleState
 from tests.factories import ExampleFactory, ForwardManyToOneFactory, ForwardOneToOneFactory
 
 pytestmark = [
@@ -15,7 +15,7 @@ def test_graphql__create(graphql: GraphQLClient):
         "name": "foo",
         "number": 123,
         "email": "foo@email.com",
-        "state": State.ACTIVE.value,
+        "exampleState": ExampleState.ACTIVE.value,
         "forwardOneToOneField": {
             "name": "Test",
         },
@@ -45,7 +45,7 @@ def test_graphql__create__validation_error(graphql: GraphQLClient):
         "name": "foo",
         "number": -1,
         "email": "foo@email.com",
-        "state": State.ACTIVE.value,
+        "exampleState": ExampleState.ACTIVE.value,
         "forwardOneToOneField": {
             "name": "Test",
         },
@@ -65,7 +65,7 @@ def test_graphql__create__permission_error(graphql: GraphQLClient):
         "name": "foo",
         "number": 123,
         "email": "foo@email.com",
-        "state": State.ACTIVE.value,
+        "exampleState": ExampleState.ACTIVE.value,
         "forwardOneToOneField": {
             "name": "Test",
         },
@@ -87,7 +87,7 @@ def test_graphql__update(graphql: GraphQLClient):
         "name": "foo",
         "number": 123,
         "email": "foo@email.com",
-        "state": State.ACTIVE.value,
+        "exampleState": ExampleState.ACTIVE.value,
         "forwardOneToOneField": {
             "pk": example.forward_one_to_one_field.pk,
             "name": "Test",
@@ -203,7 +203,7 @@ def test_graphql__form(graphql: GraphQLClient):
         "name": "foo",
         "number": 123,
         "email": "foo@email.com",
-        "state": State.ACTIVE.value,
+        "exampleState": ExampleState.ACTIVE.value,
         "forwardOneToOneField": oto.pk,
         "forwardManyToOneField": mto.pk,
     }

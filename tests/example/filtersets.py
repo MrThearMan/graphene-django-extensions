@@ -7,14 +7,14 @@ from graphene_django_extensions.filters import (
     ModelFilterSet,
     UserDefinedFilter,
 )
-from tests.example.models import Example, State
+from tests.example.models import Example, ExampleState
 
 
 class ExampleFilterSet(ModelFilterSet):
     pk = IntMultipleChoiceFilter()
     forward_one_to_one_field = IntMultipleChoiceFilter()
 
-    state = EnumMultipleChoiceFilter(enum=State)
+    example_state = EnumMultipleChoiceFilter(enum=ExampleState)
 
     one = IntChoiceFilter(method="filter_by_custom")
     two = IntChoiceFilter(method="filter_by_custom")
@@ -37,7 +37,7 @@ class ExampleFilterSet(ModelFilterSet):
             "name",
             "number",
             "email",
-            "state",
+            "example_state",
         ]
         order_by = [
             "pk",

@@ -31,7 +31,7 @@ class ExampleSerializer(NestingModelSerializer):
             "name",
             "number",
             "email",
-            "state",
+            "example_state",
             "example_property",
             "forward_one_to_one_field",
             "forward_many_to_one_field",

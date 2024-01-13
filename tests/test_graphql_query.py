@@ -1,7 +1,7 @@
 import pytest
 
 from graphene_django_extensions.testing import GraphQLClient, build_query
-from tests.example.models import State
+from tests.example.models import ExampleState
 from tests.example.nodes import ExampleNode
 from tests.factories import (
     ExampleFactory,
@@ -204,10 +204,15 @@ def test_graphql__query__restricted_field__has_perms(graphql: GraphQLClient):
 
 
 def test_graphql__filter(graphql: GraphQLClient):
-    example = ExampleFactory.create(name="foo", state=State.ACTIVE)
+    example = ExampleFactory.create(name="foo", example_state=ExampleState.ACTIVE)
     ExampleFactory.create(name="foobar")
 
-    query = build_query("examples", connection=True, name=example.name, state=[State.ACTIVE, State.INACTIVE])
+    query = build_query(
+        "examples",
+        connection=True,
+        name=example.name,
+        example_state=[ExampleState.ACTIVE, ExampleState.INACTIVE],
+    )
 
     graphql.login_with_superuser()
     response = graphql(query)

@@ -230,7 +230,7 @@ def test_nesting_model_serializer__constraint_error():
 def test_serializer_get_or_default():
     serializer = ExampleSerializer(data=EXAMPLE_DATA)
     assert serializer.get_or_default("name", EXAMPLE_DATA) == "foo"
-    assert serializer.get_or_default("state", EXAMPLE_DATA) == NOT_PROVIDED
+    assert serializer.get_or_default("example_state", EXAMPLE_DATA) == NOT_PROVIDED
 
 
 @pytest.mark.django_db()

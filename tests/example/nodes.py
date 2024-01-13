@@ -20,7 +20,7 @@ class ExampleNode(DjangoNode):
             "name",
             "number",
             "email",
-            "state",
+            "example_state",
             "forward_one_to_one_field",
             "forward_many_to_one_field",
             "forward_many_to_many_fields",

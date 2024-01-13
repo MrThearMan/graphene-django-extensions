@@ -6,13 +6,13 @@ from factory.django import DjangoModelFactory
 
 from tests.example.models import (
     Example,
+    ExampleState,
     ForwardManyToMany,
     ForwardManyToOne,
     ForwardOneToOne,
     ReverseManyToMany,
     ReverseOneToMany,
     ReverseOneToOne,
-    State,
 )
 
 
@@ -53,7 +53,7 @@ class ExampleFactory(DjangoModelFactory):
     name = fuzzy.FuzzyText(suffix="foo")
     number = fuzzy.FuzzyInteger(0)
     email = factory.LazyAttribute(lambda example: f"{example.name}@email.com")
-    state = fuzzy.FuzzyChoice(choices=State.choices)
+    example_state = fuzzy.FuzzyChoice(choices=ExampleState.choices)
     forward_one_to_one_field = factory.SubFactory(ForwardOneToOneFactory)
     forward_many_to_one_field = factory.SubFactory(ForwardManyToOneFactory)
 
