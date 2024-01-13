@@ -2,28 +2,35 @@ from __future__ import annotations
 
 from contextlib import suppress
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import graphene
 from aniso8601 import parse_time
 from django import forms
+from django.core.exceptions import ValidationError
 from django.db import models  # noqa: TCH002
 from graphene.types.generic import GenericScalar
 from graphene.types.inputobjecttype import InputObjectTypeOptions
+from graphene.utils.str_converters import to_camel_case
+from graphene_django import DjangoConnectionField
 from graphene_django.converter import convert_django_field, get_django_field_description
+from graphene_django.filter.fields import DjangoFilterConnectionField, convert_enum
 from graphene_django.forms.converter import convert_form_field, get_form_field_description
 from graphene_django.registry import Registry  # noqa: TCH002
 from rest_framework import serializers
 from rest_framework.relations import PKOnlyObject
 
 from .converters import convert_typed_dict_to_graphene_type
-from .typing import TYPE_CHECKING, FieldAliasToLookup, FilterAliasStr, Operation
+from .typing import Operation
 
 if TYPE_CHECKING:
     import datetime
 
     from django.db.models import Model
+    from django_filters import FilterSet
 
-    from .typing import Any, Self, TypedDict
+    from .connections import Connection
+    from .typing import Any, FieldAliasToLookup, GQLInfo, Self, TypedDict
 
 
 __all__ = [
@@ -35,6 +42,37 @@ __all__ = [
     "TypedDictField",
     "TypedDictListField",
 ]
+
+
+class DjangoFilterConnectionField(DjangoFilterConnectionField):
+    """Override this class to support enum ordering in filters."""
+
+    @classmethod
+    def resolve_queryset(  # noqa: PLR0913
+        cls,
+        connection: Connection,
+        iterable: models.Manager,
+        info: GQLInfo,
+        args: dict[str, Any],
+        filtering_args: dict[str, Any],
+        filterset_class: type[FilterSet],
+    ) -> models.QuerySet:
+        def filter_kwargs() -> dict[str, Any]:
+            kwargs = {}
+            for k, v in args.items():
+                if k in filtering_args:
+                    # Remove `order_by` specific checks from here.
+                    # Custom `order_by` filter makes them enums,
+                    # so they should still be converted to strings.
+                    kwargs[k] = convert_enum(v)
+            return kwargs
+
+        qs = DjangoConnectionField.resolve_queryset(connection, iterable, info, args)
+
+        filterset = filterset_class(data=filter_kwargs(), queryset=qs, request=info.context)
+        if filterset.is_valid():
+            return filterset.qs
+        raise ValidationError(filterset.form.errors.as_json())  # pragma: no cover
 
 
 class IntPkOnlyObject(PKOnlyObject):
@@ -167,9 +205,9 @@ class UserDefinedFilterInputType(graphene.InputObjectType):
     operations = graphene.List(graphene.NonNull(lambda: UserDefinedFilterInputType))
 
     @classmethod
-    def create(cls, model: type[Model], fields: list[FilterAliasStr]) -> type[Self]:
+    def create(cls, model: type[Model], fields_map: FieldAliasToLookup) -> type[Self]:
         name = f"{model.__name__}FilterInput"
-        meta_dict = {"model": model, "fields": fields}
+        meta_dict = {"model": model, "fields_map": fields_map}
         attrs = {"Meta": type("Meta", (), meta_dict)}
         return type(name, (UserDefinedFilterInputType,), attrs)
 
@@ -177,7 +215,7 @@ class UserDefinedFilterInputType(graphene.InputObjectType):
     def __init_subclass_with_meta__(
         cls,
         model: type[Model] | None = None,
-        fields: list[FilterAliasStr] | None = None,
+        fields_map: FieldAliasToLookup | None = None,
         _meta: InputObjectTypeOptions | None = None,
         **options: Any,
     ) -> None:
@@ -188,15 +226,14 @@ class UserDefinedFilterInputType(graphene.InputObjectType):
             msg = "'Meta.model' is required."
             raise TypeError(msg)
 
-        if fields is None:  # pragma: no cover
+        if fields_map is None:  # pragma: no cover
             msg = "'Meta.fields' is required."
             raise TypeError(msg)
 
-        fields_enum = Enum(f"{model.__name__}Fields", fields)
         _meta.fields = {
             "field": graphene.Field(
                 graphene.Enum.from_enum(
-                    enum=fields_enum,
+                    enum=Enum(f"{model.__name__}FilterFields", fields_map),
                     description=f"Filterable fields for the '{model.__name__}' model.",
                 ),
             ),
@@ -208,7 +245,7 @@ class UserDefinedFilterInputType(graphene.InputObjectType):
 class UserDefinedFilterField(forms.Field):
     def __init__(self, model: type[Model], fields: FieldAliasToLookup, **kwargs: Any) -> None:
         self.model = model
-        self.fields = fields
+        self.fields_map = fields
         super().__init__(**kwargs)
 
 
@@ -216,8 +253,59 @@ class UserDefinedFilterField(forms.Field):
 def convert_user_defined_filter(field: UserDefinedFilterField) -> UserDefinedFilterInputType:
     return UserDefinedFilterInputType.create(
         model=field.model,
-        fields=list(field.fields),
+        fields_map=field.fields_map,
     )(
+        description=get_form_field_description(field),
+        required=field.required,
+    )
+
+
+class OrderingChoices(graphene.Enum):
+    """Get `order_by` choices with Enums rather than strings."""
+
+    @classmethod
+    def create(cls, model: type[Model], fields_map: dict[str, str]) -> type[Self]:
+        name = f"{model.__name__}OrderingChoices"
+        meta_dict = {"model": model, "fields_map": fields_map}
+        attrs = {"Meta": type("Meta", (), meta_dict)}
+        return type(name, (OrderingChoices,), attrs)
+
+    @classmethod
+    def __init_subclass_with_meta__(
+        cls,
+        model: type[Model] | None = None,
+        fields_map: dict[str, str] | None = None,
+        **options: Any,
+    ) -> None:
+        if model is None:  # pragma: no cover
+            msg = "'Meta.model' is required."
+            raise TypeError(msg)
+
+        if fields_map is None:  # pragma: no cover
+            msg = "'Meta.fields' is required."
+            raise TypeError(msg)
+
+        enum = Enum(f"{model.__name__}OrderingChoices", fields_map)
+        description = f"Ordering fields for the '{model.__name__}' model."
+
+        super().__init_subclass_with_meta__(enum=enum, description=description, **options)
+
+
+class OrderByField(forms.Field):
+    def __init__(self, model: type[Model], choices: list[tuple[str, str]], **kwargs: Any) -> None:
+        self.model = model
+        self.fields_map: dict[str, str] = {
+            to_camel_case(name[1:]) + "Desc" if name[0] == "-" else to_camel_case(name) + "Asc": name
+            for name, _ in choices
+        }
+        kwargs.pop("null_label", None)
+        super().__init__(**kwargs)
+
+
+@convert_form_field.register
+def convert_ordering_field(field: OrderByField) -> graphene.List:
+    return graphene.List(
+        OrderingChoices.create(model=field.model, fields_map=field.fields_map),
         description=get_form_field_description(field),
         required=field.required,
     )

@@ -80,4 +80,7 @@ STATIC_ROOT = BASE_DIR / "static"
 GRAPHENE = {
     "SCHEMA": "tests.example.schema.schema",
     "TESTING_ENDPOINT": "/graphql/",
+    "MIDDLEWARE": [
+        "graphene_django.debug.DjangoDebugMiddleware",
+    ],
 }

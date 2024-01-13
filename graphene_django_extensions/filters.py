@@ -4,6 +4,7 @@ from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import django_filters
+from django import forms
 from django.db import models
 from django.db.models import Model, Q, QuerySet
 from django.db.models.constants import LOOKUP_SEP
@@ -16,6 +17,7 @@ from .fields import (
     EnumMultipleChoiceField,
     IntChoiceField,
     IntMultipleChoiceField,
+    OrderByField,
     UserDefinedFilterField,
 )
 from .settings import gdx_settings
@@ -167,6 +169,9 @@ class CustomOrderingFilter(django_filters.OrderingFilter):
     on its subclasses or filtersets it is defined on.
     """
 
+    base_field_class = OrderByField
+    field_class = forms.Field
+
     def filter(self, qs: models.QuerySet, value: list[str]) -> models.QuerySet:  # noqa: A003
         if value in EMPTY_VALUES:
             return qs
@@ -277,10 +282,16 @@ class ModelFilterSet(django_filters.FilterSet):
                     else:
                         fields_map.setdefault(field, field)
 
-                cls.declared_filters[gdx_settings.ORDERING_FILTER_NAME] = CustomOrderingFilter(fields=fields_map)
+                cls.declared_filters[gdx_settings.ORDERING_FILTER_NAME] = CustomOrderingFilter(
+                    model=cls._meta.model,
+                    fields=fields_map,
+                )
 
             elif ordering_filter is None:
-                cls.declared_filters[gdx_settings.ORDERING_FILTER_NAME] = CustomOrderingFilter(fields=ordering_fields)
+                cls.declared_filters[gdx_settings.ORDERING_FILTER_NAME] = CustomOrderingFilter(
+                    model=cls._meta.model,
+                    fields=ordering_fields,
+                )
 
         return super().get_filters()
 

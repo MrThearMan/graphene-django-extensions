@@ -45,6 +45,8 @@ class ExampleFilterSet(ModelFilterSet):
             "number",
             "email",
             ("forward_one_to_one_field", "foto"),
+            ("forward_many_to_one_field", "many_to_one"),
+            "custom",
         ]
         combination_methods = [
             "filter_by_custom",
@@ -56,5 +58,5 @@ class ExampleFilterSet(ModelFilterSet):
             return qs
         return qs.filter(number__in=numbers)
 
-    def order_by_number(self, qs: models.QuerySet, *, desc: bool) -> models.QuerySet:
+    def order_by_custom(self, qs: models.QuerySet, *, desc: bool) -> models.QuerySet:
         return qs.order_by("-number" if desc else "number")

@@ -250,7 +250,7 @@ def test_graphql__filter__combination_filter(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(name="foo1", number=1)
     example_2 = ExampleFactory.create(name="foo2", number=2)
 
-    query = build_query("examples", connection=True, order_by="name", one=example_1.number, two=example_2.number)
+    query = build_query("examples", connection=True, order_by="nameAsc", one=example_1.number, two=example_2.number)
 
     graphql.login_with_superuser()
     response = graphql(query)
@@ -321,11 +321,41 @@ def test_graphql__filter__user_defined__related_alias(graphql: GraphQLClient):
     assert response.node() == {"pk": example.pk}
 
 
-def test_graphql__ordering(graphql: GraphQLClient):
+def test_graphql__ordering__ascending(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(name="foo2")
     example_2 = ExampleFactory.create(name="foo1")
 
-    query = build_query("examples", connection=True, order_by="name")
+    query = build_query("examples", connection=True, order_by="nameAsc")
+
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 2
+    assert response.node(0) == {"pk": example_2.pk}
+    assert response.node(1) == {"pk": example_1.pk}
+
+
+def test_graphql__ordering__descending(graphql: GraphQLClient):
+    example_1 = ExampleFactory.create(name="foo2")
+    example_2 = ExampleFactory.create(name="foo1")
+
+    query = build_query("examples", connection=True, order_by="nameDesc")
+
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 2
+    assert response.node(0) == {"pk": example_1.pk}
+    assert response.node(1) == {"pk": example_2.pk}
+
+
+def test_graphql__ordering__multiple(graphql: GraphQLClient):
+    example_1 = ExampleFactory.create(name="foo2", number=1)
+    example_2 = ExampleFactory.create(name="foo1", number=2)
+
+    query = build_query("examples", connection=True, order_by=["nameAsc", "numberDesc"])
 
     graphql.login_with_superuser()
     response = graphql(query)
@@ -340,7 +370,7 @@ def test_graphql__ordering__custom_function(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(number=2)
     example_2 = ExampleFactory.create(number=1)
 
-    query = build_query("examples", connection=True, order_by="number")
+    query = build_query("examples", connection=True, order_by="customAsc")
 
     graphql.login_with_superuser()
     response = graphql(query)

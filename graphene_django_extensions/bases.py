@@ -12,7 +12,6 @@ from graphene.types.resolver import attr_resolver
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django import DjangoConnectionField, DjangoListField, DjangoObjectType
 from graphene_django.converter import convert_django_field
-from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.forms.mutation import fields_for_form
 from graphene_django.registry import get_global_registry
 from graphene_django.rest_framework.mutation import fields_for_serializer
@@ -27,6 +26,7 @@ from rest_framework.serializers import ListSerializer, ModelSerializer, Serializ
 from .connections import Connection
 from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
 from .errors import flatten_errors
+from .fields import DjangoFilterConnectionField
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
@@ -289,8 +289,8 @@ class DjangoMutation(ClientIDMutation):
         cls,
         lookup_field: FieldNameStr | None = None,
         model: type[models.Model] | None = None,
-        serializer_class: type[ModelSerializer | Serializer] = None,
-        output_serializer_class: type[ModelSerializer | Serializer] = None,
+        serializer_class: type[ModelSerializer | Serializer] | None = None,
+        output_serializer_class: type[ModelSerializer | Serializer] | None = None,
         form_class: type[ModelForm | Form] | None = None,
         output_form_class: type[ModelForm | Form] | None = None,
         permission_classes: Sequence[type[BasePermission]] = (AllowAny,),

@@ -81,7 +81,7 @@ def _build_filters(fields: str, /, **filter_params: Any) -> FiltersAndFields:
         if len(plain_key.split(LOOKUP_SEP)) > 1:
             field_filter_params[key] = value
         else:
-            params[to_camel_case(key)] = _format_value_for_filter(value)
+            params[to_camel_case(key)] = _format_value_for_filter(value, is_order_by=key == "order_by")
 
     query_filters: str = ""
     if params:
@@ -111,8 +111,12 @@ def _split_lookups(key: str) -> tuple[str, str]:
     return plain_key, ""
 
 
-def _format_value_for_filter(value: Any) -> str:
+def _format_value_for_filter(value: Any, *, is_order_by: bool = False) -> str:
     """Format values for the GraphQL filters. For enums, use the enum value. Otherwise, format as json."""
+    if is_order_by:  # using custom enum `order_by` values
+        if isinstance(value, list):
+            return f"[{', '.join(item for item in value)}]"
+        return value
     if isinstance(value, Enum):
         return value.value
     if isinstance(value, list) and all(isinstance(item, Enum) for item in value):
