@@ -51,6 +51,7 @@ The main features are:
       correspond to existing rows for the database model.
     - adds a custom ordering filter automatically to all subclasses, with the default `pk` filter.
     - allows adding new ordering filters with the `Meta.order_by` attribute.
+    - `order_by` fields are converted to enums for better autocompletion in GraphiQL.
     - allows combining multiple method filters with the `Meta.combination_methods` attribute.
 
 

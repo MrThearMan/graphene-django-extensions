@@ -47,11 +47,14 @@ class ExampleFilterSet(ModelFilterSet):
     class Meta:
         model = Example
         fields = [...]
-        order_by = ["-name", "order_by_name"]
+        order_by = ["name"]
 
     def order_by_name(self, qs: QuerySet, desc: bool) -> QuerySet:
-        return qs.order_by("name")
+        return qs.order_by("-name" if desc else "name")
 ```
+
+Additionally, the ordering choices are converted to GraphQL enums (e.g. `"name"` -> `nameAsc`
+& `"-name"` -> `nameAsc`), which gives better autocomplete results.
 
 ---
 
