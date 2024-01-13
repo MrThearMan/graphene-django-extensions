@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graphene-django-extensions"
-version = "0.0.6"
+version = "0.1.0"
 description = "Extensions for graphene-django"
 authors = [
     "Matti Lamppu <lamppu.matti.akseli@gmail.com>",
@@ -57,7 +57,7 @@ python = ">=3.10,<4"
 Django = ">=4.2"
 djangorestframework = ">=3.14.0"
 graphene-django = ">=3.0.0"
-django-settings-holder = ">=0.1.0"
+django-settings-holder = ">=0.1.2"
 django-filter = ">=23.5"
 typing-extensions = {version = ">=4.4.0", python = "<3.11"}
 
@@ -66,7 +66,7 @@ pytest = "7.4.4"
 coverage = "7.4.0"
 pytest-django = "4.7.0"
 pre-commit = "3.6.0"
-tox = "4.11.4"
+tox = "4.12.0"
 tox-gh-actions = "3.2.0"
 factory-boy = "3.3.0"
 

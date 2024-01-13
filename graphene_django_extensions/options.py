@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from django.forms import Form, ModelForm
 from graphene.types.mutation import MutationOptions
 from graphene_django.types import DjangoObjectTypeOptions
 
 if TYPE_CHECKING:
     from django.db import models
+    from django.forms import Form, ModelForm
     from rest_framework.serializers import ModelSerializer, Serializer
 
     from graphene_django_extensions.permissions import BasePermission

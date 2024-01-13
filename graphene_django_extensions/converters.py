@@ -6,13 +6,13 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.db import models
-from django.forms import Field, Form, ModelForm
 from graphene_django.converter import convert_django_field
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
 from .model_operations import get_model_lookup_field
 
 if TYPE_CHECKING:
+    from django.forms import Field, Form, ModelForm
     from graphene.types.unmountedtype import UnmountedType
 
     from .typing import FieldNameStr, SerializerMeta, TypedDict
