@@ -8,15 +8,16 @@ import graphene
 from aniso8601 import parse_time
 from django import forms
 from django.core.exceptions import ValidationError
-from django.db import models  # noqa: TCH002
+from django.db import models
 from graphene.types.generic import GenericScalar
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.utils.str_converters import to_camel_case
-from graphene_django import DjangoConnectionField
 from graphene_django.converter import convert_django_field, get_django_field_description
-from graphene_django.filter.fields import DjangoFilterConnectionField, convert_enum
+from graphene_django.filter.fields import convert_enum
 from graphene_django.forms.converter import convert_form_field, get_form_field_description
 from graphene_django.registry import Registry  # noqa: TCH002
+from query_optimizer import DjangoConnectionField
+from query_optimizer.filter import DjangoFilterConnectionField
 from rest_framework import serializers
 from rest_framework.relations import PKOnlyObject
 
@@ -28,7 +29,9 @@ if TYPE_CHECKING:
 
     from django.db.models import Model
     from django_filters import FilterSet
+    from graphene_django import DjangoListField
 
+    from .bases import DjangoNode
     from .connections import Connection
     from .typing import Any, FieldAliasToLookup, GQLInfo, Self, TypedDict
 
@@ -309,3 +312,22 @@ def convert_ordering_field(field: OrderByField) -> graphene.List:
         description=get_form_field_description(field),
         required=field.required,
     )
+
+
+@convert_django_field.register(models.ManyToManyField)
+@convert_django_field.register(models.ManyToManyRel)
+@convert_django_field.register(models.ManyToOneRel)
+def convert_to_many_field_to_list_or_connection(
+    field,  # noqa: ANN001
+    registry: Registry | None = None,
+) -> graphene.Dynamic:
+    def dynamic_type() -> DjangoFilterConnectionField | DjangoConnectionField | DjangoListField | None:
+        _type: DjangoNode | None = registry.get_type_for_model(field.related_model)
+        if _type is None:  # pragma: no cover
+            return None
+
+        if _type._meta.connection:
+            return _type.Connection()
+        return _type.ListField()  # pragma: no cover
+
+    return graphene.Dynamic(dynamic_type)

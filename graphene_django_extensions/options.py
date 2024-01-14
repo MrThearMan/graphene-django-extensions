@@ -26,8 +26,10 @@ class DjangoNodeOptions(DjangoObjectTypeOptions):
     def __init__(
         self,
         class_type: type[DjangoNode],
+        max_complexity: int,
         permission_classes: Sequence[type[BasePermission]] = (),
     ) -> None:
+        self.max_complexity = max_complexity
         self.permission_classes = permission_classes
         super().__init__(class_type)
 

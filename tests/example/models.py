@@ -28,18 +28,18 @@ class Example(models.Model):
         ForwardOneToOne,
         on_delete=models.CASCADE,
         related_name="example_rel",
-        related_query_name="example_query_rel",
+        # related_query_name="example_query_rel",
     )
     forward_many_to_one_field = models.ForeignKey(
         ForwardManyToOne,
         on_delete=models.CASCADE,
         related_name="example_rels",
-        related_query_name="example_query_rels",
+        # related_query_name="example_query_rels",
     )
     forward_many_to_many_fields = models.ManyToManyField(
         ForwardManyToMany,
         related_name="example_rels",
-        related_query_name="example_query_rels",
+        # related_query_name="example_query_rels",
     )
 
     @property
@@ -67,7 +67,6 @@ class ReverseOneToOne(models.Model):
         Example,
         on_delete=models.CASCADE,
         related_name="reverse_one_to_one_rel",
-        # See: https://github.com/graphql-python/graphene-django/issues/1484
         # related_query_name="reverse_one_to_one_query_rel",
     )
 
@@ -78,7 +77,7 @@ class ReverseOneToMany(models.Model):
         Example,
         on_delete=models.CASCADE,
         related_name="reverse_one_to_many_rels",
-        related_query_name="reverse_one_to_many_query_rels",
+        # related_query_name="reverse_one_to_many_query_rels",
     )
 
 
@@ -87,5 +86,5 @@ class ReverseManyToMany(models.Model):
     example_fields = models.ManyToManyField(
         Example,
         related_name="reverse_many_to_many_rels",
-        related_query_name="reverse_many_to_many_query_rels",
+        # related_query_name="reverse_many_to_many_query_rels",
     )
