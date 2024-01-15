@@ -94,7 +94,7 @@ class UserDefinedFilter(django_filters.Filter):
         kwargs["fields"] = self._normalize_fields(model, fields)
         super().__init__(**kwargs)
 
-    def filter(self, qs: QuerySet, data: UserDefinedFilterInput) -> QuerySet:  # noqa: A003
+    def filter(self, qs: QuerySet, data: UserDefinedFilterInput) -> QuerySet:
         if data in EMPTY_VALUES:
             return qs
 
@@ -172,7 +172,7 @@ class CustomOrderingFilter(django_filters.OrderingFilter):
     base_field_class = OrderByField
     field_class = forms.Field
 
-    def filter(self, qs: models.QuerySet, value: list[str]) -> models.QuerySet:  # noqa: A003
+    def filter(self, qs: models.QuerySet, value: list[str]) -> models.QuerySet:
         if value in EMPTY_VALUES:
             return qs
 
