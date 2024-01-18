@@ -87,7 +87,7 @@ class GQLResponse:
         return self.json["data"]
 
     @property
-    def first_query_object(self) -> dict[str, Any] | None:
+    def first_query_object(self) -> dict[str, Any] | list[Any] | None:
         """
         Return the first query object in the response content.
 

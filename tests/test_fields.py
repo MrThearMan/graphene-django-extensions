@@ -2,18 +2,20 @@ import graphene
 from django import forms
 from django.db import models
 
-from graphene_django_extensions.fields import (
-    EnumChoiceField,
-    EnumMultipleChoiceField,
-    IntChoiceField,
-    IntMultipleChoiceField,
-    Time,
+from graphene_django_extensions.converters import (
     convert_form_field_to_enum,
     convert_form_field_to_enum_list,
     convert_form_field_to_int,
     convert_form_field_to_list_of_int,
     convert_form_field_to_time,
     convert_time_to_string,
+)
+from graphene_django_extensions.fields import (
+    EnumChoiceField,
+    EnumMultipleChoiceField,
+    IntChoiceField,
+    IntMultipleChoiceField,
+    Time,
 )
 from tests.example.models import ExampleState
 

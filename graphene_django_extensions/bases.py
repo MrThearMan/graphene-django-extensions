@@ -29,7 +29,7 @@ from rest_framework.serializers import ListSerializer, ModelSerializer, Serializ
 from .connections import Connection
 from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
 from .errors import flatten_errors
-from .fields import DjangoFilterConnectionField
+from .fields import DjangoFilterConnectionField, DjangoFilterListField
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
@@ -105,8 +105,10 @@ class DjangoNode(DjangoObjectType):
         return Field(cls, **kwargs)
 
     @classmethod
-    def ListField(cls, **kwargs: Any) -> DjangoListField:  # noqa: N802
-        return DjangoListField(cls, **kwargs)
+    def ListField(cls, **kwargs: Any) -> DjangoFilterListField | DjangoListField:  # noqa: N802
+        if not cls._meta.filterset_class and not cls._meta.filter_fields:
+            return DjangoListField(cls, **kwargs)  # pragma: no cover
+        return DjangoFilterListField(cls, **kwargs)
 
     @classmethod
     def Node(cls, **kwargs: Any) -> NodeField:  # noqa: N802
@@ -114,7 +116,7 @@ class DjangoNode(DjangoObjectType):
 
     @classmethod
     def Connection(cls, **kwargs: Any) -> DjangoFilterConnectionField | DjangoConnectionField:  # noqa: N802
-        if cls._meta.filterset_class is None and cls._meta.filter_fields is None:
+        if not cls._meta.filterset_class and not cls._meta.filter_fields:
             return DjangoConnectionField(cls, **kwargs)  # pragma: no cover
         return DjangoFilterConnectionField(cls, **kwargs)
 

@@ -388,6 +388,24 @@ def test_graphql__filter__user_defined__related_alias(graphql: GraphQLClient):
     assert response.node() == {"pk": example.pk}
 
 
+def test_graphql__filter__list_field(graphql: GraphQLClient):
+    example = ExampleFactory.create(name="foo", example_state=ExampleState.ACTIVE)
+    ExampleFactory.create(name="foobar")
+
+    query = build_query(
+        "exampleItems",
+        name=example.name,
+        example_state=[ExampleState.ACTIVE, ExampleState.INACTIVE],
+    )
+
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert len(response.first_query_object) == 1
+    assert response.first_query_object[0] == {"pk": example.pk}
+
+
 def test_graphql__ordering__ascending(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(name="foo2")
     example_2 = ExampleFactory.create(name="foo1")

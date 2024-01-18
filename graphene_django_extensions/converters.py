@@ -1,57 +1,43 @@
 from __future__ import annotations
 
-import datetime
 from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import graphene
 from django.db import models
-from graphene_django.converter import convert_django_field
+from django.forms import TimeField  # noqa: TCH002
+from graphene_django.converter import convert_django_field, get_django_field_description
+from graphene_django.forms.converter import convert_form_field, get_form_field_description
+from graphene_django.registry import Registry  # noqa: TCH002
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
+from .fields import (
+    DjangoFilterConnectionField,
+    EnumChoiceField,
+    EnumMultipleChoiceField,
+    IntChoiceField,
+    IntMultipleChoiceField,
+    OrderByField,
+    OrderingChoices,
+    Time,
+    UserDefinedFilterField,
+    UserDefinedFilterInputType,
+)
 from .model_operations import get_model_lookup_field
 
 if TYPE_CHECKING:
     from django.forms import Field, Form, ModelForm
-    from graphene.types.unmountedtype import UnmountedType
+    from graphene_django import DjangoListField
+    from query_optimizer import DjangoConnectionField
 
-    from .typing import FieldNameStr, SerializerMeta, TypedDict
+    from .bases import DjangoNode
+    from .typing import FieldNameStr, SerializerMeta
 
 
 __all__ = [
     "convert_form_fields_to_not_required",
     "convert_serializer_fields_to_not_required",
-    "convert_typed_dict_to_graphene_type",
 ]
-
-
-_CONVERSION_TABLE: dict[type, type[models.Field]] = {
-    int: models.IntegerField,
-    str: models.CharField,
-    bool: models.BooleanField,
-    float: models.FloatField,
-    dict: models.JSONField,
-    list: models.JSONField,
-    set: models.JSONField,
-    tuple: models.JSONField,
-    bytes: models.BinaryField,
-    datetime.datetime: models.DateTimeField,
-    datetime.date: models.DateField,
-    datetime.time: models.TimeField,
-}
-
-
-def convert_typed_dict_to_graphene_type(typed_dict: type[TypedDict]) -> type[graphene.ObjectType]:
-    graphene_types: dict[str, UnmountedType] = {}
-    for field_name, type_ in typed_dict.__annotations__.items():
-        model_field = _CONVERSION_TABLE.get(type_)
-        if model_field is None:
-            msg = f"Cannot convert field `{field_name}` of type `{type_.__name__}` to model field."
-            raise ValueError(msg)
-        graphene_type = convert_django_field(model_field())
-        graphene_types[field_name] = graphene_type
-
-    return type(f"{typed_dict.__name__}Type", (graphene.ObjectType,), graphene_types)  # type: ignore[return-value]
 
 
 def convert_serializer_fields_to_not_required(
@@ -137,3 +123,79 @@ def convert_form_fields_to_not_required(form_class: type[ModelForm | Form]) -> t
         form_fields[field_name] = new_field
 
     return type(form_class.__name__, (form_class,), form_fields)  # type: ignore[return-value]
+
+
+@convert_django_field.register
+def convert_time_to_string(field: models.TimeField, registry: Registry | None = None) -> Time:
+    return Time(description=get_django_field_description(field), required=not field.null)
+
+
+@convert_form_field.register
+def convert_form_field_to_time(field: TimeField) -> Time:
+    return Time(description=get_form_field_description(field), required=field.required)
+
+
+@convert_form_field.register
+def convert_form_field_to_int(field: IntChoiceField) -> graphene.Int:
+    return graphene.Int(description=get_form_field_description(field), required=field.required)
+
+
+@convert_form_field.register
+def convert_form_field_to_list_of_int(field: IntMultipleChoiceField) -> graphene.List:
+    return graphene.List(graphene.Int, description=get_form_field_description(field), required=field.required)
+
+
+@convert_form_field.register
+def convert_form_field_to_enum(field: EnumChoiceField) -> graphene.Enum:
+    return graphene.Enum.from_enum(field.enum)(
+        description=get_form_field_description(field),
+        required=field.required,
+    )
+
+
+@convert_form_field.register
+def convert_form_field_to_enum_list(field: EnumMultipleChoiceField) -> graphene.List:
+    return graphene.List(
+        graphene.Enum.from_enum(field.enum),
+        description=get_form_field_description(field),
+        required=field.required,
+    )
+
+
+@convert_form_field.register
+def convert_user_defined_filter(field: UserDefinedFilterField) -> UserDefinedFilterInputType:
+    return UserDefinedFilterInputType.create(
+        model=field.model,
+        fields_map=field.fields_map,
+    )(
+        description=get_form_field_description(field),
+        required=field.required,
+    )
+
+
+@convert_form_field.register
+def convert_ordering_field(field: OrderByField) -> graphene.List:
+    return graphene.List(
+        OrderingChoices.create(model=field.model, fields_map=field.fields_map),
+        description=get_form_field_description(field),
+        required=field.required,
+    )
+
+
+@convert_django_field.register(models.ManyToManyField)
+@convert_django_field.register(models.ManyToManyRel)
+@convert_django_field.register(models.ManyToOneRel)
+def convert_to_many_field_to_list_or_connection(
+    field,  # noqa: ANN001
+    registry: Registry | None = None,
+) -> graphene.Dynamic:
+    def dynamic_type() -> DjangoFilterConnectionField | DjangoConnectionField | DjangoListField | None:
+        _type: DjangoNode | None = registry.get_type_for_model(field.related_model)
+        if _type is None:  # pragma: no cover
+            return None
+
+        if _type._meta.connection:
+            return _type.Connection()
+        return _type.ListField()  # pragma: no cover
+
+    return graphene.Dynamic(dynamic_type)

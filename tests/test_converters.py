@@ -4,7 +4,7 @@ from typing import TypedDict
 import graphene
 import pytest
 
-from graphene_django_extensions.converters import convert_typed_dict_to_graphene_type
+from graphene_django_extensions.fields import TypedDictField
 
 
 def test_convert_typed_dict_to_graphene_type():
@@ -12,7 +12,7 @@ def test_convert_typed_dict_to_graphene_type():
         name: str
         age: int
 
-    graphene_type = convert_typed_dict_to_graphene_type(TestTypedDict)
+    graphene_type = TypedDictField(TestTypedDict).type
 
     assert hasattr(graphene_type, "name") is True
     assert type(graphene_type.name) is graphene.String
@@ -27,4 +27,4 @@ def test_convert_typed_dict_to_graphene_type__not_found():
 
     msg = "Cannot convert field `example` of type `NoneType` to model field."
     with pytest.raises(ValueError, match=re.escape(msg)):
-        convert_typed_dict_to_graphene_type(TestTypedDict)
+        TypedDictField(TestTypedDict)
