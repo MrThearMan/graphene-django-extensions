@@ -27,8 +27,7 @@ class ExampleDeleteMutation(DeleteMutation):
 Adds the following features to all types that inherit it:
 
 - For update operations, converts all fields to optional fields, enabling partial updates.
-- Adds an `errors = graphene.List(ErrorType)` field for returning errors.
-- Formats errors raised from nested serializers.
+- Converts and formats errors raised from serializers (also nested ones) into GraphQL errors.
 - Can add permission checks via permission classes.
 - Checks for missing object types for nested model serializer fields to avoid nebulous import order errors.
 

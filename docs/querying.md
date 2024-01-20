@@ -18,7 +18,6 @@ Extends form `graphene_django.types.DjangoObjectType` and adds the following fea
 
 - Makes the `graphene.relay.Node` interface the default interface for the type.
 - Adds `total_count = graphene.Int()` field to the default Connection field for the type.
-- Adds `errors = graphene.List(ErrorType)` field for returning errors.
 - Adds `pk` primary key field and resolver  to the ObjectType, if present in `Meta.fields`.
 - Can add permission checks via permission classes.
 
