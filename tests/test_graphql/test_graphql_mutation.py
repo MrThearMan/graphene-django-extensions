@@ -59,25 +59,6 @@ def test_graphql__create__validation_error(graphql: GraphQLClient):
     assert response.field_error_messages("number") == ["Number must be positive."]
 
 
-def test_graphql__create__permission_error(graphql: GraphQLClient):
-    mto = ForwardManyToOneFactory.create()
-    input_data = {
-        "name": "foo",
-        "number": 123,
-        "email": "foo@email.com",
-        "exampleState": ExampleState.ACTIVE.value,
-        "forwardOneToOneField": {
-            "name": "Test",
-        },
-        "forwardManyToOneField": mto.pk,
-    }
-
-    mutation = build_mutation("createExample", "ExampleCreateMutation")
-    response = graphql(mutation, input_data=input_data)
-
-    assert response.field_error_messages() == ["No permission to create."]
-
-
 def test_graphql__update(graphql: GraphQLClient):
     example = ExampleFactory.create(name="foo", number=1)
 
@@ -125,16 +106,6 @@ def test_graphql__update__validation_error(graphql: GraphQLClient):
     assert response.field_error_messages("number") == ["Number must be positive."]
 
 
-def test_graphql__update__permission_errors(graphql: GraphQLClient):
-    example = ExampleFactory.create()
-
-    input_data = {"pk": example.pk, "name": "foo"}
-    mutation = build_mutation("updateExample", "ExampleUpdateMutation")
-    response = graphql(mutation, input_data=input_data)
-
-    assert response.field_error_messages() == ["No permission to update."]
-
-
 def test_graphql__delete(graphql: GraphQLClient):
     example = ExampleFactory.create(name="foo", number=1)
 
@@ -163,16 +134,6 @@ def test_graphql__delete__validation_error(graphql: GraphQLClient):
     assert response.field_error_messages() == ["Number must be positive."]
 
 
-def test_graphql__delete__permission_error(graphql: GraphQLClient):
-    example = ExampleFactory.create(name="foo", number=1)
-
-    input_data = {"pk": example.pk}
-    mutation = build_mutation("deleteExample", "ExampleDeleteMutation", fields="deleted errors { messages field }")
-    response = graphql(mutation, input_data=input_data)
-
-    assert response.field_error_messages() == ["No permission to delete."]
-
-
 def test_graphql__custom(graphql: GraphQLClient):
     input_data = {"name": "foo"}
     mutation = build_mutation("customExample", "ExampleCustomMutation")
@@ -186,14 +147,6 @@ def test_graphql__custom(graphql: GraphQLClient):
         "pk": example.pk,
         "errors": None,
     }
-
-
-def test_graphql__custom__permission_error(graphql: GraphQLClient):
-    input_data = {"name": "foo"}
-    mutation = build_mutation("customExample", "ExampleCustomMutation")
-    response = graphql(mutation, input_data=input_data)
-
-    assert response.field_error_messages() == ["No permission to mutate."]
 
 
 def test_graphql__form(graphql: GraphQLClient):

@@ -5,6 +5,7 @@ import pytest
 from django.db import models
 
 from graphene_django_extensions.filters import UserDefinedFilter
+from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.testing.fixtures import parametrize_helper
 from graphene_django_extensions.typing import Operation, UserDefinedFilterInput
 from graphene_django_extensions.utils import get_nested
@@ -265,3 +266,24 @@ def test_build_filter_operation__not_should_have_only_one_operation():
     msg = "Logical filter operation 'NOT' requires exactly one operation."
     with pytest.raises(ValueError, match=re.escape(msg)):
         user_filter.build_user_defined_filters(op)
+
+
+@pytest.mark.django_db()
+def test_test_client(graphql: GraphQLClient, settings):
+    settings.DEBUG = True
+    query = build_query("examples", fields="pk name", connection=True)
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert str(response) == '{\n  "data": {\n    "examples": {\n      "edges": []\n    }\n  }\n}'
+    assert repr(response) == "{'data': {'examples': {'edges': []}}}"
+    assert len(response) == 0
+    assert response["examples"] == {"edges": []}
+    assert "examples" in response
+
+    assert len(response.queries) == 3
+    assert response.query_log != (
+        "---------------------------------------------------------------------------\n"
+        ">>> Queries (0):\n"
+        "---------------------------------------------------------------------------"
+    )
