@@ -45,6 +45,9 @@ class ForwardOneToOneNode(DjangoNode):
             "name",
             "example_rel",
         ]
+        permission_classes = [
+            AllowAuthenticated,
+        ]
 
 
 class ForwardManyToOneNode(DjangoNode):
@@ -54,6 +57,9 @@ class ForwardManyToOneNode(DjangoNode):
             "pk",
             "name",
             "example_rels",
+        ]
+        permission_classes = [
+            AllowAuthenticated,
         ]
 
 
@@ -65,6 +71,9 @@ class ForwardManyToManyNode(DjangoNode):
             "name",
             "example_rels",
         ]
+        permission_classes = [
+            AllowAuthenticated,
+        ]
 
 
 class ReverseOneToOneNode(DjangoNode):
@@ -74,6 +83,9 @@ class ReverseOneToOneNode(DjangoNode):
             "pk",
             "name",
             "example_field",
+        ]
+        permission_classes = [
+            AllowAuthenticated,
         ]
 
 
@@ -85,6 +97,9 @@ class ReverseOneToManyNode(DjangoNode):
             "name",
             "example_field",
         ]
+        permission_classes = [
+            AllowAuthenticated,
+        ]
 
 
 class ReverseManyToManyNode(DjangoNode):
@@ -94,4 +109,7 @@ class ReverseManyToManyNode(DjangoNode):
             "pk",
             "name",
             "example_fields",
+        ]
+        permission_classes = [
+            AllowAuthenticated,
         ]

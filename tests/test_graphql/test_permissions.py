@@ -21,6 +21,16 @@ def test_graphql__query__node__no_perms(graphql: GraphQLClient):
     assert response.error_message("example") == "No permission to access node."
 
 
+def test_graphql__query__list_field__no_perms(graphql: GraphQLClient):
+    ExampleFactory.create()
+
+    query = build_query("exampleItems", fields="pk name")
+
+    response = graphql(query)
+
+    assert response.error_message("exampleItems") == "No permission to access node."
+
+
 def test_graphql__query__connection__no_perms(graphql: GraphQLClient):
     ExampleFactory.create()
 

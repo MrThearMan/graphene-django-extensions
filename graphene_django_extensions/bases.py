@@ -29,7 +29,7 @@ from rest_framework.serializers import ListSerializer, ModelSerializer, Serializ
 from .connections import Connection
 from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
 from .errors import flatten_errors
-from .fields import DjangoFilterConnectionField, DjangoFilterListField
+from .fields import DjangoFilterConnectionField, DjangoFilterListField, RelatedField
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
@@ -103,6 +103,10 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def Field(cls, **kwargs: Any) -> Field:  # noqa: N802
         return Field(cls, **kwargs)
+
+    @classmethod
+    def RelatedField(cls, **kwargs: Any) -> RelatedField:  # noqa: N802
+        return RelatedField(cls, **kwargs)
 
     @classmethod
     def ListField(cls, **kwargs: Any) -> DjangoFilterListField | DjangoListField:  # noqa: N802

@@ -10,9 +10,11 @@ import graphene
 from aniso8601 import parse_time
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import QuerySet
 from graphene.types.argument import to_arguments
 from graphene.types.generic import GenericScalar
 from graphene.types.inputobjecttype import InputObjectTypeOptions
+from graphene.utils.str_converters import to_snake_case
 from graphene_django.converter import convert_django_field
 from graphene_django.filter.fields import convert_enum
 from graphene_django.filter.utils import get_filtering_args_from_filterset, get_filterset_class
@@ -23,7 +25,7 @@ from query_optimizer.filter import DjangoFilterConnectionField
 from ..typing import Operation
 
 if TYPE_CHECKING:
-    from django.db.models import Model
+    from django.db.models import Manager, Model
     from django_filters import FilterSet
     from graphene.types.argument import Argument
     from graphene.types.unmountedtype import UnmountedType
@@ -36,41 +38,52 @@ if TYPE_CHECKING:
 __all__ = [
     "DjangoFilterConnectionField",
     "DjangoFilterListField",
+    "OrderingChoices",
+    "RelatedField",
     "Time",
     "TypedDictField",
     "TypedDictListField",
-    "OrderingChoices",
     "UserDefinedFilterInputType",
 ]
 
 
-class DjangoFilterConnectionField(DjangoFilterConnectionField):
-    # Override this class to support enum ordering in filters.
+class RelatedField(graphene.Field):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self.reverse: bool = kwargs.pop("reverse", False)
+        super().__init__(*args, **kwargs)
 
-    @classmethod
-    def resolve_queryset(  # noqa: PLR0913
-        cls,
-        connection: Connection,
-        iterable: models.Manager,
-        info: GQLInfo,
-        args: dict[str, Any],
-        filtering_args: dict[str, Any],
-        filterset_class: type[FilterSet],
-    ) -> models.QuerySet:
-        def filter_kwargs() -> dict[str, Any]:
-            kwargs = {}
-            for k, v in args.items():
-                if k in filtering_args:
-                    # Remove `order_by` specific checks from here to support `OrderingChoices`.
-                    kwargs[k] = convert_enum(v)
-            return kwargs
+    @staticmethod
+    def forward_resolver(node: DjangoNode, root: Model, info: GQLInfo) -> Model | None:
+        field_name = to_snake_case(info.field_name)
+        db_field_key: str = root.__class__._meta.get_field(field_name).attname
+        object_pk = getattr(root, db_field_key, None)
+        if object_pk is None:  # pragma: no cover
+            return None
 
-        qs = DjangoConnectionField.resolve_queryset(connection, iterable, info, args)
+        return node.get_node(info, object_pk)
 
-        filterset = filterset_class(data=filter_kwargs(), queryset=qs, request=info.context)
-        if filterset.is_valid():
-            return filterset.qs
-        raise ValidationError(filterset.form.errors.as_json())  # pragma: no cover
+    @staticmethod
+    def reverse_resolver(node: DjangoNode, root: Model, info: GQLInfo) -> Model | None:
+        field_name = to_snake_case(info.field_name)
+        # Reverse object should be optimized to the root model.
+        reverse_object: Model | None = getattr(root, field_name, None)
+        if reverse_object is None:  # pragma: no cover
+            return None
+
+        # Still call `get_node` to check permissions.
+        return node.get_node(info, reverse_object.pk)
+
+    def wrap_resolve(self, parent_resolver: Callable) -> Callable:
+        if self.reverse:
+            return partial(self.reverse_resolver, self.underlying_type)
+        return partial(self.forward_resolver, self.underlying_type)
+
+    @cached_property
+    def underlying_type(self) -> DjangoNode:
+        type_ = self.type
+        while hasattr(type_, "of_type"):
+            type_ = type_.of_type
+        return type_
 
 
 class DjangoFilterListField(graphene.Field):
@@ -83,17 +96,17 @@ class DjangoFilterListField(graphene.Field):
     def list_resolver(  # noqa: PLR0913
         node: DjangoNode,
         resolver: Callable,
-        manager: models.Manager,
+        manager: Manager,
         filtering_args: dict[str, Any],
         filterset_class: type[FilterSet],
         root: Any,
         info: GQLInfo,
         **args: Any,
-    ) -> models.QuerySet | None:
+    ) -> QuerySet | None:
         queryset = maybe_queryset(resolver(root, info, **args))
         if queryset is None:  # pragma: no cover
             queryset = maybe_queryset(manager)
-        if isinstance(queryset, models.QuerySet):
+        if isinstance(queryset, QuerySet):
             queryset = maybe_queryset(node.get_queryset(queryset, info))
 
         def filter_kwargs() -> dict[str, Any]:  # pragma: no cover
@@ -135,7 +148,7 @@ class DjangoFilterListField(graphene.Field):
         self._args = value
 
     @cached_property
-    def model(self) -> type[models.Model]:
+    def model(self) -> type[Model]:
         return self.underlying_type._meta.model
 
     @cached_property
@@ -148,6 +161,35 @@ class DjangoFilterListField(graphene.Field):
         meta = {"model": self.model, "fields": fields}
         filterset_class = self.underlying_type._meta.filterset_class
         return get_filterset_class(filterset_class, **meta)
+
+
+class DjangoFilterConnectionField(DjangoFilterConnectionField):
+    # Override this class to support enum ordering in filters.
+
+    @classmethod
+    def resolve_queryset(  # noqa: PLR0913
+        cls,
+        connection: Connection,
+        iterable: Manager,
+        info: GQLInfo,
+        args: dict[str, Any],
+        filtering_args: dict[str, Any],
+        filterset_class: type[FilterSet],
+    ) -> QuerySet:
+        def filter_kwargs() -> dict[str, Any]:
+            kwargs = {}
+            for k, v in args.items():
+                if k in filtering_args:
+                    # Remove `order_by` specific checks from here to support `OrderingChoices`.
+                    kwargs[k] = convert_enum(v)
+            return kwargs
+
+        qs = DjangoConnectionField.resolve_queryset(connection, iterable, info, args)
+
+        filterset = filterset_class(data=filter_kwargs(), queryset=qs, request=info.context)
+        if filterset.is_valid():
+            return filterset.qs
+        raise ValidationError(filterset.form.errors.as_json())  # pragma: no cover
 
 
 class Time(graphene.Time):
