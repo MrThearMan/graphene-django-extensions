@@ -30,7 +30,9 @@ The main features are:
 - A new ObjectType [`DjangoNode`](/graphene-django-extensions/permissions/#djangonode), which:
     - adds convenience methods for managing permissions for both the ObjectType and individual fields.
     - adds a hook for adding filtering to both single items and lists returned by the ObjectType.
-    - adds convenience methods for creating graphene fields from the type.
+    - adds convenience methods for creating Fields, ListFields, Nodes, and Connections for the ObjectType.
+    - adds filterset filters automatically to ListFields created for the ObjectType.
+    - automatically optimizes queries using [graphene-django-query-optimizer].
 
 - A new MutationType [`DjangoMutation`](/graphene-django-extensions/mutations/#djangomutation), which:
     - adds convenience methods for managing permissions.
@@ -70,3 +72,6 @@ The main features are:
 [licence]: https://github.com/MrThearMan/graphene-django-extensions/blob/main/LICENSE
 [repo]: https://github.com/MrThearMan/graphene-django-extensions/commits/main
 [issues]: https://github.com/MrThearMan/graphene-django-extensions/issues
+
+[graphene-django]: https://github.com/graphql-python/graphene-django
+[graphene-django-query-optimizer]: https://github.com/MrThearMan/graphene-django-query-optimizer
