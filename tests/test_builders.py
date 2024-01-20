@@ -90,12 +90,11 @@ def test_query_builder__field_filters__field_not_selected():
 
 def test_mutation_builder__default():
     assert build_mutation("createExample", "ExampleCreateMutation") == (
-        "mutation createExample($input: ExampleCreateMutationInput!) "
-        "{ createExample(input: $input) { pk errors { messages field } } }"
+        "mutation createExample($input: ExampleCreateMutationInput!) { createExample(input: $input) { pk } }"
     )
 
 
 def test_mutation_builder__fields():
-    assert build_mutation("deleteExample", "ExampleDeleteMutation", fields="pk deleted") == (
-        "mutation deleteExample($input: ExampleDeleteMutationInput!) { deleteExample(input: $input) { pk deleted } }"
+    assert build_mutation("deleteExample", "ExampleDeleteMutation", fields="deleted") == (
+        "mutation deleteExample($input: ExampleDeleteMutationInput!) { deleteExample(input: $input) { deleted } }"
     )

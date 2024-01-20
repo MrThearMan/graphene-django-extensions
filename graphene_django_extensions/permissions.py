@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import wraps
 from typing import TYPE_CHECKING
 
+from .errors import GQLPermissionDeniedError
 from .settings import gdx_settings
 from .typing import ParamSpec, TypeVar
 
@@ -83,7 +84,7 @@ class AllowSuperuser(BasePermission):
 def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
     """
     Decorator for GraphQL field resolvers, which will raise
-    a PermissionError if the request user does not have
+    a PermissionDenied error if the request user does not have
     appropriate permissions based on the given check.
 
     :param check: A callable, which takes the request user, and the ObjectType's Model instance
@@ -103,7 +104,7 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
                 if check(args[1].context.user):
                     return func(*args, **kwargs)  # pragma: no cover
 
-            raise PermissionError(message)
+            raise GQLPermissionDeniedError(message, gdx_settings.FIELD_PERMISSION_ERROR_CODE)
 
         return wrapper
 

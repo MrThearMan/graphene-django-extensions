@@ -12,26 +12,19 @@ from django.contrib.auth import get_user_model
 from django.test import Client
 from graphene_django.utils.testing import graphql_query
 
-from ..typing import TypedDict
-
 if TYPE_CHECKING:
     from collections.abc import Generator
 
     from django.contrib.auth.models import User
     from django.http import HttpResponse
 
-    from ..typing import Any, Self
+    from ..typing import Any, FieldError, Self
 
 
 __all__ = [
     "GraphQLClient",
     "capture_database_queries",
 ]
-
-
-class FieldError(TypedDict):
-    field: str
-    messages: list[str]
 
 
 @dataclass
@@ -131,24 +124,16 @@ class GQLResponse:
     @property
     def has_errors(self) -> bool:  # pragma: no cover
         """Are there any errors in the response?"""
-        # Errors in the root of the response
-        if "errors" in self.json and self.json.get("errors") is not None:
-            return True
-
-        # Errors in the fields of the first query object
-        if "errors" in (self.first_query_object or {}) and (self.first_query_object or {}).get("errors") is not None:
-            return True
-
-        return False
+        return "errors" in self.json and self.json.get("errors") is not None
 
     @property
     def errors(self) -> list[dict[str, Any]]:
         """
-        Return errors found in the root of the response.
+        Return all errors.
 
-        >>> self.json = {"errors": [{"locations": [...], "message": "bar", "path": [...]}]}
+        >>> self.json = {"errors": [{"message": "bar", "path": [...], ...}]}
         >>> self.errors
-        [{"locations": [...], "message": "bar", "path": [...]}]
+        [{"message": "bar", "path": [...], ...}]
         """
         try:
             return self.json["errors"]
@@ -161,13 +146,13 @@ class GQLResponse:
 
         1) in the given index
 
-        >>> self.json = {"errors": [{"message": ["bar"], "path": [...]}]}
+        >>> self.json = {"errors": [{"message": "bar", ...}]}
         >>> self.error_message(0)  # default
         "bar"
 
         2) in the given path:
 
-        >>> self.json = {"errors": [{"message": ["bar"], "path": ["fizz", "buzz", "foo"]}]}
+        >>> self.json = {"errors": [{"message": "bar", "path": ["fizz", "buzz", "foo"], ...}]}
         >>> self.error_message("foo")
         "bar"
         """
@@ -189,14 +174,29 @@ class GQLResponse:
     @property
     def field_errors(self) -> list[FieldError]:
         """
-        Return errors for data fields.
+        Return all field error messages.
 
-        >>> self.json = {"data": {"foo": {"errors": [{"field": "bar", "message": ["baz"]}]
+        >>> self.json = {
+        ...     "errors": [
+        ...         {
+        ...             "extensions": {
+        ...                 "errors": [
+        ...                     {
+        ...                         "field": "foo",
+        ...                         "messages": ["bar"],
+        ...                         "codes": ["baz"],
+        ...                     },
+        ...                 ],
+        ...             },
+        ...         },
+        ...     ],
+        ... }
+        ...
         >>> self.field_errors
-        [{"field": "bar", "message": ["baz"]}]
+        [{"field": "foo", "messages": ["bar"], "codes": ["baz"]}]
         """
         try:
-            return self.first_query_object["errors"]
+            return [error for item in self.errors for error in item.get("extensions", {}).get("errors", [])]
         except (KeyError, TypeError):  # pragma: no cover
             pytest.fail(f"Field errors not found in response content: {self.json}")
 
@@ -204,11 +204,26 @@ class GQLResponse:
         """
         Return field error messages for desired field.
 
-        >>> self.json = {"errors": [{"field": "foo", "message": ["bar"]}]}
+        >>> self.json = {
+        ...     "errors": [
+        ...         {
+        ...             "extensions": {
+        ...                 "errors": [
+        ...                     {
+        ...                         "field": "foo",
+        ...                         "messages": ["bar"],
+        ...                         "codes": ["baz"],
+        ...                     },
+        ...                 ],
+        ...             },
+        ...         },
+        ...     ],
+        ... }
+        ...
         >>> self.field_error_messages("foo")
         ["bar"]
         """
-        for error in self.field_errors or []:
+        for error in self.field_errors:
             if error.get("field") == field:
                 try:
                     return error["messages"]

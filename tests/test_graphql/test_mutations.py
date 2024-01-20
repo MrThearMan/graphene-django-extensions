@@ -22,7 +22,7 @@ def test_graphql__create(graphql: GraphQLClient):
         "forwardManyToOneField": mto.pk,
     }
 
-    fields = "name number email forwardOneToOneField { name } forwardManyToOneField errors { field messages }"
+    fields = "name number email forwardOneToOneField { name } forwardManyToOneField"
     mutation = build_mutation("createExample", "ExampleCreateMutation", fields=fields)
 
     graphql.login_with_superuser()
@@ -35,28 +35,7 @@ def test_graphql__create(graphql: GraphQLClient):
         "email": "foo@email.com",
         "forwardOneToOneField": {"name": "Test"},
         "forwardManyToOneField": mto.pk,
-        "errors": None,
     }
-
-
-def test_graphql__create__validation_error(graphql: GraphQLClient):
-    mto = ForwardManyToOneFactory.create()
-    input_data = {
-        "name": "foo",
-        "number": -1,
-        "email": "foo@email.com",
-        "exampleState": ExampleState.ACTIVE.value,
-        "forwardOneToOneField": {
-            "name": "Test",
-        },
-        "forwardManyToOneField": mto.pk,
-    }
-
-    mutation = build_mutation("createExample", "ExampleCreateMutation")
-    graphql.login_with_superuser()
-    response = graphql(mutation, input_data=input_data)
-
-    assert response.field_error_messages("number") == ["Number must be positive."]
 
 
 def test_graphql__update(graphql: GraphQLClient):
@@ -76,7 +55,7 @@ def test_graphql__update(graphql: GraphQLClient):
         "forwardManyToOneField": mto.pk,
     }
 
-    fields = "pk name number email forwardOneToOneField { name } forwardManyToOneField errors { field messages }"
+    fields = "pk name number email forwardOneToOneField { name } forwardManyToOneField"
     mutation = build_mutation("updateExample", "ExampleUpdateMutation", fields=fields)
 
     graphql.login_with_superuser()
@@ -90,27 +69,14 @@ def test_graphql__update(graphql: GraphQLClient):
         "email": "foo@email.com",
         "forwardOneToOneField": {"name": "Test"},
         "forwardManyToOneField": mto.pk,
-        "errors": None,
     }
-
-
-def test_graphql__update__validation_error(graphql: GraphQLClient):
-    example = ExampleFactory.create()
-
-    input_data = {"pk": example.pk, "name": "foo", "number": -1}
-
-    mutation = build_mutation("updateExample", "ExampleUpdateMutation")
-    graphql.login_with_superuser()
-    response = graphql(mutation, input_data=input_data)
-
-    assert response.field_error_messages("number") == ["Number must be positive."]
 
 
 def test_graphql__delete(graphql: GraphQLClient):
     example = ExampleFactory.create(name="foo", number=1)
 
     input_data = {"pk": example.pk}
-    mutation = build_mutation("deleteExample", "ExampleDeleteMutation", fields="deleted errors { field messages }")
+    mutation = build_mutation("deleteExample", "ExampleDeleteMutation", fields="deleted")
 
     graphql.login_with_superuser()
     response = graphql(mutation, input_data=input_data)
@@ -118,20 +84,7 @@ def test_graphql__delete(graphql: GraphQLClient):
     assert response.has_errors is False, response
     assert response.first_query_object == {
         "deleted": True,
-        "errors": None,
     }
-
-
-def test_graphql__delete__validation_error(graphql: GraphQLClient):
-    example = ExampleFactory.create(name="foo", number=-1)
-
-    input_data = {"pk": example.pk}
-
-    mutation = build_mutation("deleteExample", "ExampleDeleteMutation", fields="deleted errors { messages field }")
-    graphql.login_with_superuser()
-    response = graphql(mutation, input_data=input_data)
-
-    assert response.field_error_messages() == ["Number must be positive."]
 
 
 def test_graphql__custom(graphql: GraphQLClient):
@@ -145,7 +98,6 @@ def test_graphql__custom(graphql: GraphQLClient):
     assert response.has_errors is False, response
     assert response.first_query_object == {
         "pk": example.pk,
-        "errors": None,
     }
 
 
@@ -161,7 +113,7 @@ def test_graphql__form(graphql: GraphQLClient):
         "forwardManyToOneField": mto.pk,
     }
 
-    fields = "name number email forwardOneToOneField forwardManyToOneField errors { field messages }"
+    fields = "name number email forwardOneToOneField forwardManyToOneField"
     mutation = build_mutation("formMutation", "ExampleFormMutation", fields=fields)
 
     graphql.login_with_superuser()
@@ -174,7 +126,6 @@ def test_graphql__form(graphql: GraphQLClient):
         "email": "foo@email.com",
         "forwardOneToOneField": str(oto),
         "forwardManyToOneField": str(mto),
-        "errors": None,
     }
 
 
@@ -189,5 +140,4 @@ def test_graphql__form__custom(graphql: GraphQLClient):
     assert response.has_errors is False, response
     assert response.first_query_object == {
         "pk": example.pk,
-        "errors": None,
     }

@@ -9,6 +9,7 @@ from django.db.models import lookups
 from django.db.models.constants import LOOKUP_SEP
 from graphene.utils.str_converters import to_camel_case
 
+from ..settings import gdx_settings
 from ..typing import Any, NamedTuple
 from ..utils import get_nested
 
@@ -56,7 +57,7 @@ def build_query(__name: str, *, fields: str = "pk", connection: bool = False, **
     return f"query {{ {__name}{result.query_filters} {{ {fields} }} }}"
 
 
-def build_mutation(__name: str, __mutation_class_name: str, *, fields: str = "pk errors { messages field }") -> str:
+def build_mutation(__name: str, __mutation_class_name: str, *, fields: str = "pk") -> str:
     """
     Build a GraphqQL mutation with the given field selections.
 
@@ -81,7 +82,10 @@ def _build_filters(fields: str, /, **filter_params: Any) -> FiltersAndFields:
         if len(plain_key.split(LOOKUP_SEP)) > 1:
             field_filter_params[key] = value
         else:
-            params[to_camel_case(key)] = _format_value_for_filter(value, is_order_by=key == "order_by")
+            params[to_camel_case(key)] = _format_value_for_filter(
+                value,
+                is_order_by=key == gdx_settings.ORDERING_FILTER_NAME,
+            )
 
     query_filters: str = ""
     if params:

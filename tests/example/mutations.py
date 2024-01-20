@@ -35,7 +35,7 @@ class ExampleDeleteMutation(DeleteMutation):
     @classmethod
     def validate_deletion(cls, instance: Example, user: AnyUser) -> None:
         if instance.number < 0:
-            raise ValidationError("Number must be positive.")
+            raise ValidationError({"number": "Number must be positive."})
 
 
 class ExampleCustomMutation(DjangoMutation):

@@ -1,4 +1,6 @@
-from graphene_django_extensions.errors import flatten_errors, get_constraint_message
+from rest_framework.exceptions import ErrorDetail
+
+from graphene_django_extensions.errors import flatten_errors, get_constraint_message, to_field_errors
 
 
 def test_get_constraint_message__check_postgres():
@@ -50,3 +52,18 @@ def test_flatten_errors():
     errors = {"billing_address": {"city": ["msg1"], "post_code": ["msg2"]}}
     flattened = flatten_errors(errors)
     assert flattened == {"billing_address.city": ["msg1"], "billing_address.post_code": ["msg2"]}
+
+
+def test_to_field_errors():
+    data = {
+        "city": [
+            ErrorDetail(string="msg1", code="foo"),
+            ErrorDetail(string="msg2", code="bar"),
+        ],
+        "post_code": ["msg3"],
+    }
+
+    assert to_field_errors(data) == [
+        {"field": "city", "messages": ["msg1", "msg2"], "codes": ["foo", "bar"]},
+        {"field": "post_code", "messages": ["msg3"], "codes": [""]},
+    ]

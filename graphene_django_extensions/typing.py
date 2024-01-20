@@ -32,9 +32,12 @@ from graphql import GraphQLResolveInfo
 if TYPE_CHECKING:
     import django_filters
     from django.contrib.auth.models import AnonymousUser, User
+    from django.core.exceptions import ValidationError as DjangoValidationError
     from django.db.models import Field, Model, Q, QuerySet
     from django.forms import Form
     from graphql_relay import Edge, PageInfo
+    from rest_framework.exceptions import ErrorDetail
+    from rest_framework.exceptions import ValidationError as SerializerValidationError
     from rest_framework.serializers import ListSerializer
 
     from .bases import DjangoNode
@@ -45,6 +48,7 @@ __all__ = [
     "Any",
     "AnyUser",
     "Callable",
+    "FieldError",
     "FieldNameStr",
     "FilterOverride",
     "FilterSetMeta",
@@ -61,11 +65,13 @@ __all__ = [
     "RelationType",
     "Self",
     "Sequence",
+    "SerializerErrorData",
     "SerializerMeta",
     "TypeAlias",
     "TypedDict",
     "TypeVar",
     "Union",
+    "ValidationErrorType",
 ]
 
 
@@ -81,6 +87,8 @@ RelatedSerializer: TypeAlias = Union["NestingModelSerializer", "ListSerializer"]
 Fields: TypeAlias = Sequence[FieldNameStr] | Literal["__all__"]
 FieldAliasToLookup: TypeAlias = dict[FilterAliasStr, FieldLookupStr]
 FilterFields: TypeAlias = Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasStr]] | Literal["__all__"]
+ValidationErrorType: TypeAlias = Union["DjangoValidationError", "SerializerValidationError"]
+SerializerErrorData: TypeAlias = dict[str, list[Union["ErrorDetail", str]]]
 
 T = TypeVar("T")
 
@@ -180,3 +188,9 @@ class UserDefinedFilterResult:
     filters: Q
     annotations: dict[str, Any]
     ordering: list[str]
+
+
+class FieldError(TypedDict):
+    field: str
+    messages: list[str]
+    codes: list[str]

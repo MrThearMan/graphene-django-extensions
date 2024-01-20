@@ -15,20 +15,19 @@ from graphene_django.converter import convert_django_field
 from graphene_django.forms.mutation import fields_for_form
 from graphene_django.registry import get_global_registry
 from graphene_django.rest_framework.mutation import fields_for_serializer
-from graphene_django.settings import graphene_settings
-from graphene_django.types import ALL_FIELDS, ErrorType
-from graphene_django.utils import camelize, is_valid_django_model
+from graphene_django.types import ALL_FIELDS
+from graphene_django.utils import is_valid_django_model
 from graphql_relay import to_global_id
 from query_optimizer import DjangoConnectionField, optimize
 from query_optimizer.settings import optimizer_settings
 from query_optimizer.utils import can_optimize
 from rest_framework.exceptions import ValidationError as SerializerValidationError
 from rest_framework.fields import SerializerMethodField, get_attribute
-from rest_framework.serializers import ListSerializer, ModelSerializer, Serializer, as_serializer_error
+from rest_framework.serializers import ListSerializer, ModelSerializer, Serializer
 
 from .connections import Connection
 from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
-from .errors import flatten_errors
+from .errors import GQLPermissionDeniedError, GQLValidationError
 from .fields import DjangoFilterConnectionField, DjangoFilterListField, RelatedField
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
@@ -60,8 +59,6 @@ class DjangoNode(DjangoObjectType):
     Adds the following features to all types that inherit it:
 
     - Makes the `graphene.relay.Node` interface the default interface for the type.
-
-    - Adds the `errors` list-field to the type for returning errors.
 
     - Adds the `totalCount` field the default Connection field for the type.
 
@@ -97,8 +94,6 @@ class DjangoNode(DjangoObjectType):
 
     class Meta:
         abstract = True
-
-    errors = graphene.List(ErrorType, description="May contain more than one error for same field.")
 
     @classmethod
     def Field(cls, **kwargs: Any) -> Field:  # noqa: N802
@@ -193,7 +188,10 @@ class DjangoNode(DjangoObjectType):
     def get_queryset(cls, queryset: models.QuerySet, info: GQLInfo) -> models.QuerySet:
         """Override `filter_queryset` instead of this method to add filtering of possible rows."""
         if not cls.has_filter_permissions(info):
-            raise PermissionError(gdx_settings.FILTER_PERMISSION_ERROR_MESSAGE)
+            raise GQLPermissionDeniedError(
+                message=gdx_settings.FILTER_PERMISSION_ERROR_MESSAGE,
+                code=gdx_settings.FILTER_PERMISSION_ERROR_CODE,
+            )
         if can_optimize(info):
             queryset = optimize(queryset, info, max_complexity=cls._meta.max_complexity)
         return queryset
@@ -211,7 +209,10 @@ class DjangoNode(DjangoObjectType):
         else:  # pragma: no cover
             instance = queryset.first()
         if instance is not None and not cls.has_node_permissions(info, instance):
-            raise PermissionError(gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE)
+            raise GQLPermissionDeniedError(
+                message=gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE,
+                code=gdx_settings.QUERY_PERMISSION_ERROR_CODE,
+            )
         return instance
 
     @classmethod
@@ -250,15 +251,13 @@ class DjangoMutation(ClientIDMutation):
     Custom base class for GraphQL-mutations that are backed by a Django model.
     Adds the following features to all types that inherit it:
 
-    - Adds the `errors` list-field to the type for returning errors.
-
     - For updates, converts all fields to optional fields, enabling partial updates.
 
     - Checks for missing object types for nested model serializer fields to avoid nebulous import order errors.
 
     - Can add permission checks via permission classes.
 
-    - Formats errors raised from nested serializers to a compatible form.
+    - TODO: Formats errors raised from nested serializers to a compatible form.
 
     ---
 
@@ -301,8 +300,6 @@ class DjangoMutation(ClientIDMutation):
     """
 
     _meta: DjangoMutationOptions
-
-    errors = graphene.List(ErrorType, description="May contain more than one error for same field.")
 
     class Meta:
         abstract = True
@@ -538,11 +535,7 @@ class DjangoMutation(ClientIDMutation):
         try:
             return super().mutate(root, info, kwargs["input"])
         except (DjangoValidationError, SerializerValidationError) as error:
-            detail = as_serializer_error(error)
-            detail = camelize(detail) if graphene_settings.CAMELCASE_ERRORS else detail
-            detail = flatten_errors(detail)
-            errors = [ErrorType(field=key, messages=value) for key, value in detail.items()]  # type: ignore[arg-type]
-            return cls(errors=errors)  # type: ignore[arg-type]
+            raise GQLValidationError(error) from error
 
     @classmethod
     def mutate_and_get_payload(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:
@@ -552,7 +545,10 @@ class DjangoMutation(ClientIDMutation):
             return cls.update_or_create(info, **kwargs)
 
         if not cls.has_mutation_permission(info, kwargs):
-            raise SerializerValidationError(gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE)
+            raise GQLPermissionDeniedError(
+                message=gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE,
+                code=gdx_settings.MUTATION_PERMISSION_ERROR_CODE,
+            )
 
         cls.run_validation(data=kwargs)
         return cls.custom_mutation(info, **kwargs)
@@ -576,9 +572,15 @@ class DjangoMutation(ClientIDMutation):
         maybe_instance = cls.get_instance(**kwargs)
 
         if cls._meta.model_operation == "create" and not cls.has_create_permissions(info, kwargs):
-            raise SerializerValidationError(gdx_settings.CREATE_PERMISSION_ERROR_MESSAGE)
+            raise GQLPermissionDeniedError(
+                message=gdx_settings.CREATE_PERMISSION_ERROR_MESSAGE,
+                code=gdx_settings.CREATE_PERMISSION_ERROR_CODE,
+            )
         if cls._meta.model_operation == "update" and not cls.has_update_permissions(maybe_instance, info, kwargs):
-            raise SerializerValidationError(gdx_settings.UPDATE_PERMISSION_ERROR_MESSAGE)
+            raise GQLPermissionDeniedError(
+                message=gdx_settings.UPDATE_PERMISSION_ERROR_MESSAGE,
+                code=gdx_settings.UPDATE_PERMISSION_ERROR_CODE,
+            )
 
         validator_kwargs = cls.get_validator_kwargs(maybe_instance, info, kwargs)
         validator = cls.run_validation(**validator_kwargs)
@@ -589,7 +591,7 @@ class DjangoMutation(ClientIDMutation):
         else:
             output = cls.get_form_output(instance)
 
-        return cls(errors=None, **output)  # type: ignore[arg-type]
+        return cls(**output)  # type: ignore[arg-type]
 
     @classmethod
     def get_validator_kwargs(cls, instance: models.Model | None, info: GQLInfo, data: dict[str, Any]) -> dict[str, Any]:
@@ -634,11 +636,14 @@ class DjangoMutation(ClientIDMutation):
     def delete(cls, info: GQLInfo, **kwargs: Any) -> Self:
         instance = cls.get_instance(**kwargs)
         if not cls.has_delete_permissions(instance, info, kwargs):
-            raise SerializerValidationError(gdx_settings.DELETE_PERMISSION_ERROR_MESSAGE)
+            raise GQLPermissionDeniedError(
+                message=gdx_settings.DELETE_PERMISSION_ERROR_MESSAGE,
+                code=gdx_settings.DELETE_PERMISSION_ERROR_CODE,
+            )
 
         cls.validate_deletion(instance, info.context.user)
         count, _ = instance.delete()
-        return cls(errors=None, deleted=bool(count))  # type: ignore[arg-type]
+        return cls(deleted=bool(count))  # type: ignore[arg-type]
 
     @classmethod
     def validate_deletion(cls, instance: models.Model, user: AnyUser) -> None:
