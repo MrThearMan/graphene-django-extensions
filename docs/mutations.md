@@ -27,9 +27,99 @@ class ExampleDeleteMutation(DeleteMutation):
 Adds the following features to all types that inherit it:
 
 - For update operations, converts all fields to optional fields, enabling partial updates.
-- Converts and formats errors raised from serializers (also nested ones) into GraphQL errors.
 - Can add permission checks via permission classes.
+- Converts and formats errors raised from serializers (also nested ones) into GraphQL errors.
 - Checks for missing object types for nested model serializer fields to avoid nebulous import order errors.
+
+### Permission errors
+
+If a permission check for a mutation fails, an error like this will be raised:
+
+```json
+{
+    "errors": [
+        {
+            "message": "No permission to create.",
+            "path": ["createExample"],
+            "extensions": {"code": "CREATE_PERMISSION_DENIED"},
+            "locations": [{"line": 1, "column": 63}]
+        }
+    ]
+}
+```
+
+The message and code depends on the operation type, and can be changed using the following settings.
+
+| Operation | Message setting                     | Message default          | Code setting                     | Code default               |
+|-----------|-------------------------------------|--------------------------|----------------------------------|----------------------------|
+| create    | `CREATE_PERMISSION_ERROR_MESSAGE`   | No permission to create. | `CREATE_PERMISSION_ERROR_CODE`   | CREATE_PERMISSION_DENIED   |
+| update    | `UPDATE_PERMISSION_ERROR_MESSAGE`   | No permission to update. | `UPDATE_PERMISSION_ERROR_CODE`   | UPDATE_PERMISSION_DENIED   |
+| delete    | `DELETE_PERMISSION_ERROR_MESSAGE`   | No permission to delete. | `DELETE_PERMISSION_ERROR_CODE`   | DELETE_PERMISSION_DENIED   |
+| custom    | `MUTATION_PERMISSION_ERROR_MESSAGE` | No permission to mutate. | `MUTATION_PERMISSION_ERROR_CODE` | MUTATION_PERMISSION_DENIED |
+
+More on permissions on the [permissions page].
+
+### Field level errors
+
+If a mutation serializer raises a `ValidationError`, the errors will be converted into a
+single GraphQL error with all the individual field error messages and codes included:
+
+```json
+{
+    "errors": [
+        {
+            "message": "Mutation was unsuccessful.",
+            "path": ["createExample"],
+            "extensions": {
+                "code": "MUTATION_VALIDATION_ERROR",
+                "errors": [
+                    {
+                        "field": "number",
+                        "message": "Number must be positive.",
+                        "code": "invalid"
+                    },
+                    {
+                        "field": "number",
+                        "message": "Number must be an even.",
+                        "code": ""
+                    },
+                    {
+                        "field": "text",
+                        "message": "Text must be at least 10 characters long.",
+                        "code": "invalid"
+                    }
+                ]
+            },
+            "locations": [{"line": 1, "column": 63}]
+        }
+    ]
+}
+```
+
+If the error is raised from a nested serializer (when creating sub entities along with the parent entity, see
+`NestingModelSerializer` below), the field will include the dotted path to the sub entity where the field is located:
+
+```json
+{
+    "errors": [
+        {
+            "message": "Mutation was unsuccessful.",
+            "path": ["createExample"],
+            "extensions": {
+                "code": "MUTATION_VALIDATION_ERROR",
+                "errors": [
+                    {
+                        "field": "subEntry.number",
+                        "message": "Number must be positive.",
+                        "code": "invalid"
+                    }
+                ]
+            },
+            "locations": [{"line": 1, "column": 63}]
+        }
+    ]
+}
+```
 
 ---
 
@@ -157,3 +247,5 @@ will be deleted (e.g. Sub entity with `pk=1` could have been deleted here):
     ]
 }
 ```
+
+[permissions page]: https://mrthearman.github.io/graphene-django-extensions/permissions/

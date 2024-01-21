@@ -21,7 +21,35 @@ Extends form `graphene_django.types.DjangoObjectType` and adds the following fea
 - Adds `pk` primary key field and resolver  to the ObjectType, if present in `Meta.fields`.
 - Can add permission checks via permission classes.
 
+### Permission errors
+
+If a permission check for a query fails, an error like this will be raised:
+
+```json
+{
+    "errors": [
+        {
+            "message": "No permission to access node.",
+            "path": ["examples"],
+            "extensions": {"code": "NODE_PERMISSION_DENIED"},
+            "locations": [{"line": 1, "column": 63}]
+        }
+    ]
+}
+```
+
+The message and code depends on the operation type, and can be changed using the following settings.
+
+| Operation       | Message setting                   | Message default               | Code setting                   | Code default             |
+|-----------------|-----------------------------------|-------------------------------|--------------------------------|--------------------------|
+| field/node      | `QUERY_PERMISSION_ERROR_MESSAGE`  | No permission to access node. | `QUERY_PERMISSION_ERROR_CODE`  | NODE_PERMISSION_DENIED   |
+| list/connection | `FILTER_PERMISSION_ERROR_MESSAGE` | No permission to access node. | `FILTER_PERMISSION_ERROR_CODE` | FILTER_PERMISSION_DENIED |
+
+More on permissions on the [permissions page].
+
 ---
+
+### Interface
 
 Some new methods are also added. Here are the most useful ones:
 
@@ -39,6 +67,13 @@ Can be used to filter available rows for both `get_queryset` and `get_node`.
     - `kwargs: dict[str, Any]`
 
 Create a 'regular' Field from the type.
+
+#### RelatedField
+
+- args:
+    - `kwargs: dict[str, Any]`
+
+Create a one-to-one or many-to-one related Field from the type.
 
 #### ListField
 
@@ -74,5 +109,6 @@ Subclasses can be configured through the `Meta`-class. Here are the most useful 
 | `restricted_fields`  | `dict[str, PermCheck]`       | Optional. Adds [permission checks] to the resolvers of the fields as defined in the dict.   |
 
 
+[permissions page]: https://mrthearman.github.io/graphene-django-extensions/permissions/
 [permission classes]: https://mrthearman.github.io/graphene-django-extensions/permissions/#permission-classes
 [permission checks]: https://mrthearman.github.io/graphene-django-extensions/permissions/#restricted-fields
