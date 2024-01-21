@@ -211,8 +211,13 @@ class GQLResponse:
         ...                 "errors": [
         ...                     {
         ...                         "field": "foo",
-        ...                         "messages": ["bar"],
-        ...                         "codes": ["baz"],
+        ...                         "messages": "bar",
+        ...                         "codes": "baz",
+        ...                     },
+        ...                     {
+        ...                         "field": "foo",
+        ...                         "messages": "one",
+        ...                         "codes": "",
         ...                     },
         ...                 ],
         ...             },
@@ -221,18 +226,18 @@ class GQLResponse:
         ... }
         ...
         >>> self.field_error_messages("foo")
-        ["bar"]
+        ["bar", "one"]
         """
+        messages: list[str] = []
         for error in self.field_errors:
             if error.get("field") == field:
                 try:
-                    return error["messages"]
+                    messages.append(error["message"])
                 except (KeyError, TypeError):
                     msg = f"Error message for field {field!r} not found in error: {error}"
                     pytest.fail(msg)
 
-        msg = f"Error for field {field!r} not found in response content: {self.json}"
-        raise pytest.fail(msg)
+        return messages
 
     def assert_query_count(self, count: int) -> None:  # pragma: no cover
         # Note: To use query counting, DEBUG needs to be set to True.

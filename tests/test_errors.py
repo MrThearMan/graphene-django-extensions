@@ -64,6 +64,7 @@ def test_to_field_errors():
     }
 
     assert to_field_errors(data) == [
-        {"field": "city", "messages": ["msg1", "msg2"], "codes": ["foo", "bar"]},
-        {"field": "post_code", "messages": ["msg3"], "codes": [""]},
+        {"field": "city", "message": "msg1", "code": "foo"},
+        {"field": "city", "message": "msg2", "code": "bar"},
+        {"field": "post_code", "message": "msg3", "code": ""},
     ]

@@ -130,7 +130,8 @@ def flatten_errors(errors: dict[str, list[ErrorDetail | str] | SerializerErrorDa
     """
     Flatten nested errors dict to a single level.
 
-    >>> {"billing_address": {"city": ["msg1"], "post_code": ["msg2"]}}
+    >>> a = {"billing_address": {"city": ["msg1"], "post_code": ["msg2"]}}
+    >>> flatten_errors(a)
     {"billing_address.city": ["msg1"], "billing_address.post_code": ["msg2"]}
     """
     flattened_errors: dict[str, list[ErrorDetail]] = {}
@@ -148,7 +149,7 @@ def to_field_errors(errors: SerializerErrorData) -> list[FieldError]:
     """
     Convert a flattened errors dict to a list of field errors.
 
-    >>> {
+    >>> a = {
     ...     "city": [
     ...         ErrorDetail(string="msg1", code="foo"),
     ...         ErrorDetail(string="msg2", code="bar"),
@@ -156,18 +157,19 @@ def to_field_errors(errors: SerializerErrorData) -> list[FieldError]:
     ...     "post_code": ["msg3"],
     ... }
     ...
+    >>> to_field_errors(a)
     [
-        {"field": "city", "messages": ["msg1", "msg2"], "codes": ["foo", "bar"]},
-        {"field": "post_code", "messages": ["msg3"], "codes": [""]},
+        {"field": "city", "message": "msg1", "code": "foo"},
+        {"field": "city", "message": "msg2", "code": "bar"},
+        {"field": "post_code", "message": "msg3", "code": ""},
     ]
     """
-    field_errors: list[FieldError] = []
-    for field, messages in errors.items():
-        field_errors.append(
-            FieldError(
-                field=field,
-                messages=messages,
-                codes=[getattr(message, "code", "") for message in messages],
-            ),
+    return [
+        FieldError(
+            field=field,
+            message=message,
+            code=getattr(message, "code", ""),
         )
-    return field_errors
+        for field, messages in errors.items()
+        for message in messages
+    ]

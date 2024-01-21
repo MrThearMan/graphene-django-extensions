@@ -192,5 +192,5 @@ class UserDefinedFilterResult:
 
 class FieldError(TypedDict):
     field: str
-    messages: list[str]
-    codes: list[str]
+    message: str
+    code: str

@@ -37,8 +37,8 @@ def test_graphql__create__validation_error(graphql: GraphQLClient):
                 "errors": [
                     {
                         "field": "number",
-                        "messages": ["Number must be positive."],
-                        "codes": ["invalid"],
+                        "message": "Number must be positive.",
+                        "code": "invalid",
                     },
                 ],
             },
@@ -67,8 +67,8 @@ def test_graphql__update__validation_error(graphql: GraphQLClient):
                 "errors": [
                     {
                         "field": "number",
-                        "messages": ["Number must be positive."],
-                        "codes": ["invalid"],
+                        "message": "Number must be positive.",
+                        "code": "invalid",
                     },
                 ],
             },
@@ -97,8 +97,8 @@ def test_graphql__delete__validation_error(graphql: GraphQLClient):
                 "errors": [
                     {
                         "field": "number",
-                        "messages": ["Number must be positive."],
-                        "codes": ["invalid"],
+                        "message": "Number must be positive.",
+                        "code": "invalid",
                     },
                 ],
             },
