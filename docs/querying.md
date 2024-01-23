@@ -40,10 +40,10 @@ If a permission check for a query fails, an error like this will be raised:
 
 The message and code depends on the operation type, and can be changed using the following settings.
 
-| Operation       | Message setting                   | Message default               | Code setting                   | Code default             |
-|-----------------|-----------------------------------|-------------------------------|--------------------------------|--------------------------|
-| field/node      | `QUERY_PERMISSION_ERROR_MESSAGE`  | No permission to access node. | `QUERY_PERMISSION_ERROR_CODE`  | NODE_PERMISSION_DENIED   |
-| list/connection | `FILTER_PERMISSION_ERROR_MESSAGE` | No permission to access node. | `FILTER_PERMISSION_ERROR_CODE` | FILTER_PERMISSION_DENIED |
+| Operation         | Message setting                   | Message default               | Code setting                   | Code default               |
+|-------------------|-----------------------------------|-------------------------------|--------------------------------|----------------------------|
+| field / node      | `QUERY_PERMISSION_ERROR_MESSAGE`  | No permission to access node. | `QUERY_PERMISSION_ERROR_CODE`  | `NODE_PERMISSION_DENIED`   |
+| list / connection | `FILTER_PERMISSION_ERROR_MESSAGE` | No permission to access node. | `FILTER_PERMISSION_ERROR_CODE` | `FILTER_PERMISSION_DENIED` |
 
 More on permissions on the [permissions page].
 

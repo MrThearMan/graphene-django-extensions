@@ -50,12 +50,12 @@ If a permission check for a mutation fails, an error like this will be raised:
 
 The message and code depends on the operation type, and can be changed using the following settings.
 
-| Operation | Message setting                     | Message default          | Code setting                     | Code default               |
-|-----------|-------------------------------------|--------------------------|----------------------------------|----------------------------|
-| create    | `CREATE_PERMISSION_ERROR_MESSAGE`   | No permission to create. | `CREATE_PERMISSION_ERROR_CODE`   | CREATE_PERMISSION_DENIED   |
-| update    | `UPDATE_PERMISSION_ERROR_MESSAGE`   | No permission to update. | `UPDATE_PERMISSION_ERROR_CODE`   | UPDATE_PERMISSION_DENIED   |
-| delete    | `DELETE_PERMISSION_ERROR_MESSAGE`   | No permission to delete. | `DELETE_PERMISSION_ERROR_CODE`   | DELETE_PERMISSION_DENIED   |
-| custom    | `MUTATION_PERMISSION_ERROR_MESSAGE` | No permission to mutate. | `MUTATION_PERMISSION_ERROR_CODE` | MUTATION_PERMISSION_DENIED |
+| Operation | Message setting                     | Message default          | Code setting                     | Code default                 |
+|-----------|-------------------------------------|--------------------------|----------------------------------|------------------------------|
+| create    | `CREATE_PERMISSION_ERROR_MESSAGE`   | No permission to create. | `CREATE_PERMISSION_ERROR_CODE`   | `CREATE_PERMISSION_DENIED`   |
+| update    | `UPDATE_PERMISSION_ERROR_MESSAGE`   | No permission to update. | `UPDATE_PERMISSION_ERROR_CODE`   | `UPDATE_PERMISSION_DENIED`   |
+| delete    | `DELETE_PERMISSION_ERROR_MESSAGE`   | No permission to delete. | `DELETE_PERMISSION_ERROR_CODE`   | `DELETE_PERMISSION_DENIED`   |
+| custom    | `MUTATION_PERMISSION_ERROR_MESSAGE` | No permission to mutate. | `MUTATION_PERMISSION_ERROR_CODE` | `MUTATION_PERMISSION_DENIED` |
 
 More on permissions on the [permissions page].
 

@@ -9,7 +9,7 @@ These methods can be overridden in subclasses to implement custom permissions:
 #### has_permission
 
 - args:
-    - `user: AnyUser`
+    - `user: User | AnonymousUser`
 
 This is the main method for checking permissions. `has_node_permission`, `has_filter_permission`,
 and `has_mutation_permission` will default to this if not overridden.
@@ -18,7 +18,7 @@ and `has_mutation_permission` will default to this if not overridden.
 
 - args:
     - `instance: Model`
-    - `user: AnyUser`
+    - `user: User | AnonymousUser`
     - `filters: dict[str, Any]`
 
 Override this method to add specific permissions to a node field defined for a `DjangoNode`.
@@ -26,7 +26,7 @@ Override this method to add specific permissions to a node field defined for a `
 #### has_filter_permission
 
 - args:
-    - `user: AnyUser`
+    - `user: User | AnonymousUser`
     - `filters: dict[str, Any]`
 
 Override this method to add specific permissions to a list or connections fields defined for a `DjangoNode`.
@@ -34,7 +34,7 @@ Override this method to add specific permissions to a list or connections fields
 #### has_mutation_permission
 
 - args:
-    - `user: AnyUser`
+    - `user: User | AnonymousUser`
     - `input_data: dict[str, Any]`
 
 Override this method to add specific permissions to all mutations. `has_create_permission`,
@@ -43,7 +43,7 @@ Override this method to add specific permissions to all mutations. `has_create_p
 #### has_create_permission
 
 - args:
-    - `user: AnyUser`
+    - `user: User | AnonymousUser`
     - `input_data: dict[str, Any]`
 
 Override this method to add specific permissions to a create mutation defined by `CreateMutation`.
@@ -52,7 +52,7 @@ Override this method to add specific permissions to a create mutation defined by
 
 - args:
     - `instance: Model`
-    - `user: AnyUser`
+    - `user: User | AnonymousUser`
     - `input_data: dict[str, Any]`
 
 Override this method to add specific permissions to an update mutation defined by `UpdateMutation`.
@@ -61,7 +61,7 @@ Override this method to add specific permissions to an update mutation defined b
 
 - args:
     - `instance: Model`
-    - `user: AnyUser`
+    - `user: User | AnonymousUser`
     - `input_data: dict[str, Any]`
 
 Override this method to add specific permissions to a delete mutation defined by `DeleteMutation`.
@@ -77,14 +77,14 @@ an exception if the permission check fails.
 There are two allowed interfaces for permissions checks:
 
 ```python
-def permission_check(user: AnyUser) -> bool:
+def permission_check(user: User | AnonymousUser) -> bool:
     ...
 ```
 
 or
 
 ```python
-def permission_check(user: AnyUser, instance: Model) -> bool:
+def permission_check(user: User | AnonymousUser, instance: Model) -> bool:
     ...
 ```
 

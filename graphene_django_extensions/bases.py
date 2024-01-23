@@ -257,7 +257,7 @@ class DjangoMutation(ClientIDMutation):
 
     - Can add permission checks via permission classes.
 
-    - TODO: Formats errors raised from nested serializers to a compatible form.
+    - Converts raise serializer validation errors to GraphQL validation errors.
 
     ---
 
