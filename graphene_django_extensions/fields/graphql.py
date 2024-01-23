@@ -14,6 +14,7 @@ from django.db.models import QuerySet
 from graphene.types.argument import to_arguments
 from graphene.types.generic import GenericScalar
 from graphene.types.inputobjecttype import InputObjectTypeOptions
+from graphene.types.utils import get_field_as
 from graphene.utils.str_converters import to_snake_case
 from graphene_django.converter import convert_django_field
 from graphene_django.filter.fields import convert_enum
@@ -280,7 +281,6 @@ class UserDefinedFilterInputType(graphene.InputObjectType):
 
     operation = graphene.Field(graphene.Enum.from_enum(Operation), required=True)
     value = GenericScalar()
-    operations = graphene.List(graphene.NonNull(lambda: UserDefinedFilterInputType))
 
     @classmethod
     def create(cls, model: type[Model], fields_map: FieldAliasToLookup) -> type[Self]:
@@ -314,6 +314,10 @@ class UserDefinedFilterInputType(graphene.InputObjectType):
                     enum=Enum(f"{model.__name__}FilterFields", fields_map),
                     description=f"Filterable fields for the '{model.__name__}' model.",
                 ),
+            ),
+            "operations": get_field_as(
+                graphene.List(graphene.NonNull(lambda: cls)),
+                _as=graphene.InputField,
             ),
         }
 

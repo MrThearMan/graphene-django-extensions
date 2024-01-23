@@ -54,7 +54,7 @@ class ExampleFilterSet(ModelFilterSet):
 ```
 
 Additionally, the ordering choices are converted to GraphQL enums (e.g. `"name"` -> `nameAsc`
-& `"-name"` -> `nameAsc`), which gives better autocomplete results.
+& `"-name"` -> `nameDesc`), which gives better autocomplete results.
 
 ---
 
@@ -81,7 +81,7 @@ query {
     examples(
         filter: {
             field: name,
-            operator: CONTAINS,
+            operation: CONTAINS,
             value: "foo",
         }
     ) {
@@ -110,29 +110,29 @@ Let's see a more complex example:
 query {
     examples(
         filter: {
-            operator: AND,
+            operation: AND,
             operations: [
                 {
-                    operator: OR,
+                    operation: OR,
                     operations: [
                         {
                             field: name,
-                            operator: CONTAINS,
+                            operation: CONTAINS,
                             value: "foo",
                         },
                         {
                             field: email,
-                            operator: CONTAINS,
+                            operation: CONTAINS,
                             value: "foo",
                         },
                     ],
                 },
                 {
-                    operator: NOT,
+                    operation: NOT,
                     operations: [
                         {
                             field: number,
-                            operator: LT,
+                            operation: LT,
                             value: 10,
                         }
                     ]

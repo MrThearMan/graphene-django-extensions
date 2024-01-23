@@ -127,6 +127,61 @@ def test_graphql__filter__user_defined__related_alias(graphql: GraphQLClient):
     assert response.node() == {"pk": example.pk}
 
 
+def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
+    example = ExampleFactory.create(name="foo", number=10)
+    ExampleFactory.create(name="foobar")
+
+    query = """
+        query {
+          examples(
+            filter: {
+              operation: AND,
+                operations: [
+                  {
+                    operation: OR,
+                    operations: [
+                      {
+                        field: name,
+                        operation: CONTAINS,
+                        value: "foo",
+                      },
+                      {
+                        field: email,
+                        operation: CONTAINS,
+                        value: "foo",
+                      },
+                    ],
+                  },
+                  {
+                    operation: NOT,
+                    operations: [
+                      {
+                        field: number,
+                        operation: LT,
+                        value: 10,
+                      }
+                    ]
+                  },
+                ],
+              }
+            ) {
+              edges {
+                node {
+                  pk
+                }
+              }
+            }
+        }
+    """
+
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node() == {"pk": example.pk}
+
+
 def test_graphql__filter__list_field(graphql: GraphQLClient):
     example = ExampleFactory.create(name="foo", example_state=ExampleState.ACTIVE)
     ExampleFactory.create(name="foobar")
