@@ -65,7 +65,7 @@ typing-extensions = { version = ">=4.4.0", python = "<3.11" }
 [tool.poetry.group.test.dependencies]
 pytest = "8.0.0"
 coverage = "7.4.1"
-pytest-django = "4.7.0"
+pytest-django = "4.8.0"
 pre-commit = "3.6.0"
 tox = "4.12.1"
 tox-gh-actions = "3.2.0"
