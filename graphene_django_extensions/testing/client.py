@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from collections.abc import Generator
 
     from django.contrib.auth.models import User
+    from django.core.files.uploadedfile import SimpleUploadedFile
     from django.http import HttpResponse
 
     from ..typing import Any, Callable, FieldError, Self
@@ -239,6 +240,7 @@ class GraphQLClient(Client):
         input_data: dict[str, Any] | None = None,
         variables: dict[str, Any] | None = None,
         headers: dict[str, Any] | None = None,
+        files: dict[str, SimpleUploadedFile] | None = None,
     ) -> GQLResponse:
         """
         Make a GraphQL query to the test client.
@@ -248,16 +250,30 @@ class GraphQLClient(Client):
         :params input_data: Set (and override) the "input" variable in the given variables.
         :params variables: Variables for the query.
         :params headers: Headers for the query. Keys should in all-caps, and be prepended with "HTTP_".
+        :params files: Files to be uploaded with the query. Requires `graphene-file-upload`.
         """
         with capture_database_queries() as results:
-            response = graphql_query(
-                query=query,
-                operation_name=operation_name,
-                input_data=input_data,
-                variables=variables,
-                headers=headers,
-                client=self,
-            )
+            if files is not None:  # pragma: no cover
+                from graphene_file_upload.django.testing import file_graphql_query
+
+                response = file_graphql_query(
+                    query=query,
+                    op_name=operation_name,
+                    input_data=input_data,
+                    variables=variables,
+                    headers=headers,
+                    files=files,
+                    client=self,
+                )
+            else:
+                response = graphql_query(
+                    query=query,
+                    operation_name=operation_name,
+                    input_data=input_data,
+                    variables=variables,
+                    headers=headers,
+                    client=self,
+                )
         return GQLResponse(response, results)
 
     def login_with_superuser(self) -> User:

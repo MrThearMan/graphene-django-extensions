@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from dataclasses import dataclass, field
 from enum import Enum
 from itertools import chain
@@ -125,6 +126,8 @@ def _format_value_for_filter(value: Any, *, is_order_by: bool = False) -> str:
         return value.value
     if isinstance(value, list) and all(isinstance(item, Enum) for item in value):
         return f"[{', '.join(str(item.value) for item in value)}]"
+    if isinstance(value, uuid.UUID):
+        value = str(value)
     return json.dumps(value)
 
 
