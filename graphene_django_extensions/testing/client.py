@@ -330,7 +330,7 @@ def _db_query_logger(  # noqa: PLR0913
     """
     # Don't include transaction creation, as we aren't interested in them.
     if not sql.startswith("SAVEPOINT") and not sql.startswith("RELEASE SAVEPOINT"):
-        query_cache.append(sql)
+        query_cache.append(sql % params)
     return execute(sql, params, many, context)
 
 
