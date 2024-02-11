@@ -19,7 +19,7 @@ faker = Faker(locale="en_US")
 
 
 class Command(BaseCommand):
-    help = "Create test data."  # noqa: A003
+    help = "Create test data."
 
     def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
         create_test_data()

@@ -6,7 +6,7 @@ from django.db import models
 
 from graphene_django_extensions.filters import UserDefinedFilter
 from graphene_django_extensions.testing import GraphQLClient, build_query
-from graphene_django_extensions.testing.fixtures import parametrize_helper
+from graphene_django_extensions.testing.client import parametrize_helper
 from graphene_django_extensions.typing import Operation, UserDefinedFilterInput
 from graphene_django_extensions.utils import get_nested
 from tests.example.models import Example

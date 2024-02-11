@@ -80,9 +80,7 @@ class Migration(migrations.Migration):
                 ("symmetrical_field", models.ManyToManyField(to="example.example")),
                 (
                     "forward_many_to_many_fields",
-                    models.ManyToManyField(
-                        related_name="example_rels", to="example.forwardmanytomany"
-                    ),
+                    models.ManyToManyField(related_name="example_rels", to="example.forwardmanytomany"),
                 ),
                 (
                     "forward_many_to_one_field",
@@ -117,9 +115,7 @@ class Migration(migrations.Migration):
                 ("name", models.CharField(max_length=255)),
                 (
                     "example_fields",
-                    models.ManyToManyField(
-                        related_name="reverse_many_to_many_rels", to="example.example"
-                    ),
+                    models.ManyToManyField(related_name="reverse_many_to_many_rels", to="example.example"),
                 ),
             ],
         ),

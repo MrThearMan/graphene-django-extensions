@@ -4,7 +4,7 @@ import json
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import pytest
 import sqlparse
@@ -13,34 +13,22 @@ from django.contrib.auth import get_user_model
 from django.test import Client
 from graphene_django.utils.testing import graphql_query
 
+from ..typing import NamedTuple, TypedDict, TypeVar
+
 if TYPE_CHECKING:
     from collections.abc import Generator
 
     from django.contrib.auth.models import User
     from django.http import HttpResponse
 
-    from ..typing import Any, FieldError, Self
+    from ..typing import Any, Callable, FieldError, Self
 
 
 __all__ = [
     "GraphQLClient",
     "capture_database_queries",
+    "parametrize_helper",
 ]
-
-
-@dataclass
-class QueryData:
-    queries: list[str]
-
-    @property
-    def log(self) -> str:
-        message = "-" * 75
-        message += f"\n>>> Queries ({len(self.queries)}):\n"
-        for index, query in enumerate(self.queries):
-            formatted_query = sqlparse.format(query, reindent=True)
-            message += f"{index + 1}) ".ljust(75, "-") + f"\n{formatted_query}\n"
-        message += "-" * 75
-        return message
 
 
 class GQLResponse:
@@ -283,6 +271,21 @@ class GraphQLClient(Client):
         return user
 
 
+@dataclass
+class QueryData:
+    queries: list[str]
+
+    @property
+    def log(self) -> str:
+        message = "-" * 75
+        message += f"\n>>> Queries ({len(self.queries)}):\n"
+        for index, query in enumerate(self.queries):
+            formatted_query = sqlparse.format(query, reindent=True)
+            message += f"{index + 1}) ".ljust(75, "-") + f"\n{formatted_query}\n"
+        message += "-" * 75
+        return message
+
+
 def _db_query_logger(  # noqa: PLR0913
     execute: Callable[..., Any],
     sql: str,
@@ -312,3 +315,27 @@ def capture_database_queries() -> Generator[QueryData, None, None]:
 
     with db.connection.execute_wrapper(query_logger):
         yield results
+
+
+TNamedTuple = TypeVar("TNamedTuple", bound=NamedTuple)
+
+
+class ParametrizeArgs(TypedDict):
+    argnames: list[str]
+    argvalues: list[TNamedTuple]
+    ids: list[str]
+
+
+def parametrize_helper(__tests: dict[str, TNamedTuple], /) -> ParametrizeArgs:
+    """Construct parametrize input while setting test IDs."""
+    assert __tests, "I need some tests, please!"  # noqa: S101
+    values = list(__tests.values())
+    try:
+        return ParametrizeArgs(
+            argnames=list(values[0].__class__.__annotations__),
+            argvalues=values,
+            ids=list(__tests),
+        )
+    except AttributeError as error:  # pragma: no cover
+        msg = "Improper configuration. Did you use a NamedTuple for TNamedTuple?"
+        raise RuntimeError(msg) from error
