@@ -66,8 +66,7 @@ def test_graphql__query__connection(graphql: GraphQLClient):
     assert response.node() == {"pk": example.pk, "name": example.name}
 
 
-def test_graphql__query__optimizer(graphql: GraphQLClient, settings):
-    settings.DEBUG = True
+def test_graphql__query__optimizer(graphql: GraphQLClient):
     example = ExampleFactory.create()
 
     fields = """
@@ -105,18 +104,29 @@ def test_graphql__query__optimizer(graphql: GraphQLClient, settings):
     }
 
 
-def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient, settings):
-    settings.DEBUG = True
-    example = ExampleFactory.create()
-    f1 = ForwardManyToManyFactory.create()
-    f2 = ForwardManyToManyFactory.create()
-    example.forward_many_to_many_fields.add(f1, f2)
+def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient):
+    # settings.DEBUG = True
+    example_1 = ExampleFactory.create(name="a_foo")
+    e1_f1 = ForwardManyToManyFactory.create()
+    e1_f2 = ForwardManyToManyFactory.create()
+    example_1.forward_many_to_many_fields.add(e1_f1, e1_f2)
 
-    r1 = ReverseOneToOneFactory.create(example_field=example)
-    r2 = ReverseOneToManyFactory.create(example_field=example)
-    r22 = ReverseOneToManyFactory.create(example_field=example)
-    r3 = ReverseManyToManyFactory.create(example_fields=[example])
-    r33 = ReverseManyToManyFactory.create(example_fields=[example])
+    e1_r1 = ReverseOneToOneFactory.create(example_field=example_1)
+    e1_r2 = ReverseOneToManyFactory.create(example_field=example_1)
+    e1_r22 = ReverseOneToManyFactory.create(example_field=example_1)
+    e1_r3 = ReverseManyToManyFactory.create(example_fields=[example_1])
+    e1_r33 = ReverseManyToManyFactory.create(example_fields=[example_1])
+
+    example_2 = ExampleFactory.create(name="b_foo")
+    e2_f1 = ForwardManyToManyFactory.create()
+    e2_f2 = ForwardManyToManyFactory.create()
+    example_2.forward_many_to_many_fields.add(e2_f1, e2_f2)
+
+    e2_r1 = ReverseOneToOneFactory.create(example_field=example_2)
+    e2_r2 = ReverseOneToManyFactory.create(example_field=example_2)
+    e2_r22 = ReverseOneToManyFactory.create(example_field=example_2)
+    e2_r3 = ReverseManyToManyFactory.create(example_fields=[example_2])
+    e2_r33 = ReverseManyToManyFactory.create(example_fields=[example_2])
 
     fields = """
         pk
@@ -128,21 +138,13 @@ def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient, settin
           name
         }
         forwardManyToManyFields {
-          edges {
-            node {
-              name
-            }
-          }
+          name
         }
         reverseOneToOneRel {
           name
         }
         reverseOneToManyRels {
-          edges {
-            node {
-              name
-            }
-          }
+          name
         }
         reverseManyToManyRels {
           edges {
@@ -152,7 +154,7 @@ def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient, settin
           }
         }
     """
-    query = build_query("examples", fields=fields, connection=True)
+    query = build_query("examples", fields=fields, connection=True, order_by="nameAsc")
 
     graphql.login_with_superuser()
     response = graphql(query)
@@ -167,59 +169,74 @@ def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient, settin
     response.assert_query_count(7)
 
     assert response.has_errors is False, response
-    assert len(response.edges) == 1
-    assert response.node() == {
-        "pk": example.pk,
-        "name": example.name,
+    assert len(response.edges) == 2
+    assert response.node(0) == {
+        "pk": example_1.pk,
+        "name": example_1.name,
         "forwardOneToOneField": {
-            "name": example.forward_one_to_one_field.name,
+            "name": example_1.forward_one_to_one_field.name,
         },
         "forwardManyToOneField": {
-            "name": example.forward_many_to_one_field.name,
+            "name": example_1.forward_many_to_one_field.name,
         },
-        "forwardManyToManyFields": {
-            "edges": [
-                {
-                    "node": {
-                        "name": f1.name,
-                    },
-                },
-                {
-                    "node": {
-                        "name": f2.name,
-                    },
-                },
-            ],
-        },
+        "forwardManyToManyFields": [
+            {
+                "name": e1_f1.name,
+            },
+            {
+                "name": e1_f2.name,
+            },
+        ],
         "reverseOneToOneRel": {
-            "name": r1.name,
+            "name": e1_r1.name,
         },
-        "reverseOneToManyRels": {
-            "edges": [
-                {
-                    "node": {
-                        "name": r2.name,
-                    },
-                },
-                {
-                    "node": {
-                        "name": r22.name,
-                    },
-                },
-            ],
-        },
+        "reverseOneToManyRels": [
+            {
+                "name": e1_r2.name,
+            },
+            {
+                "name": e1_r22.name,
+            },
+        ],
         "reverseManyToManyRels": {
             "edges": [
-                {
-                    "node": {
-                        "name": r3.name,
-                    },
-                },
-                {
-                    "node": {
-                        "name": r33.name,
-                    },
-                },
+                {"node": {"name": e1_r3.name}},
+                {"node": {"name": e1_r33.name}},
+            ],
+        },
+    }
+    assert response.node(1) == {
+        "pk": example_2.pk,
+        "name": example_2.name,
+        "forwardOneToOneField": {
+            "name": example_2.forward_one_to_one_field.name,
+        },
+        "forwardManyToOneField": {
+            "name": example_2.forward_many_to_one_field.name,
+        },
+        "forwardManyToManyFields": [
+            {
+                "name": e2_f1.name,
+            },
+            {
+                "name": e2_f2.name,
+            },
+        ],
+        "reverseOneToOneRel": {
+            "name": e2_r1.name,
+        },
+        "reverseOneToManyRels": [
+            {
+                "name": e2_r2.name,
+            },
+            {
+                "name": e2_r22.name,
+            },
+        ],
+        "reverseManyToManyRels": {
+            "edges": [
+                {"node": {"name": e2_r3.name}},
+                {"node": {"name": e2_r33.name}},
             ],
         },
     }

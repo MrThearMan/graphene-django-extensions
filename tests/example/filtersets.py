@@ -7,7 +7,26 @@ from graphene_django_extensions.filters import (
     ModelFilterSet,
     UserDefinedFilter,
 )
-from tests.example.models import Example, ExampleState
+from tests.example.models import (
+    Example,
+    ExampleState,
+    ForwardManyToMany,
+    ForwardManyToOne,
+    ForwardOneToOne,
+    ReverseManyToMany,
+    ReverseOneToMany,
+    ReverseOneToOne,
+)
+
+__all__ = [
+    "ExampleFilterSet",
+    "ForwardOneToOneFilterSet",
+    "ForwardManyToOneFilterSet",
+    "ForwardManyToManyFilterSet",
+    "ReverseOneToOneFilterSet",
+    "ReverseOneToManyFilterSet",
+    "ReverseManyToManyFilterSet",
+]
 
 
 class ExampleFilterSet(ModelFilterSet):
@@ -60,3 +79,51 @@ class ExampleFilterSet(ModelFilterSet):
 
     def order_by_custom(self, qs: models.QuerySet, *, desc: bool) -> models.QuerySet:
         return qs.order_by("-number" if desc else "number")
+
+
+class ForwardOneToOneFilterSet(ModelFilterSet):
+    pk = IntMultipleChoiceFilter()
+
+    class Meta:
+        model = ForwardOneToOne
+        fields = ["pk"]
+
+
+class ForwardManyToOneFilterSet(ModelFilterSet):
+    pk = IntMultipleChoiceFilter()
+
+    class Meta:
+        model = ForwardManyToOne
+        fields = ["pk"]
+
+
+class ForwardManyToManyFilterSet(ModelFilterSet):
+    pk = IntMultipleChoiceFilter()
+
+    class Meta:
+        model = ForwardManyToMany
+        fields = ["pk"]
+
+
+class ReverseOneToOneFilterSet(ModelFilterSet):
+    pk = IntMultipleChoiceFilter()
+
+    class Meta:
+        model = ReverseOneToOne
+        fields = ["pk"]
+
+
+class ReverseOneToManyFilterSet(ModelFilterSet):
+    pk = IntMultipleChoiceFilter()
+
+    class Meta:
+        model = ReverseOneToMany
+        fields = ["pk"]
+
+
+class ReverseManyToManyFilterSet(ModelFilterSet):
+    pk = IntMultipleChoiceFilter()
+
+    class Meta:
+        model = ReverseManyToMany
+        fields = ["pk"]
