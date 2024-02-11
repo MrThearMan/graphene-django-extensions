@@ -81,7 +81,8 @@ class GQLResponse:
         try:
             return next(iter(data.values()))
         except StopIteration:  # pragma: no cover
-            pytest.fail(f"No query object not found in response content: {self.json}")
+            msg = f"No query object not found in response content: {self.json}"
+            pytest.fail(msg, pytrace=False)
 
     @property
     def edges(self) -> list[dict[str, Any]]:
@@ -95,7 +96,8 @@ class GQLResponse:
         try:
             return self.first_query_object["edges"]
         except (KeyError, TypeError):  # pragma: no cover
-            pytest.fail(f"Edges not found in response content: {self.json}")
+            msg = f"Edges not found in response content: {self.json}"
+            pytest.fail(msg, pytrace=False)
 
     def node(self, index: int = 0) -> dict[str, Any]:
         """
@@ -108,7 +110,8 @@ class GQLResponse:
         try:
             return self.edges[index]["node"]
         except (IndexError, TypeError):  # pragma: no cover
-            pytest.fail(f"Node {index!r} not found in response content: {self.json}")
+            msg = f"Node {index!r} not found in response content: {self.json}"
+            pytest.fail(msg, pytrace=False)
 
     @property
     def has_errors(self) -> bool:  # pragma: no cover
@@ -127,7 +130,8 @@ class GQLResponse:
         try:
             return self.json["errors"]
         except (KeyError, TypeError):  # pragma: no cover
-            pytest.fail(f"Errors not found in response content: {self.json}")
+            msg = f"Errors not found in response content: {self.json}"
+            pytest.fail(msg, pytrace=False)
 
     def error_message(self, selector: int | str = 0) -> str:  # pragma: no cover
         """
@@ -149,16 +153,20 @@ class GQLResponse:
             try:
                 return self.errors[selector]["message"]
             except IndexError:
-                pytest.fail(f"Errors list doesn't have an index {selector}: {self.json}")
+                msg = f"Errors list doesn't have an index {selector}: {self.json}"
+                pytest.fail(msg, pytrace=False)
             except (KeyError, TypeError):
-                pytest.fail(f"Field 'message' not found in error content: {self.json}")
+                msg = f"Field 'message' not found in error content: {self.json}"
+                pytest.fail(msg, pytrace=False)
         else:
             try:
                 return next(error["message"] for error in self.errors if error["path"][-1] == selector)
             except StopIteration:
-                pytest.fail(f"Errors list doesn't have an error for field '{selector}': {self.json}")
+                msg = f"Errors list doesn't have an error for field '{selector}': {self.json}"
+                pytest.fail(msg, pytrace=False)
             except (KeyError, TypeError):
-                pytest.fail(f"Field 'message' not found in error content: {self.json}")
+                msg = f"Field 'message' not found in error content: {self.json}"
+                pytest.fail(msg, pytrace=False)
 
     @property
     def field_errors(self) -> list[FieldError]:
@@ -187,7 +195,8 @@ class GQLResponse:
         try:
             return [error for item in self.errors for error in item.get("extensions", {}).get("errors", [])]
         except (KeyError, TypeError):  # pragma: no cover
-            pytest.fail(f"Field errors not found in response content: {self.json}")
+            msg = f"Field errors not found in response content: {self.json}"
+            pytest.fail(msg, pytrace=False)
 
     def field_error_messages(self, field: str = "nonFieldErrors") -> list[str]:  # pragma: no cover
         """
@@ -224,12 +233,14 @@ class GQLResponse:
                     messages.append(error["message"])
                 except (KeyError, TypeError):
                     msg = f"Error message for field {field!r} not found in error: {error}"
-                    pytest.fail(msg)
+                    pytest.fail(msg, pytrace=False)
 
         return messages
 
     def assert_query_count(self, count: int) -> None:  # pragma: no cover
-        assert len(self.queries) == count, self.query_log  # noqa: S101
+        if len(self.queries) != count:
+            msg = f"Expected {count} queries, got {len(self.queries)}.\n{self.query_log}"
+            pytest.fail(msg, pytrace=False)
 
 
 class GraphQLClient(Client):

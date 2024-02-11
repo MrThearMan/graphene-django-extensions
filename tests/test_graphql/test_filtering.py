@@ -28,11 +28,9 @@ def test_graphql__filter(graphql: GraphQLClient):
     assert response.node() == {"pk": example.pk}
 
 
-def test_graphql__filter__relation(graphql: GraphQLClient, settings):
+def test_graphql__filter__relation(graphql: GraphQLClient):
     # Test that filtering via a relation does not make an additional query
     # to fetch related items for checking whether the related objects exist.
-    settings.DEBUG = True
-
     example = ExampleFactory.create(name="foo")
     ExampleFactory.create(name="foobar")
 
