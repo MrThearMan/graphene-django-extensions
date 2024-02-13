@@ -294,6 +294,9 @@ class ModelFilterSet(django_filters.FilterSet):
                     fields=ordering_fields,
                 )
 
+        if cls._meta.fields is None and cls.declared_filters:
+            cls._meta.fields = []
+
         return super().get_filters()
 
     @property

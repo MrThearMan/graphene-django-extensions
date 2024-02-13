@@ -9,6 +9,7 @@ from rest_framework.serializers import ListSerializer, ModelSerializer
 
 from .errors import get_constraint_message
 from .fields import IntegerPrimaryKeyField
+from .fields.serializer import EnumFriendlyChoiceField
 from .model_operations import RelatedFieldInfo, get_object_or_404, get_related_field_info
 from .typing import ParamSpec, SerializerMeta, TypeVar
 
@@ -138,8 +139,9 @@ class NestingModelSerializer(ModelSerializer):
     ```
     """
 
-    instance: Model  # use this to hint the instance model type in subclasses
-    serializer_related_field = IntegerPrimaryKeyField  # related fields defined in Meta are integers by default
+    instance: Model  # Use this to hint the instance model type in subclasses
+    serializer_related_field = IntegerPrimaryKeyField  # Related fields defined in Meta are integers by default
+    serializer_choice_field = EnumFriendlyChoiceField  # Converts enums to string correctly
 
     class Meta(SerializerMeta):
         pass

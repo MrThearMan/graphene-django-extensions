@@ -2,6 +2,7 @@ import graphene
 from django import forms
 from django.db import models
 
+from graphene_django_extensions import ModelFilterSet
 from graphene_django_extensions.converters import (
     convert_form_field_to_enum,
     convert_form_field_to_enum_list,
@@ -17,7 +18,8 @@ from graphene_django_extensions.fields import (
     IntMultipleChoiceField,
     Time,
 )
-from tests.example.models import ExampleState
+from graphene_django_extensions.filters import IntMultipleChoiceFilter
+from tests.example.models import ExampleState, Example
 
 
 def test_time_field_serialize():
@@ -67,3 +69,14 @@ def test_convert_form_field_to_enum_list():
     assert issubclass(obj.of_type, graphene.Enum)
     assert obj.kwargs["description"] == "test help text"
     assert obj.kwargs["required"] is True
+
+
+def test_filterset__no_fields():
+    class MyFilterSet(ModelFilterSet):
+        pk = IntMultipleChoiceFilter()
+
+        class Meta:
+            model = Example
+
+    assert sorted(MyFilterSet.declared_filters) == ["order_by", "pk"]
+    assert sorted(MyFilterSet._meta.fields) == []

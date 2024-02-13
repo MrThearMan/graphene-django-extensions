@@ -1,4 +1,5 @@
 import re
+import uuid
 from enum import Enum
 
 import pytest
@@ -63,6 +64,11 @@ def test_query_builder__field_filters__enums():
 
 def test_query_builder__field_filters__enums_list():
     assert build_query("example", pk__foo=[MyEnum.ONE, MyEnum.TWO]) == "query { example { pk(foo: [ONE, TWO]) } }"
+
+
+def test_query_builder__field_filters__uuid():
+    my_uuid = uuid.uuid4()
+    assert build_query("example", pk__foo=my_uuid) == 'query { example { pk(foo: "%s") } }' % (my_uuid,)
 
 
 @pytest.mark.parametrize(
