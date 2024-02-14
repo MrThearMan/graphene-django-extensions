@@ -7,6 +7,7 @@ from graphql.language.ast import (
     ConstListValueNode,
     ConstObjectValueNode,
     EnumValueNode,
+    ExecutableDefinitionNode,
     FieldNode,
     FloatValueNode,
     IntValueNode,
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
 __all__ = [
     "get_nested",
     "get_filters_from_info",
+    "get_fields_from_info",
 ]
 
 
@@ -56,15 +58,25 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
 
 def get_filters_from_info(info: GQLInfo) -> dict[str, Any]:
     """Find filter arguments in the GraphQL query and return them as a dict."""
-    filters: dict[str, Any] = {}
+    return _get_arguments(info.operation, info.variable_values)
 
-    for field in info.operation.selection_set.selections:
-        if not isinstance(field, FieldNode):  # pragma: no cover
+
+def _get_arguments(field: ExecutableDefinitionNode | FieldNode, variable_values: dict[str, Any]) -> dict[str, Any]:
+    arguments: dict[str, Any] = {}
+    for selection in field.selection_set.selections:
+        if not isinstance(selection, FieldNode):  # pragma: no cover
             continue
-        for argument in field.arguments:
-            filters[argument.name.value] = _get_filter_argument(argument.value, info.variable_values)
 
-    return filters
+        for argument in selection.arguments:
+            args = arguments.setdefault(selection.name.value, {})
+            args[argument.name.value] = _get_filter_argument(argument.value, variable_values)
+
+        if selection.selection_set is not None:
+            result = _get_arguments(selection, variable_values)
+            if result:
+                args = arguments.setdefault(selection.name.value, {})
+                args.update(result)
+    return arguments
 
 
 def _get_filter_argument(value: ValueNode, variable_values: dict[str, Any]) -> Any:
@@ -79,3 +91,20 @@ def _get_filter_argument(value: ValueNode, variable_values: dict[str, Any]) -> A
 
     msg = f"Unsupported ValueNode for filter argument type: '{type(value).__name__}'"  # pragma: no cover
     raise ValueError(msg)  # pragma: no cover
+
+
+def get_fields_from_info(info: GQLInfo) -> list[Any]:
+    """Find selected fields from the GraphQL query and return them as a dict."""
+    return _get_field_node(info.operation)
+
+
+def _get_field_node(field: ExecutableDefinitionNode | FieldNode) -> list[Any]:
+    filters: list[Any] = []
+    for selection in field.selection_set.selections:
+        if not isinstance(selection, FieldNode):  # pragma: no cover
+            continue
+        if selection.selection_set is not None:
+            filters.append({selection.name.value: _get_field_node(selection)})
+        else:
+            filters.append(selection.name.value)
+    return filters
