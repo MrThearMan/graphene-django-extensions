@@ -7,6 +7,7 @@ from functools import cached_property, partial
 from typing import TYPE_CHECKING
 
 import graphene
+import graphql
 from aniso8601 import parse_time
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -20,6 +21,7 @@ from graphene_django.converter import convert_django_field
 from graphene_django.filter.fields import convert_enum
 from graphene_django.filter.utils import get_filtering_args_from_filterset, get_filterset_class
 from graphene_django.utils import maybe_queryset
+from graphql import Undefined
 from query_optimizer import DjangoConnectionField
 from query_optimizer.filter import DjangoFilterConnectionField
 
@@ -39,6 +41,7 @@ if TYPE_CHECKING:
 __all__ = [
     "DjangoFilterConnectionField",
     "DjangoFilterListField",
+    "Duration",
     "OrderingChoices",
     "RelatedField",
     "Time",
@@ -202,6 +205,28 @@ class Time(graphene.Time):
             with suppress(ValueError):
                 time = parse_time(time)
         return graphene.Time.serialize(time)
+
+
+class Duration(graphene.Scalar):
+    """Represents a DurationField value as an integer in seconds."""
+
+    @staticmethod
+    def serialize(value: Any) -> int | None:
+        if not isinstance(value, datetime.timedelta):  # pragma: no cover
+            return None
+        return int(value.total_seconds())
+
+    @staticmethod
+    def parse_value(value: Any) -> datetime.timedelta | None:
+        if not isinstance(value, int):  # pragma: no cover
+            return None
+        return datetime.timedelta(seconds=value)
+
+    @staticmethod
+    def parse_literal(ast: graphql.ValueNode, _variables: Any = None) -> int | Undefined:  # pragma: no cover
+        if isinstance(ast, graphql.IntValueNode):
+            return int(ast.value)
+        return Undefined
 
 
 class TypedDictFieldMixin:

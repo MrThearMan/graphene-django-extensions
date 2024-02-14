@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from django.core.validators import MinValueValidator
 from rest_framework import serializers
 from rest_framework.relations import PKOnlyObject
 
@@ -15,6 +17,8 @@ if TYPE_CHECKING:
 __all__ = [
     "IntegerPrimaryKeyField",
     "IntPkOnlyObject",
+    "DurationField",
+    "EnumFriendlyChoiceField",
 ]
 
 
@@ -35,23 +39,53 @@ class IntegerPrimaryKeyField(serializers.PrimaryKeyRelatedField, serializers.Int
         return None  # pragma: no cover
 
 
-class EnumFriendlyChoiceField(serializers.ChoiceField):  # pragma: no cover
+class EnumFriendlyChoiceField(serializers.ChoiceField):
     """ChoiceField that works with enum inputs as well."""
 
-    # TODO: Add tests for this with mutations
     def to_internal_value(self, data: Any) -> str:
-        if data == "" and self.allow_blank:
+        if data == "" and self.allow_blank:  # pragma: no cover
             return ""
-        if isinstance(data, Enum):
+        if isinstance(data, Enum):  # pragma: no cover
             data = data.value
         try:
             return self.choice_strings_to_values[str(data)]
-        except KeyError:
+        except KeyError:  # pragma: no cover
             self.fail("invalid_choice", input=data)
 
-    def to_representation(self, value: Any) -> Enum:
+    def to_representation(self, value: Any) -> Enum:  # pragma: no cover
         if value in ("", None):
             return value
         if isinstance(value, Enum):
             value = value.value
         return self.choice_strings_to_values.get(str(value), value)
+
+
+class MinDurationValidator(MinValueValidator):
+    def clean(self, x: datetime.timedelta) -> int:
+        return int(x.total_seconds())
+
+
+class DurationField(serializers.IntegerField):
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.validators.append(MinDurationValidator(0))
+
+    def to_internal_value(self, data: Any) -> datetime.timedelta:
+        if isinstance(data, datetime.timedelta):
+            return data
+        if isinstance(data, int):
+            return datetime.timedelta(seconds=data)
+        try:  # pragma: no cover
+            data = int(data)
+        except (ValueError, TypeError):  # pragma: no cover
+            self.fail("invalid")
+        return datetime.timedelta(seconds=data)  # pragma: no cover
+
+    def to_representation(self, value: datetime.timedelta) -> int:  # pragma: no cover
+        return int(value.total_seconds())
+
+    def get_attribute(self, instance: Any) -> int | None:
+        value = super().get_attribute(instance)
+        if isinstance(value, datetime.timedelta):
+            return int(value.total_seconds())
+        return value  # pragma: no cover

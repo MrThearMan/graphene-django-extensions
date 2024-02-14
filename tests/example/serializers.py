@@ -32,6 +32,7 @@ class ExampleSerializer(NestingModelSerializer):
             "number",
             "email",
             "example_state",
+            "duration",
             "example_property",
             "forward_one_to_one_field",
             "forward_many_to_one_field",
@@ -41,7 +42,8 @@ class ExampleSerializer(NestingModelSerializer):
 
     def validate_number(self, value: int) -> int:
         if value < 0:
-            raise ValidationError("Number must be positive.")
+            msg = "Number must be positive."
+            raise ValidationError(msg)
         return value
 
 

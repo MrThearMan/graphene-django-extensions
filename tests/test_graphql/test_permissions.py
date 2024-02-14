@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 
 from graphene_django_extensions.testing import GraphQLClient, build_mutation, build_query
@@ -103,6 +105,7 @@ def test_graphql__create__permission_error(graphql: GraphQLClient):
         "number": 123,
         "email": "foo@email.com",
         "exampleState": ExampleState.ACTIVE.value,
+        "duration": int(datetime.timedelta(seconds=900).total_seconds()),
         "forwardOneToOneField": {
             "name": "Test",
         },

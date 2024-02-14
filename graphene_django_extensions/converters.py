@@ -4,15 +4,24 @@ from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import graphene
+from django import forms  # noqa: TCH002
 from django.db import models
-from django.forms import TimeField  # noqa: TCH002
-from graphene_django.converter import convert_django_field, get_django_field_description
+from graphene.types.enum import Enum  # noqa: TCH002
+from graphene_django.converter import (
+    convert_choices_to_named_enum_with_descriptions,
+    convert_django_field,
+    get_django_field_description,
+)
 from graphene_django.forms.converter import convert_form_field, get_form_field_description
 from graphene_django.registry import Registry  # noqa: TCH002
+from graphene_django.rest_framework.serializer_converter import get_graphene_type_from_serializer_field
+from rest_framework.fields import ChoiceField  # noqa: TCH002
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
 from .fields import (
     DjangoFilterConnectionField,
+    Duration,
+    DurationField,
     EnumChoiceField,
     EnumMultipleChoiceField,
     IntChoiceField,
@@ -131,8 +140,18 @@ def convert_time_to_string(field: models.TimeField, registry: Registry | None = 
 
 
 @convert_form_field.register
-def convert_form_field_to_time(field: TimeField) -> Time:
+def convert_form_field_to_time(field: forms.TimeField) -> Time:
     return Time(description=get_form_field_description(field), required=field.required)
+
+
+@convert_django_field.register
+def convert_duration_to_int(field: models.DurationField, registry: Registry | None = None) -> Duration:
+    return Duration(description=get_django_field_description(field), required=not field.null)
+
+
+@convert_form_field.register
+def convert_form_field_to_duration(field: forms.DurationField) -> Duration:
+    return Duration(description=get_form_field_description(field), required=field.required)
 
 
 @convert_form_field.register
@@ -235,3 +254,15 @@ def convert_to_many_field(
         )
 
     return graphene.Dynamic(dynamic_type)
+
+
+@get_graphene_type_from_serializer_field.register
+def convert_serializer_field_to_duration(field: DurationField) -> type[Duration]:
+    return Duration
+
+
+@get_graphene_type_from_serializer_field.register
+def convert_serializer_field_to_enum(field: ChoiceField) -> Enum:
+    name = field.field_name or field.source or "Choices"
+    name = "".join(s.capitalize() for s in name.split("_"))
+    return convert_choices_to_named_enum_with_descriptions(name, field.choices)

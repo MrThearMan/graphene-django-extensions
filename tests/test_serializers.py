@@ -1,3 +1,4 @@
+import datetime
 import re
 from copy import deepcopy
 from typing import Any
@@ -19,6 +20,7 @@ from tests.example.models import (
     ReverseManyToMany,
     ReverseOneToMany,
     ReverseOneToOne,
+    ExampleState,
 )
 from tests.factories import ExampleFactory
 
@@ -93,6 +95,8 @@ class ExampleSerializer(NestingModelSerializer):
             "name",
             "number",
             "email",
+            "duration",
+            "example_state",
             "forward_one_to_one_field",
             "forward_many_to_one_field",
             "forward_many_to_many_fields",
@@ -102,39 +106,42 @@ class ExampleSerializer(NestingModelSerializer):
         ]
 
 
-EXAMPLE_DATA: dict[str, Any] = {
-    "name": "foo",
-    "number": 1,
-    "email": "foofoo@email.com",
-    "forward_one_to_one_field": {
-        "name": "one",
-    },
-    "forward_many_to_one_field": {
-        "name": "two",
-    },
-    "forward_many_to_many_fields": [
-        {
-            "name": "three",
+def get_example_data() -> dict[str, Any]:
+    return {
+        "name": "foo",
+        "number": 1,
+        "email": "foofoo@email.com",
+        "duration": int(datetime.timedelta(seconds=900).total_seconds()),
+        "example_state": ExampleState.ACTIVE.value,
+        "forward_one_to_one_field": {
+            "name": "one",
         },
-    ],
-    "reverse_one_to_one_rel": {
-        "name": "four",
-    },
-    "reverse_one_to_many_rels": [
-        {
-            "name": "five",
+        "forward_many_to_one_field": {
+            "name": "two",
         },
-    ],
-    "reverse_many_to_many_rels": [
-        {
-            "name": "six",
+        "forward_many_to_many_fields": [
+            {
+                "name": "three",
+            },
+        ],
+        "reverse_one_to_one_rel": {
+            "name": "four",
         },
-    ],
-}
+        "reverse_one_to_many_rels": [
+            {
+                "name": "five",
+            },
+        ],
+        "reverse_many_to_many_rels": [
+            {
+                "name": "six",
+            },
+        ],
+    }
 
 
 def test_nesting_model_serializer__create():
-    serializer = ExampleSerializer(data=EXAMPLE_DATA)
+    serializer = ExampleSerializer(data=get_example_data())
     assert serializer.is_valid(raise_exception=True)
     serializer.save()
 
@@ -168,7 +175,7 @@ def test_nesting_model_serializer__update():
     mto_pk = example.forward_many_to_one_field.pk
     mto_name = example.forward_many_to_one_field.name
 
-    update_data = deepcopy(EXAMPLE_DATA)
+    update_data = deepcopy(get_example_data())
     update_data["pk"] = example.pk
     update_data["forward_one_to_one_field"]["pk"] = oto_pk
     update_data["forward_many_to_one_field"] = {"pk": example.forward_many_to_one_field.pk}
@@ -190,25 +197,26 @@ def test_nesting_model_serializer__update():
     assert len(items_2) == 1
     assert len(items_3) == 1
 
-    assert examples[0].name == EXAMPLE_DATA["name"]
+    example_data = get_example_data()
+    assert examples[0].name == example_data["name"]
 
     # Forward relations
     assert examples[0].forward_one_to_one_field.pk == oto_pk
-    assert examples[0].forward_one_to_one_field.name == EXAMPLE_DATA["forward_one_to_one_field"]["name"]
+    assert examples[0].forward_one_to_one_field.name == example_data["forward_one_to_one_field"]["name"]
     assert examples[0].forward_many_to_one_field.pk == mto_pk
     assert examples[0].forward_many_to_one_field.name == mto_name
-    assert items_1[0].name == EXAMPLE_DATA["forward_many_to_many_fields"][0]["name"]
+    assert items_1[0].name == example_data["forward_many_to_many_fields"][0]["name"]
 
     # Reverse relations
-    assert examples[0].reverse_one_to_one_rel.name == EXAMPLE_DATA["reverse_one_to_one_rel"]["name"]
-    assert items_2[0].name == EXAMPLE_DATA["reverse_one_to_many_rels"][0]["name"]
-    assert items_3[0].name == EXAMPLE_DATA["reverse_many_to_many_rels"][0]["name"]
+    assert examples[0].reverse_one_to_one_rel.name == example_data["reverse_one_to_one_rel"]["name"]
+    assert items_2[0].name == example_data["reverse_one_to_many_rels"][0]["name"]
+    assert items_3[0].name == example_data["reverse_many_to_many_rels"][0]["name"]
 
 
 def test_nesting_model_serializer__unique_error():
     ExampleFactory.create(name="foo", number=1)
 
-    serializer = ExampleSerializer(data=EXAMPLE_DATA)
+    serializer = ExampleSerializer(data=get_example_data())
     assert serializer.is_valid(raise_exception=True)
 
     msg = "Example unique violation message."
@@ -217,7 +225,7 @@ def test_nesting_model_serializer__unique_error():
 
 
 def test_nesting_model_serializer__constraint_error():
-    data = deepcopy(EXAMPLE_DATA)
+    data = get_example_data()
     data["name"] = "bar"
     serializer = ExampleSerializer(data=data)
     assert serializer.is_valid(raise_exception=True)
@@ -228,9 +236,11 @@ def test_nesting_model_serializer__constraint_error():
 
 
 def test_serializer_get_or_default():
-    serializer = ExampleSerializer(data=EXAMPLE_DATA)
-    assert serializer.get_or_default("name", EXAMPLE_DATA) == "foo"
-    assert serializer.get_or_default("example_state", EXAMPLE_DATA) == NOT_PROVIDED
+    data = get_example_data()
+    data.pop("example_state", None)
+    serializer = ExampleSerializer(data=data)
+    assert serializer.get_or_default("name", data) == "foo"
+    assert serializer.get_or_default("example_state", data) == NOT_PROVIDED
 
 
 @pytest.mark.django_db()

@@ -15,6 +15,30 @@ pytestmark = [
 ]
 
 
+def test_graphql__query__all_fields(graphql: GraphQLClient):
+    example = ExampleFactory.create()
+
+    fields = """
+        pk
+        name
+        email
+        exampleState
+        duration
+    """
+    query = build_query("exampleItem", fields=fields)
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert response.first_query_object == {
+        "pk": example.pk,
+        "name": example.name,
+        "email": example.email,
+        "exampleState": example.example_state,
+        "duration": int(example.duration.total_seconds()),
+    }
+
+
 def test_graphql__query__field(graphql: GraphQLClient):
     example = ExampleFactory.create()
 

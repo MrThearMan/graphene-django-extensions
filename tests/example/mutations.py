@@ -1,3 +1,4 @@
+import datetime
 from typing import Any
 
 from django.contrib.auth import get_user_model, login
@@ -49,6 +50,7 @@ class ExampleCustomMutation(DjangoMutation):
         kwargs["number"] = 1
         kwargs["email"] = "example@email.com"
         kwargs["example_state"] = ExampleState.ACTIVE
+        kwargs["duration"] = datetime.timedelta(seconds=900)
         kwargs["forward_one_to_one_field"] = ForwardOneToOne.objects.create(name="Test")
         kwargs["forward_many_to_one_field"] = ForwardManyToOne.objects.create(name="Test")
         example = Example.objects.create(**kwargs)
@@ -70,6 +72,7 @@ class ExampleFormCustomMutation(DjangoMutation):
         kwargs["number"] = 1
         kwargs["email"] = "example@email.com"
         kwargs["example_state"] = ExampleState.ACTIVE
+        kwargs["duration"] = datetime.timedelta(seconds=900)
         kwargs["forward_one_to_one_field"] = ForwardOneToOne.objects.create(name="Test")
         kwargs["forward_many_to_one_field"] = ForwardManyToOne.objects.create(name="Test")
         example = Example.objects.create(**kwargs)

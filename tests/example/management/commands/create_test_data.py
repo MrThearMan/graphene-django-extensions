@@ -1,3 +1,4 @@
+import datetime
 import random
 
 from django.core.management import call_command
@@ -41,6 +42,7 @@ def create_test_data() -> None:
         number=random.randint(0, 100),
         email=faker.safe_email(),
         example_state=ExampleState.ACTIVE.value,
+        duration=datetime.timedelta(seconds=900),
         forward_one_to_one_field=f10,
         forward_many_to_one_field=f20,
     )
@@ -51,6 +53,7 @@ def create_test_data() -> None:
         number=random.randint(0, 100),
         email=faker.safe_email(),
         example_state=ExampleState.INACTIVE.value,
+        duration=datetime.timedelta(seconds=1800),
         forward_one_to_one_field=f11,
         forward_many_to_one_field=f21,
     )

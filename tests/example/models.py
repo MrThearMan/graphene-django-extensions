@@ -23,6 +23,7 @@ class Example(models.Model):
     number = models.IntegerField()
     email = models.EmailField(unique=True)
     example_state = models.CharField(choices=ExampleState.choices, max_length=255)
+    duration = models.DurationField()
     symmetrical_field = models.ManyToManyField("self")
     forward_one_to_one_field = models.OneToOneField(
         ForwardOneToOne,

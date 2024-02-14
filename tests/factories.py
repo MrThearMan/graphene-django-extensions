@@ -1,3 +1,4 @@
+import datetime
 from typing import Any, Iterable
 
 import factory
@@ -53,7 +54,8 @@ class ExampleFactory(DjangoModelFactory):
     name = fuzzy.FuzzyText(suffix="foo")
     number = fuzzy.FuzzyInteger(0)
     email = factory.LazyAttribute(lambda example: f"{example.name}@email.com")
-    example_state = fuzzy.FuzzyChoice(choices=ExampleState.choices)
+    example_state = fuzzy.FuzzyChoice(choices=ExampleState.values)
+    duration = factory.LazyFunction(lambda: datetime.timedelta(seconds=900))
     forward_one_to_one_field = factory.SubFactory(ForwardOneToOneFactory)
     forward_many_to_one_field = factory.SubFactory(ForwardManyToOneFactory)
 

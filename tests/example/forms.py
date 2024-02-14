@@ -11,6 +11,7 @@ class ExampleForm(ModelForm):
             "number",
             "email",
             "example_state",
+            "duration",
             "forward_one_to_one_field",
             "forward_many_to_one_field",
         ]

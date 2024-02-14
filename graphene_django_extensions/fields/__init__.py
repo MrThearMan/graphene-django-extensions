@@ -9,6 +9,7 @@ from .form import (
 from .graphql import (
     DjangoFilterConnectionField,
     DjangoFilterListField,
+    Duration,
     OrderingChoices,
     RelatedField,
     Time,
@@ -16,12 +17,15 @@ from .graphql import (
     TypedDictListField,
     UserDefinedFilterInputType,
 )
-from .serializer import IntegerPrimaryKeyField
+from .serializer import DurationField, EnumFriendlyChoiceField, IntegerPrimaryKeyField
 
 __all__ = [
     "DjangoFilterConnectionField",
     "DjangoFilterListField",
+    "Duration",
+    "DurationField",
     "EnumChoiceField",
+    "EnumFriendlyChoiceField",
     "EnumMultipleChoiceField",
     "IntChoiceField",
     "IntegerPrimaryKeyField",
