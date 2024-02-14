@@ -93,12 +93,12 @@ def _get_filter_argument(value: ValueNode, variable_values: dict[str, Any]) -> A
     raise ValueError(msg)  # pragma: no cover
 
 
-def get_fields_from_info(info: GQLInfo) -> list[Any]:
+def get_fields_from_info(info: GQLInfo) -> dict[str, Any]:
     """Find selected fields from the GraphQL query and return them as a dict."""
     return _get_field_node(info.operation)
 
 
-def _get_field_node(field: ExecutableDefinitionNode | FieldNode) -> list[Any]:
+def _get_field_node(field: ExecutableDefinitionNode | FieldNode) -> dict[str, Any] | list[Any]:
     filters: list[Any] = []
     for selection in field.selection_set.selections:
         if not isinstance(selection, FieldNode):  # pragma: no cover
@@ -107,4 +107,6 @@ def _get_field_node(field: ExecutableDefinitionNode | FieldNode) -> list[Any]:
             filters.append({selection.name.value: _get_field_node(selection)})
         else:
             filters.append(selection.name.value)
+    if len(filters) == 1 and isinstance(filters[0], dict):
+        return filters[0]
     return filters
