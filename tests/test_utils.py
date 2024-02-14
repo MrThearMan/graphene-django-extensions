@@ -6,7 +6,7 @@ from django.db import models
 
 from graphene_django_extensions.filters import UserDefinedFilter
 from graphene_django_extensions.testing import GraphQLClient, build_query
-from graphene_django_extensions.testing.client import parametrize_helper
+from graphene_django_extensions.testing.client import parametrize_helper, compare_unordered, compare_unordered
 from graphene_django_extensions.typing import Operation, UserDefinedFilterInput
 from graphene_django_extensions.utils import get_nested
 from tests.example.models import Example
@@ -287,3 +287,83 @@ def test_test_client(graphql: GraphQLClient, settings):
         ">>> Queries (0):\n"
         "---------------------------------------------------------------------------"
     )
+
+
+@pytest.mark.xfail()
+@pytest.mark.parametrize(
+    ("a", "b"),
+    [
+        (
+            [{"bar": 2}, {"foo": 2}],
+            [{"foo": 1}, {"bar": 2}],
+        ),
+        (
+            [{"bar": 2}, {"foo": 2}],
+            [{"bar": 1}, {"bar": 2, "foo": 1}],
+        ),
+        (
+            [{"bar": 2}, {"foo": 2}],
+            [{"bar": 2}, {"bar": 1}],
+        ),
+        (
+            [{"bar": 2}, {"foo": 2}],
+            [{"bar": 2}, {"bar": 2}],
+        ),
+        (
+            [{"bar": 2}, {"foo": 2}],
+            [{"bar": 2}, 1],
+        ),
+        (
+            [{"bar": 2}, {"foo": 2}],
+            [1, 2],
+        ),
+        (
+            [{"bar": 2}, {"foo": 2}],
+            [{"bar": 2}],
+        ),
+        (
+            [2, 3],
+            [1, 2],
+        ),
+        (
+            {"foo": 2},
+            [{"foo": 2}],
+        ),
+        (
+            [{"bar": [{"bar": 2}, {"foo": 2}]}],
+            [{"bar": [{"foo": 2}, {"bar": 1}]}],
+        ),
+        # Can't compare heterogeneous lists
+        (
+            [{"bar": 2}, 1],
+            [{"bar": 2}, 1],
+        ),
+    ],
+)
+def test_compare_unordered__fail(a, b):
+    compare_unordered(a, b)
+
+
+@pytest.mark.parametrize(
+    ("a", "b"),
+    [
+        (
+            [1, 2],
+            [2, 1],
+        ),
+        (
+            {"bar": 2, "foo": 1},
+            {"foo": 1, "bar": 2},
+        ),
+        (
+            [{"bar": 2}, {"foo": 1}],
+            [{"foo": 1}, {"bar": 2}],
+        ),
+        (
+            [{"bar": [{"bar": 1}, {"foo": 2}]}],
+            [{"bar": [{"foo": 2}, {"bar": 1}]}],
+        ),
+    ],
+)
+def test_compare_unordered__success(a, b):
+    compare_unordered(a, b)

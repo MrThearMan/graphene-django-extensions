@@ -4,6 +4,7 @@ import json
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import partial
+from inspect import cleandoc
 from typing import TYPE_CHECKING
 
 import pytest
@@ -24,11 +25,11 @@ if TYPE_CHECKING:
 
     from ..typing import Any, Callable, FieldError, Self
 
-
 __all__ = [
     "GraphQLClient",
     "capture_database_queries",
     "parametrize_helper",
+    "compare_unordered",
 ]
 
 
@@ -366,3 +367,116 @@ def parametrize_helper(__tests: dict[str, TNamedTuple], /) -> ParametrizeArgs:
     except AttributeError as error:  # pragma: no cover
         msg = "Improper configuration. Did you use a NamedTuple for TNamedTuple?"
         raise RuntimeError(msg) from error
+
+
+def _dict_sorter(data: dict[str, Any]) -> tuple[str, str]:
+    return str(data.keys()), str(data.values())
+
+
+class ComparisonError(Exception):
+    errors_by_code: dict[int, str] = {
+        1: "type mismatch",
+        2: "value mismatch",
+        3: "dict keys mismatch",
+        4: "array length mismatch",
+        5: "array content mismatch",
+        6: "array type mismatch",
+    }
+
+    def __init__(self, actual: Any, expected: Any, *, reason_code: int) -> None:
+        self.actual = actual
+        self.expected = expected
+        self.actual_key = ""
+        self.expected_key = ""
+        self.reason = self.errors_by_code[reason_code]
+
+
+def compare_unordered(actual: dict[str, Any] | list[Any], expected: dict[str, Any] | list[Any]) -> None:
+    """
+    Compare two json data structures without caring about the order in which items appear in lists.
+
+    If the comparison fails, will raise a `pytest.fail` with an error message
+    which will try to point out the place where the comparison failed.
+    However, this will not always pick the best "nodes" to show, so
+    full comparison data will also be shown in the error message for clarity.
+
+    Disclaimer: Cannot compare json with heterogeneous lists.
+    """
+    msg: str = ""
+    try:
+        _compare_unordered(actual, expected)
+    except ComparisonError as error:
+        msg = cleandoc(
+            f"""
+            Actual and expected data don't match ({error.reason}):
+                actual{error.actual_key} = {error.actual}
+                expected{error.expected_key} = {error.expected}
+            """
+        )
+        if error.actual_key or error.expected_key:
+            msg = (
+                msg
+                + "\n"
+                + cleandoc(
+                    f"""
+                    Full data:
+                        actual = {actual}
+                        expected = {expected}
+                    """
+                )
+            )
+    finally:
+        if msg:
+            pytest.fail(msg, pytrace=False)
+
+
+def _compare_unordered(actual: Any, expected: Any) -> None:  # noqa: PLR0912, C901
+    if type(actual) is not type(expected):
+        raise ComparisonError(actual, expected, reason_code=1)
+
+    if isinstance(actual, dict):
+        if actual.keys() != expected.keys():
+            raise ComparisonError(actual, expected, reason_code=3)
+
+        for key in actual:
+            try:
+                _compare_unordered(actual[key], expected[key])
+            except ComparisonError as error:  # noqa: PERF203
+                error.actual_key = f"['{key}']{error.actual_key}"
+                error.expected_key = f"['{key}']{error.expected_key}"
+                raise
+
+    elif isinstance(actual, list):
+        if len(actual) != len(expected):
+            raise ComparisonError(actual, expected, reason_code=4)
+
+        actual_types = {type(item) for item in actual}
+        expected_types = {type(item) for item in expected}
+
+        if len(actual_types) != 1 or len(expected_types) != 1:
+            raise ComparisonError(actual, expected, reason_code=6)
+
+        actual_type = actual_types.pop()
+        expected_type = expected_types.pop()
+        if actual_type is not expected_type:
+            raise ComparisonError(actual, expected, reason_code=5)
+
+        if issubclass(actual_type, dict):
+            for act, exp in zip(sorted(actual, key=_dict_sorter), sorted(expected, key=_dict_sorter)):
+                try:
+                    _compare_unordered(act, exp)
+                except ComparisonError as error:  # noqa: PERF203
+                    error.actual_key = f"[-]{error.actual_key}"
+                    error.expected_key = f"[-]{error.expected_key}"
+                    raise
+        else:
+            for act, exp in zip(sorted(actual), sorted(expected)):
+                try:
+                    _compare_unordered(act, exp)
+                except ComparisonError as error:  # noqa: PERF203
+                    error.actual_key = f"[-]{error.actual_key}"
+                    error.expected_key = f"[-]{error.expected_key}"
+                    raise
+
+    elif actual != expected:
+        raise ComparisonError(actual, expected, reason_code=2)
