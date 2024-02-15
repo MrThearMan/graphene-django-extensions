@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graphene-django-extensions"
-version = "0.2.9"
+version = "0.2.10"
 description = "Extensions for graphene-django"
 authors = [
     "Matti Lamppu <lamppu.matti.akseli@gmail.com>",
