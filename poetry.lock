@@ -459,13 +459,13 @@ doc = ["Sphinx", "sphinx-rtd-theme", "sphinxcontrib-spelling"]
 
 [[package]]
 name = "faker"
-version = "23.1.0"
+version = "23.2.0"
 description = "Faker is a Python package that generates fake data for you."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "Faker-23.1.0-py3-none-any.whl", hash = "sha256:60e89e5c0b584e285a7db05eceba35011a241954afdab2853cb246c8a56700a2"},
-    {file = "Faker-23.1.0.tar.gz", hash = "sha256:b7f76bb1b2ac4cdc54442d955e36e477c387000f31ce46887fb9722a041be60b"},
+    {file = "Faker-23.2.0-py3-none-any.whl", hash = "sha256:2db4b60ef93d247a8fe5518d01ebafa8df3a5dffd40cbb9577b25c45b04a9952"},
+    {file = "Faker-23.2.0.tar.gz", hash = "sha256:8631f712e85ae9208352442f74537927a92c439b83125f83e4798e5716764cc9"},
 ]
 
 [package.dependencies]
@@ -550,13 +550,13 @@ test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", 
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.1.5"
+version = "0.1.6"
 description = "Automatically optimize SQL queries in Graphene-Django schemas."
 optional = false
 python-versions = ">=3.9,<4"
 files = [
-    {file = "graphene_django_query_optimizer-0.1.5-py3-none-any.whl", hash = "sha256:611adb05a9a45ae22afc59c2af4eaf0aa901842e735605b6cad41a9dc1944aa0"},
-    {file = "graphene_django_query_optimizer-0.1.5.tar.gz", hash = "sha256:a8687abff712ddda09525251e2bd844b7aec5b1dd8d6c37c1ae3235a35231e54"},
+    {file = "graphene_django_query_optimizer-0.1.6-py3-none-any.whl", hash = "sha256:7cfe320d98bd535d11ae3885a162c0ab3cbb80ff311653567e453985607a19d1"},
+    {file = "graphene_django_query_optimizer-0.1.6.tar.gz", hash = "sha256:ab73955469d774aa66315a30ea18511e04f1099f0bb379daa5b64db02b11974d"},
 ]
 
 [package.dependencies]
@@ -1432,4 +1432,4 @@ files = ["graphene-file-upload"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "1fd46ddc00a3a52249276d98bd5c43832c6df6b49ba767dd819d6e914bdcf305"
+content-hash = "31a130d470991d39492d466c2c1c1899898c93dc8ebb74585868653d703a6e2b"
