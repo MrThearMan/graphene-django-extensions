@@ -34,7 +34,7 @@ from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
 from .typing import Fields, Sequence
-from .utils import get_filters_from_info
+from .utils import get_filters_from_info, replace_translatable_fields
 
 if TYPE_CHECKING:
     from django.db import models
@@ -149,6 +149,9 @@ class DjangoNode(DjangoObjectType):
         if not (fields == ALL_FIELDS or isinstance(fields, Sequence)):  # pragma: no cover
             msg = f"`Meta.fields` is should be a Sequence of field names or `{ALL_FIELDS}`, received: `{fields}`."
             raise TypeError(msg)
+
+        if fields != ALL_FIELDS:
+            fields = replace_translatable_fields(model, fields)
 
         if not hasattr(cls, "pk") and (fields == ALL_FIELDS or "pk" in fields):
             cls._add_pk_field(model)

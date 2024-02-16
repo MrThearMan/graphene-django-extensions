@@ -19,12 +19,15 @@ from graphql.language.ast import (
 )
 
 if TYPE_CHECKING:
-    from .typing import Any, GQLInfo
+    from django.db import models
+
+    from .typing import Any, GQLInfo, Sequence
 
 __all__ = [
-    "get_nested",
-    "get_filters_from_info",
     "get_fields_from_info",
+    "get_filters_from_info",
+    "get_nested",
+    "replace_translatable_fields",
 ]
 
 
@@ -110,3 +113,26 @@ def _get_field_node(field: ExecutableDefinitionNode | FieldNode) -> dict[str, An
     if len(filters) == 1 and isinstance(filters[0], dict):
         return filters[0]
     return filters
+
+
+def replace_translatable_fields(model: type[models.Model], fields: Sequence[str]) -> Sequence[str]:  # pragma: no cover
+    """
+    If `django-modeltranslation` is installed, find and replace all translatable fields
+    with their translated field counterparts in the selected fields.
+    """
+    try:
+        from modeltranslation.manager import get_translatable_fields_for_model
+        from modeltranslation.utils import get_translation_fields
+    except ImportError:
+        return fields
+
+    translatable_fields: list[str] = get_translatable_fields_for_model(model) or []
+    new_fields: list[str] = []
+    for field in fields:
+        if field not in translatable_fields:
+            new_fields.append(field)
+            continue
+        fields = get_translation_fields(field)
+        new_fields.extend(fields)
+
+    return new_fields

@@ -330,6 +330,21 @@ files = [
 Django = ">=3.2"
 
 [[package]]
+name = "django-modeltranslation"
+version = "0.18.11"
+description = "Translates Django models using a registration approach."
+optional = true
+python-versions = "*"
+files = [
+    {file = "django-modeltranslation-0.18.11.tar.gz", hash = "sha256:a6e2c459e3b31852287d030bc6e29fa28576db97455dccd399fe08ac8e9223b9"},
+    {file = "django_modeltranslation-0.18.11-py3-none-any.whl", hash = "sha256:81b68e4dc806a3b779ac88babe1cbd99d5318d374a43b3737a65fb0f4c1cffe8"},
+]
+
+[package.dependencies]
+Django = ">=3.2"
+typing-extensions = "*"
+
+[[package]]
 name = "django-settings-holder"
 version = "0.1.2"
 description = "Object that allows settings to be accessed with attributes."
@@ -667,12 +682,12 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jsbeautifier"
-version = "1.14.11"
+version = "1.15.0"
 description = "JavaScript unobfuscator and beautifier."
 optional = false
 python-versions = "*"
 files = [
-    {file = "jsbeautifier-1.14.11.tar.gz", hash = "sha256:6b632581ea60dd1c133cd25a48ad187b4b91f526623c4b0fb5443ef805250505"},
+    {file = "jsbeautifier-1.15.0.tar.gz", hash = "sha256:b44acb3e890799985999fa38247b6ed5766d8a7de912b6f1ff8d41ca3cd1b53f"},
 ]
 
 [package.dependencies]
@@ -1428,8 +1443,9 @@ watchmedo = ["PyYAML (>=3.10)"]
 
 [extras]
 files = ["graphene-file-upload"]
+translation = ["django-modeltranslation"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "31a130d470991d39492d466c2c1c1899898c93dc8ebb74585868653d703a6e2b"
+content-hash = "92e3f1fee42c36496693f715b68358d33b809f075a60030e5e501caf65c70dcf"
