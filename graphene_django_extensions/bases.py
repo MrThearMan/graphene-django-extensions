@@ -34,7 +34,7 @@ from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
 from .typing import Fields, Sequence
-from .utils import get_filters_from_info, replace_translatable_fields
+from .utils import add_translatable_fields, get_filters_from_info
 
 if TYPE_CHECKING:
     from django.db import models
@@ -151,7 +151,7 @@ class DjangoNode(DjangoObjectType):
             raise TypeError(msg)
 
         if fields != ALL_FIELDS:
-            fields = replace_translatable_fields(model, fields)
+            fields = add_translatable_fields(model, fields)
 
         if not hasattr(cls, "pk") and (fields == ALL_FIELDS or "pk" in fields):
             cls._add_pk_field(model)

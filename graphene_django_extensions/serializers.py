@@ -12,7 +12,7 @@ from .errors import get_constraint_message
 from .fields import DurationField, EnumFriendlyChoiceField, IntegerPrimaryKeyField
 from .model_operations import RelatedFieldInfo, get_object_or_404, get_related_field_info
 from .typing import ParamSpec, SerializerMeta, TypeVar
-from .utils import replace_translatable_fields
+from .utils import add_translatable_fields
 
 if TYPE_CHECKING:
     from django.db.models import Model
@@ -152,7 +152,7 @@ class NestingModelSerializer(ModelSerializer):
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         if cls.Meta.fields != ALL_FIELDS:
-            cls.Meta.fields = replace_translatable_fields(cls.Meta.model, cls.Meta.fields)
+            cls.Meta.fields = add_translatable_fields(cls.Meta.model, cls.Meta.fields)
         return super().__new__(cls, *args, **kwargs)
 
     def get_or_default(self, field: str, attrs: dict[str, Any]) -> Any:

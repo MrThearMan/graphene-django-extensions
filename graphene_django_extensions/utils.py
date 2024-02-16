@@ -27,7 +27,7 @@ __all__ = [
     "get_fields_from_info",
     "get_filters_from_info",
     "get_nested",
-    "replace_translatable_fields",
+    "add_translatable_fields",
 ]
 
 
@@ -115,10 +115,10 @@ def _get_field_node(field: ExecutableDefinitionNode | FieldNode) -> dict[str, An
     return filters
 
 
-def replace_translatable_fields(model: type[models.Model], fields: Sequence[str]) -> Sequence[str]:  # pragma: no cover
+def add_translatable_fields(model: type[models.Model], fields: Sequence[str]) -> Sequence[str]:  # pragma: no cover
     """
-    If `django-modeltranslation` is installed, find and replace all translatable fields
-    with their translated field counterparts in the selected fields.
+    If `django-modeltranslation` is installed, find and add all translation fields
+    to the given fields list, for the given fields, in the given model.
     """
     try:
         from modeltranslation.manager import get_translatable_fields_for_model
@@ -129,8 +129,8 @@ def replace_translatable_fields(model: type[models.Model], fields: Sequence[str]
     translatable_fields: list[str] = get_translatable_fields_for_model(model) or []
     new_fields: list[str] = []
     for field in fields:
+        new_fields.append(field)
         if field not in translatable_fields:
-            new_fields.append(field)
             continue
         fields = get_translation_fields(field)
         new_fields.extend(fields)
