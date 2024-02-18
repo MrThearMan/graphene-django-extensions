@@ -176,29 +176,28 @@ from graphene_django_extensions import NestingModelSerializer
 class SubSerializer(NestingModelSerializer):
     class Meta:
         model = Sub
-        fields = ["pk", "field"]
+        fields = ["pk", "sub_field"]
 
 class MainSerializer(NestingModelSerializer):
     sub_entry = SubSerializer()
 
     class Meta:
         model = Main
-        fields = ["pk", "sub_entry"]
+        fields = ["pk", "main_field", "sub_entry"]
 ```
 
 When using the above serializers with the following data:
 
 ```json
 {
-    "pk": 1,
+    "main_field": "foo",
     "sub_entities": {
-        "field": "value"
+        "sub_field": "bar"
     }
 }
 ```
 
-This will create the Main entity and the Sub entity,
-and link the Sub entity to the Main entity.
+This will create the Main entity and the Sub entity, and link the Sub entity to the Main entity.
 
 If instead this is used:
 
@@ -206,28 +205,40 @@ If instead this is used:
 {
     "pk": 1,
     "sub_entities": {
+        "sub_field": "bar"
+    }
+}
+```
+
+This will update the Main entity with `pk=1`, and create a new Sub entity and link it to the Main entity.
+
+We can also link an existing Sub entity to the Main entity on update or create:
+
+```json
+{
+    "main_field": "foo",
+    "sub_entities": {
         "pk": 2
     }
 }
 ```
 
-This will create the Main entity and link an existing Sub entity with `pk=2` to it.
 If the Sub entity does not exist, a 404 error will be raised. If the sub entity
 is already linked to another Main entity, this will be a no-op.
 
-If the `pk` field is included with some other fields, the Sub entity will also be updated:
+If the `pk` field is included in the subquery, the existing Sub entity will be updated:
 
 ```json
 {
-    "pk": 1,
+    "main_field": "foo",
     "sub_entities": {
         "pk": 2,
-        "field": "value"
+        "sub_field": "value"
     }
 }
 ```
 
-For `to_many` relations, the serializer field must be a ListSerializer:
+For `to_many` relations, the serializer field must use `many=True`:
 
 ```python
 class MainSerializer(NestingModelSerializer):
@@ -243,7 +254,7 @@ will be deleted (e.g. Sub entity with `pk=1` could have been deleted here):
     "pk": 1,
     "sub_entities": [
         {"pk": 2},
-        {"field": "value"}
+        {"sub_field": "value"}
     ]
 }
 ```

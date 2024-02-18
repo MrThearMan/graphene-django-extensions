@@ -54,7 +54,8 @@ class ExampleFilterSet(ModelFilterSet):
 ```
 
 Additionally, the ordering choices are converted to GraphQL enums (e.g. `"name"` -> `nameAsc`
-& `"-name"` -> `nameDesc`), which gives better autocomplete results.
+& `"-name"` -> `nameDesc`), which gives better autocomplete results in GraphiQL, and makes the
+available orderings more explicit.
 
 ---
 
