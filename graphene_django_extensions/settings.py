@@ -26,6 +26,7 @@ class DefaultSettings(NamedTuple):
     MUTATION_VALIDATION_ERROR_MESSAGE: str = "Mutation was unsuccessful."
     MUTATION_VALIDATION_ERROR_CODE: str = "MUTATION_VALIDATION_ERROR"
     ORDERING_FILTER_NAME: str = "order_by"
+    EXTEND_USER_DEFINED_FILTER_OPERATIONS: list[str] | None = None
 
 
 DEFAULTS: dict[str, Any] = DefaultSettings()._asdict()

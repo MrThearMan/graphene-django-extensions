@@ -25,7 +25,7 @@ from graphql import Undefined
 from query_optimizer import DjangoConnectionField
 from query_optimizer.filter import DjangoFilterConnectionField
 
-from ..typing import Operation
+from ..utils import get_operator_enum
 
 if TYPE_CHECKING:
     from django.db.models import Manager, Model
@@ -304,7 +304,7 @@ class OrderingChoices(graphene.Enum):
 class UserDefinedFilterInputType(graphene.InputObjectType):
     """User defined filtering input."""
 
-    operation = graphene.Field(graphene.Enum.from_enum(Operation), required=True)
+    operation = graphene.Field(graphene.Enum.from_enum(get_operator_enum()), required=True)
     value = GenericScalar()
 
     @classmethod

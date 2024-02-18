@@ -84,3 +84,7 @@ GRAPHENE = {
         "graphene_django.debug.DjangoDebugMiddleware",
     ],
 }
+
+GRAPHENE_DJANGO_EXTENSIONS = {
+    "EXTEND_USER_DEFINED_FILTER_OPERATIONS": ["foo"],
+}

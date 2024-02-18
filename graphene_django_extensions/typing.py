@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
-from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -30,6 +29,8 @@ from django.core.handlers.wsgi import WSGIRequest
 from graphql import GraphQLResolveInfo
 
 if TYPE_CHECKING:
+    from enum import Enum
+
     import django_filters
     from django.contrib.auth.models import AnonymousUser, User
     from django.core.exceptions import ValidationError as DjangoValidationError
@@ -41,6 +42,7 @@ if TYPE_CHECKING:
     from rest_framework.serializers import ListSerializer
 
     from .bases import DjangoNode
+    from .constants import Operation
     from .serializers import NestingModelSerializer
 
 
@@ -136,43 +138,6 @@ class FilterSetMeta:
     form: type[Form]
     combination_methods: Sequence[MethodNameStr]
     order_by: Sequence[FieldNameStr | tuple[FieldLookupStr, FilterAliasStr]]
-
-
-class Operation(Enum):
-    # Logical
-    AND = "AND"
-    OR = "OR"
-    XOR = "XOR"
-    NOT = "NOT"
-
-    # Comparison single value
-    EXACT = "EXACT"
-    IEXACT = "IEXACT"
-    GT = "GT"
-    GTE = "GTE"
-    LT = "LT"
-    LTE = "LTE"
-    CONTAINS = "CONTAINS"
-    ICONTAINS = "ICONTAINS"
-    STARTSWITH = "STARTSWITH"
-    ISTARTSWITH = "ISTARTSWITH"
-    ENDSWITH = "ENDSWITH"
-    IENDSWITH = "IENDSWITH"
-    ISNULL = "ISNULL"
-    REGEX = "REGEX"
-    IREGEX = "IREGEX"
-
-    # Comparison multiple values
-    IN = "IN"
-    RANGE = "RANGE"
-
-    @property
-    def is_logical(self) -> bool:
-        return self in (self.AND, self.OR, self.XOR, self.NOT)
-
-    @property
-    def lookup(self) -> str:
-        return self.value.lower()
 
 
 @dataclass

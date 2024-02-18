@@ -26,7 +26,6 @@ from .typing import (
     FieldAliasToLookup,
     FilterFields,
     FilterSetMeta,
-    Operation,
     UserDefinedFilterInput,
     UserDefinedFilterResult,
 )
@@ -113,12 +112,12 @@ class UserDefinedFilter(django_filters.Filter):
         ann: dict[str, Any] = {}
         ordering: list[str] = []
 
-        if data.operation.is_logical:
+        if data.operation.value in ("AND", "OR", "XOR", "NOT"):
             if data.operations is None:
                 msg = "Logical filter operation requires 'operations' to be set."
                 raise ValueError(msg)
 
-            if data.operation == Operation.NOT and len(data.operations) != 1:
+            if data.operation.value == "NOT" and len(data.operations) != 1:
                 msg = "Logical filter operation 'NOT' requires exactly one operation."
                 raise ValueError(msg)
 
@@ -129,13 +128,13 @@ class UserDefinedFilter(django_filters.Filter):
                 if result.ordering:  # pragma: no cover
                     ordering.extend(result.ordering)
 
-                if data.operation == Operation.AND:
+                if data.operation.value == "AND":
                     filters &= result.filters
-                elif data.operation == Operation.OR:
+                elif data.operation.value == "OR":
                     filters |= result.filters
-                elif data.operation == Operation.NOT:
+                elif data.operation.value == "NOT":
                     filters = ~result.filters
-                elif data.operation == Operation.XOR:
+                elif data.operation.value == "XOR":
                     filters ^= result.filters
 
         else:
@@ -145,7 +144,7 @@ class UserDefinedFilter(django_filters.Filter):
 
             alias: str = getattr(data.field, "name", data.field)
             field: str = self.extra["fields"][alias]
-            inputs: dict[str, Any] = {f"{field}{LOOKUP_SEP}{data.operation.lookup}": data.value}
+            inputs: dict[str, Any] = {f"{field}{LOOKUP_SEP}{data.operation.value.lower()}": data.value}
             filters = Q(**inputs)
 
         return UserDefinedFilterResult(filters=filters, annotations=ann, ordering=ordering)

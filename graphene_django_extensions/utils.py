@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import enum
+from functools import cache
 from typing import TYPE_CHECKING
 
 from graphql.language.ast import (
@@ -18,6 +20,9 @@ from graphql.language.ast import (
     VariableNode,
 )
 
+from .constants import Operation
+from .settings import gdx_settings
+
 if TYPE_CHECKING:
     from django.db import models
 
@@ -28,6 +33,7 @@ __all__ = [
     "get_filters_from_info",
     "get_nested",
     "add_translatable_fields",
+    "get_operator_enum",
 ]
 
 
@@ -136,3 +142,15 @@ def add_translatable_fields(model: type[models.Model], fields: Sequence[str]) ->
         new_fields.extend(fields)
 
     return new_fields
+
+
+@cache
+def get_operator_enum() -> type[Operation]:
+    if not gdx_settings.EXTEND_USER_DEFINED_FILTER_OPERATIONS:
+        return Operation
+
+    current_members: dict[str, str] = {key: value.value for key, value in Operation._member_map_.items()}
+    for operator in gdx_settings.EXTEND_USER_DEFINED_FILTER_OPERATIONS:
+        current_members[operator.upper()] = operator.upper()
+
+    return enum.Enum(Operation.__name__, current_members)  # type: ignore[return-value]
