@@ -208,6 +208,7 @@ exclude_lines = [
 ]
 
 [tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.project.settings"
 addopts = "-vv -s --log-cli-level=INFO"
 
 [tool.tox]

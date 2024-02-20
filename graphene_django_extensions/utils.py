@@ -57,12 +57,16 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
         obj = obj or []
         try:
             obj = obj[arg]
-        except IndexError:
+        except (IndexError, KeyError):
             obj = None
         return get_nested(obj, *args, default=default)
 
     obj = obj or {}
-    return get_nested(obj.get(arg), *args, default=default)
+    try:
+        return get_nested(obj.get(arg), *args, default=default)
+    except AttributeError:
+        obj = None
+        return get_nested(obj, *args, default=default)
 
 
 def get_filters_from_info(info: GQLInfo) -> dict[str, Any]:
