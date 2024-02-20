@@ -105,7 +105,7 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
     with patch("graphene_django_extensions.bases.get_filters_from_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == {"examples": {"edges": {"node": ["pk"]}}}
+    assert fields == [{"examples": [{"edges": [{"node": ["pk"]}]}]}]
     assert filters == {"examples": {"filter": {"field": "name", "operation": "EXACT", "value": "foo"}}}
 
     assert response.has_errors is False, response
@@ -204,7 +204,7 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
     with patch("graphene_django_extensions.bases.get_filters_from_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == {"examples": {"edges": {"node": ["pk"]}}}
+    assert fields == [{"examples": [{"edges": [{"node": ["pk"]}]}]}]
     assert filters == {
         "examples": {
             "filter": {
@@ -257,7 +257,7 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
     with patch("graphene_django_extensions.bases.get_filters_from_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == {"exampleItems": ["pk"]}
+    assert fields == [{"exampleItems": ["pk"]}]
     assert filters == {"exampleItems": {"exampleState": ["ACTIVE", "INACTIVE"], "name": "foo"}}
 
     assert response.has_errors is False, response
@@ -297,7 +297,7 @@ def test_graphql__filter__sub_filter(graphql: GraphQLClient):
     with patch("graphene_django_extensions.bases.get_filters_from_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == {"exampleItems": ["pk", {"forwardManyToManyFields": ["name"]}]}
+    assert fields == [{"exampleItems": ["pk", {"forwardManyToManyFields": ["name"]}]}]
     assert filters == {"exampleItems": {"forwardManyToManyFields": {"pk": ["1"]}}}
 
     assert response.has_errors is False, response

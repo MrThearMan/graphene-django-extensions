@@ -120,8 +120,6 @@ def _get_field_node(field: ExecutableDefinitionNode | FieldNode) -> dict[str, An
             filters.append({selection.name.value: _get_field_node(selection)})
         else:
             filters.append(selection.name.value)
-    if len(filters) == 1 and isinstance(filters[0], dict):
-        return filters[0]
     return filters
 
 
