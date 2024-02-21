@@ -121,6 +121,30 @@ class GetNestedParams(NamedTuple):
                 default=1,
                 expected=1,
             ),
+            "Access dict with int key": GetNestedParams(
+                value={"foo": 1},
+                args=[0],
+                default=2,
+                expected=2,
+            ),
+            "Access dict with int key, two layer": GetNestedParams(
+                value={"foo": [1]},
+                args=[0, 0],
+                default=2,
+                expected=2,
+            ),
+            "Access list with str key": GetNestedParams(
+                value=[1],
+                args=["foo"],
+                default=2,
+                expected=2,
+            ),
+            "Access list with str key, two layer": GetNestedParams(
+                value=[{"foo": 1}],
+                args=["foo", 0],
+                default=2,
+                expected=2,
+            ),
         }
     )
 )
