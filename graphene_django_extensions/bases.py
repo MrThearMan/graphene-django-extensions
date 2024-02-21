@@ -205,10 +205,13 @@ class DjangoNode(DjangoObjectType):
         queryset = cls._meta.model._default_manager.filter(pk=pk)
         if can_optimize(info):
             queryset = optimize(queryset, info, max_complexity=cls._meta.max_complexity, pk=pk)
-            try:
-                instance = queryset._result_cache[0]
-            except IndexError:  # pragma: no cover
-                instance = None
+            if queryset._result_cache is None:  # pragma: no cover
+                instance = queryset.first()  # Optimization was cancelled
+            else:
+                try:
+                    instance = queryset._result_cache[0]
+                except IndexError:  # pragma: no cover
+                    instance = None
         else:  # pragma: no cover
             instance = queryset.first()
         if instance is not None and not cls.has_node_permissions(info, instance):
