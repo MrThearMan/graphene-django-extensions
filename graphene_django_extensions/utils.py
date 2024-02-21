@@ -106,8 +106,8 @@ def _get_filter_argument(value: ValueNode, variable_values: dict[str, Any]) -> A
     raise ValueError(msg)  # pragma: no cover
 
 
-def get_fields_from_info(info: GQLInfo) -> dict[str, Any]:
-    """Find selected fields from the GraphQL query and return them as a dict."""
+def get_fields_from_info(info: GQLInfo) -> list[dict[str, Any]]:
+    """Find selected fields from the GraphQL query and return them as a list of dicts."""
     return _get_field_node(info.operation)
 
 
@@ -148,7 +148,7 @@ def add_translatable_fields(model: type[models.Model], fields: Sequence[str]) ->
 
 @cache
 def get_operator_enum() -> type[Operation]:
-    if not gdx_settings.EXTEND_USER_DEFINED_FILTER_OPERATIONS:
+    if not gdx_settings.EXTEND_USER_DEFINED_FILTER_OPERATIONS:  # pragma: no cover
         return Operation
 
     current_members: dict[str, str] = {key: value.value for key, value in Operation._member_map_.items()}
