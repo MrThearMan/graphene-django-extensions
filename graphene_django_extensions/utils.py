@@ -100,7 +100,7 @@ def _get_filter_argument(value: ValueNode, variable_values: dict[str, Any]) -> A
     if isinstance(value, (ObjectValueNode, ConstObjectValueNode)):
         return {field.name.value: _get_filter_argument(field.value, variable_values) for field in value.fields}
     if isinstance(value, VariableNode):  # pragma: no cover
-        return variable_values[value.name.value]
+        return variable_values.get(value.name.value)
 
     msg = f"Unsupported ValueNode for filter argument type: '{type(value).__name__}'"  # pragma: no cover
     raise ValueError(msg)  # pragma: no cover
