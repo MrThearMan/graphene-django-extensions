@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import django_filters
@@ -276,7 +275,8 @@ class ModelFilterSet(django_filters.FilterSet):
             ordering_filter = cls.declared_filters.get(gdx_settings.ORDERING_FILTER_NAME)
 
             if isinstance(ordering_filter, CustomOrderingFilter):
-                fields_map: dict[str, str] = deepcopy(ordering_filter.param_map)
+                # Param map should be flipped so that OrderingFilter initializes correctly.
+                fields_map: dict[str, str] = {v: k for k, v in ordering_filter.param_map.items()}
                 for field in ordering_fields:
                     if isinstance(field, tuple):
                         fields_map.setdefault(field[0], field[1])
