@@ -51,6 +51,10 @@ setting_changed.connect(reload_my_settings)
 
 
 def enum_name(field: models.Field) -> str:
+    # If using `StrChoiceField` or `IntChoiceField`, use the stored enum name.
+    if hasattr(field, "enum") and field.enum is not None:  # pragma: no cover
+        return field.enum.__name__
+    # Otherwise, generate the name from the field name.
     return "".join(s.capitalize() for s in field.name.split("_"))
 
 

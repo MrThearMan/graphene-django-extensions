@@ -42,6 +42,12 @@ class IntegerPrimaryKeyField(serializers.PrimaryKeyRelatedField, serializers.Int
 class EnumFriendlyChoiceField(serializers.ChoiceField):
     """ChoiceField that works with enum inputs as well."""
 
+    def __init__(self, choices: list[tuple[Any, Any]], **kwargs: Any) -> None:
+        # Enum can be provided as a keyword argument, used for mutation input enum naming.
+        # See: `graphene_django_extensions.converters.convert_serializer_field_to_enum`
+        self.enum: Enum | None = kwargs.pop("enum", None)
+        super().__init__(choices, **kwargs)
+
     def to_internal_value(self, data: Any) -> str:
         if data == "" and self.allow_blank:  # pragma: no cover
             return ""

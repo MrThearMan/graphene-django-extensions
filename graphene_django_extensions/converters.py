@@ -263,6 +263,11 @@ def convert_serializer_field_to_duration(field: DurationField) -> type[Duration]
 
 @get_graphene_type_from_serializer_field.register
 def convert_serializer_field_to_enum(field: ChoiceField) -> Enum:
-    name = field.field_name or field.source or "Choices"
-    name = "".join(s.capitalize() for s in name.split("_"))
+    # `EnumFriendlyChoiceField` can have a reference to the enum class for consistent naming
+    # of the same enum in different places (nodes, mutations, filters, etc.)
+    if hasattr(field, "enum") and field.enum is not None:  # pragma: no cover
+        name = field.enum.__name__
+    else:
+        name = field.field_name or field.source or "Choices"
+        name = "".join(s.capitalize() for s in name.split("_"))
     return convert_choices_to_named_enum_with_descriptions(name, field.choices)

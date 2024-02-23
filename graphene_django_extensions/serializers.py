@@ -284,3 +284,15 @@ class NestingModelSerializer(ModelSerializer):
             if rel_info.many_to_many:
                 # Add related objects that were not previously linked to the main model.
                 getattr(instance, field_name).set(instances)
+
+    def get_fields(self) -> dict[str, Field]:
+        fields = super().get_fields()
+        # Add the model field enum to `EnumFriendlyChoiceField`
+        # if the enum was not explicitly defined in the serializer field.
+        # (e.g. field created automatically based on `serializer_choice_field`)
+        # This is used for mutation input enum naming.
+        for name, field in fields.items():
+            if hasattr(field, "enum") and field.enum is None:
+                model_field = self.Meta.model._meta.get_field(name)
+                field.enum = getattr(model_field, "enum", None)
+        return fields
