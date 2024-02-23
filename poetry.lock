@@ -565,13 +565,13 @@ test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", 
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.1.7"
+version = "0.1.11"
 description = "Automatically optimize SQL queries in Graphene-Django schemas."
 optional = false
 python-versions = ">=3.9,<4"
 files = [
-    {file = "graphene_django_query_optimizer-0.1.7-py3-none-any.whl", hash = "sha256:04610e7f4c440e2bab35a09a3a0307076d9142ab70722dc133c959ae3cb483a6"},
-    {file = "graphene_django_query_optimizer-0.1.7.tar.gz", hash = "sha256:62f0bfe2f38fb097b1c5c8022dec16ef7fe26c6fb28b26e5d5ce87d97171ed1e"},
+    {file = "graphene_django_query_optimizer-0.1.11-py3-none-any.whl", hash = "sha256:0648815deae061eeba50c2745c499ab427429328f28aa7f48346db7c13822ef1"},
+    {file = "graphene_django_query_optimizer-0.1.11.tar.gz", hash = "sha256:272b356a205ea1fd344646c6c23cd3fbaeba7f0ee00fd6bc1576b22e442e97a3"},
 ]
 
 [package.dependencies]
@@ -1393,13 +1393,13 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "virtualenv"
-version = "20.25.0"
+version = "20.25.1"
 description = "Virtual Python Environment builder"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "virtualenv-20.25.0-py3-none-any.whl", hash = "sha256:4238949c5ffe6876362d9c0180fc6c3a824a7b12b80604eeb8085f2ed7460de3"},
-    {file = "virtualenv-20.25.0.tar.gz", hash = "sha256:bf51c0d9c7dd63ea8e44086fa1e4fb1093a31e963b86959257378aef020e1f1b"},
+    {file = "virtualenv-20.25.1-py3-none-any.whl", hash = "sha256:961c026ac520bac5f69acb8ea063e8a4f071bcc9457b9c1f28f6b085c511583a"},
+    {file = "virtualenv-20.25.1.tar.gz", hash = "sha256:e08e13ecdca7a0bd53798f356d5831434afa5b07b93f0abdf0797b7a06ffe197"},
 ]
 
 [package.dependencies]
@@ -1459,4 +1459,4 @@ translation = ["django-modeltranslation"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "b7f678b1a071e92dea0cfbadcabdbe23624b19cae5837656550732a9376fe5be"
+content-hash = "13b5a6dde94fee44da850d28d081701fedadabee80e74e31d397b3ca043b3708"
