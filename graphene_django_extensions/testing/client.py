@@ -238,6 +238,77 @@ class GQLResponse:
 
         return messages
 
+    def error_code(self, selector: int | str = 0) -> str:
+        """
+        Return the error code from the errors list.
+
+        1) in the given index
+
+        >>> self.json = {"errors": [{"extensions": {"code": "bar"}, ...}]}
+        >>> self.error_code(0)  # default
+        "bar"
+
+        2) in the given path:
+
+        >>> self.json = {"errors": [{"extensions": {"code": "bar"}, "path": ["fizz", "buzz", "foo"], ...}]}
+        >>> self.error_code("foo")
+        "bar"
+        """
+        if isinstance(selector, int):
+            try:
+                return self.errors[selector]["extensions"]["code"]
+            except (KeyError, TypeError):
+                msg = f"Error code not found in error content: {self.json}"
+                pytest.fail(msg, pytrace=False)
+        else:
+            try:
+                return next(error["extensions"]["code"] for error in self.errors if error["path"][-1] == selector)
+            except StopIteration:
+                msg = f"Errors list doesn't have an error for field '{selector}': {self.json}"
+                pytest.fail(msg, pytrace=False)
+            except (KeyError, TypeError):
+                msg = f"Field 'extensions' not found in error content: {self.json}"
+                pytest.fail(msg, pytrace=False)
+
+    def field_error_codes(self, field: str = "nonFieldErrors") -> list[str]:  # pragma: no cover
+        """
+        Return field error codes for desired field.
+
+        >>> self.json = {
+        ...     "errors": [
+        ...         {
+        ...             "extensions": {
+        ...                 "errors": [
+        ...                     {
+        ...                         "field": "foo",
+        ...                         "messages": "bar",
+        ...                         "codes": "baz",
+        ...                     },
+        ...                     {
+        ...                         "field": "foo",
+        ...                         "messages": "one",
+        ...                         "codes": "",
+        ...                     },
+        ...                 ],
+        ...             },
+        ...         },
+        ...     ],
+        ... }
+        ...
+        >>> self.field_error_codes("foo")
+        ["bar", ""]
+        """
+        codes: list[str] = []
+        for error in self.field_errors:
+            if error.get("field") == field:
+                try:
+                    codes.append(error["code"])
+                except (KeyError, TypeError):
+                    msg = f"Error code for field {field!r} not found in error: {error}"
+                    pytest.fail(msg, pytrace=False)
+
+        return codes
+
     def assert_query_count(self, count: int) -> None:  # pragma: no cover
         if len(self.queries) != count:
             msg = f"Expected {count} queries, got {len(self.queries)}.\n{self.query_log}"
