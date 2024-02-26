@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from django.db import models
-from rest_framework.exceptions import NotFound
+
+from .errors import GQLNotFoundError
+from .settings import gdx_settings
 
 if TYPE_CHECKING:
     from django.db.models import ForeignObjectRel
@@ -25,7 +27,7 @@ def get_object_or_404(model_class: type[models.Model], **kwargs: Any) -> models.
         return model_class._default_manager.get(**kwargs)
     except model_class.DoesNotExist as error:
         msg = f"`{model_class.__name__}` object matching query `{kwargs}` does not exist."
-        raise NotFound(msg) from error
+        raise GQLNotFoundError(msg, code=gdx_settings.NOT_FOUND_ERROR_CODE) from error
 
 
 def get_model_lookup_field(model_class: type[models.Model], lookup_field: str | None = None) -> str:

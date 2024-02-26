@@ -238,7 +238,7 @@ class GQLResponse:
 
         return messages
 
-    def error_code(self, selector: int | str = 0) -> str:
+    def error_code(self, selector: int | str = 0) -> str:  # pragma: no cover
         """
         Return the error code from the errors list.
 

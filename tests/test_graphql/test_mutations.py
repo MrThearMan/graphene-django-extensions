@@ -145,3 +145,27 @@ def test_graphql__form__custom(graphql: GraphQLClient):
     assert response.first_query_object == {
         "pk": example.pk,
     }
+
+
+def test_graphql__update__does_not_exist(graphql: GraphQLClient):
+    ExampleFactory.create(name="foo", number=1)
+    input_data = {"pk": 0}
+
+    mutation = build_mutation("updateExample", "ExampleUpdateMutation", fields="pk")
+    graphql.login_with_superuser()
+    response = graphql(mutation, input_data=input_data)
+
+    assert response.error_code() == "NOT_FOUND"
+    assert response.error_message() == "`Example` object matching query `{'pk': 0}` does not exist."
+
+
+def test_graphql__delete__does_not_exist(graphql: GraphQLClient):
+    ExampleFactory.create(name="foo", number=1)
+    input_data = {"pk": 0}
+
+    mutation = build_mutation("deleteExample", "ExampleDeleteMutation", fields="deleted")
+    graphql.login_with_superuser()
+    response = graphql(mutation, input_data=input_data)
+
+    assert response.error_code() == "NOT_FOUND"
+    assert response.error_message() == "`Example` object matching query `{'pk': '0'}` does not exist."

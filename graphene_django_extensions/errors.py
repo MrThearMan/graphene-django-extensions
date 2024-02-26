@@ -21,12 +21,20 @@ if TYPE_CHECKING:
 
 __all__ = [
     "get_constraint_message",
+    "GQLNotFoundError",
     "GQLPermissionDeniedError",
     "GQLValidationError",
 ]
 
 
 class GQLPermissionDeniedError(GraphQLError):
+    """Exception raised when the user has insufficient permissions to access a resource."""
+
+    def __init__(self, message: str, code: str) -> None:
+        super().__init__(message, extensions={"code": code})
+
+
+class GQLNotFoundError(GraphQLError):
     """Exception raised when the user has insufficient permissions to access a resource."""
 
     def __init__(self, message: str, code: str) -> None:
