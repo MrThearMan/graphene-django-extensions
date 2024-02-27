@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django import forms  # noqa: TCH002
-from django.db import models
+from django.db import models  # noqa: TCH002
 from graphene.types.enum import Enum  # noqa: TCH002
 from graphene_django.converter import (
     convert_choices_to_named_enum_with_descriptions,
