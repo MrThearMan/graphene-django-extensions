@@ -19,7 +19,6 @@ from rest_framework.fields import ChoiceField  # noqa: TCH002
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
 from .fields import (
-    DjangoFilterConnectionField,
     Duration,
     DurationField,
     EnumChoiceField,
@@ -36,10 +35,7 @@ from .model_operations import get_model_lookup_field
 
 if TYPE_CHECKING:
     from django.forms import Field, Form, ModelForm
-    from graphene_django import DjangoListField
-    from query_optimizer import DjangoConnectionField
 
-    from .bases import DjangoNode
     from .typing import FieldNameStr, SerializerMeta
 
 
@@ -199,61 +195,6 @@ def convert_ordering_field(field: OrderByField) -> graphene.List:
         description=get_form_field_description(field),
         required=field.required,
     )
-
-
-@convert_django_field.register(models.OneToOneField)
-@convert_django_field.register(models.ForeignKey)
-@convert_django_field.register(models.OneToOneRel)
-def convert_to_one_field(
-    field,  # noqa: ANN001
-    registry: Registry | None = None,
-) -> graphene.Dynamic:
-    def dynamic_type() -> graphene.Field | None:
-        _type: DjangoNode | None = registry.get_type_for_model(field.related_model)
-        if _type is None:  # pragma: no cover
-            return None
-
-        actual_field = field.field if isinstance(field, models.OneToOneRel) else field
-        description: str = get_django_field_description(actual_field)
-        required: bool = False if isinstance(field, models.OneToOneRel) else not field.null
-        reverse: bool = isinstance(field, models.OneToOneRel)
-
-        return _type.RelatedField(
-            reverse=reverse,
-            description=description,
-            required=required,
-        )
-
-    return graphene.Dynamic(dynamic_type)
-
-
-@convert_django_field.register(models.ManyToManyField)
-@convert_django_field.register(models.ManyToManyRel)
-@convert_django_field.register(models.ManyToOneRel)
-def convert_to_many_field(
-    field,  # noqa: ANN001
-    registry: Registry | None = None,
-) -> graphene.Dynamic:
-    def dynamic_type() -> DjangoFilterConnectionField | DjangoConnectionField | DjangoListField | None:
-        _type: DjangoNode | None = registry.get_type_for_model(field.related_model)
-        if _type is None:  # pragma: no cover
-            return None
-
-        actual_field = field if isinstance(field, models.ManyToManyField) else field.field
-        description: str = get_django_field_description(actual_field)
-        required: bool = True  # will always return a queryset, even if empty
-
-        if _type._meta.connection:
-            return _type.Connection(
-                description=description,
-                required=required,
-            )
-        return _type.ListField(  # pragma: no cover
-            description=description,
-            required=required,
-        )
-
-    return graphene.Dynamic(dynamic_type)
 
 
 @get_graphene_type_from_serializer_field.register

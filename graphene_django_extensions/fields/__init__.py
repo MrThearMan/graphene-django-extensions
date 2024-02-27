@@ -7,8 +7,8 @@ from .form import (
     UserDefinedFilterField,
 )
 from .graphql import (
-    DjangoFilterConnectionField,
-    DjangoFilterListField,
+    DjangoConnectionField,
+    DjangoListField,
     Duration,
     OrderingChoices,
     RelatedField,
@@ -20,8 +20,8 @@ from .graphql import (
 from .serializer import DurationField, EnumFriendlyChoiceField, IntegerPrimaryKeyField
 
 __all__ = [
-    "DjangoFilterConnectionField",
-    "DjangoFilterListField",
+    "DjangoConnectionField",
+    "DjangoListField",
     "Duration",
     "DurationField",
     "EnumChoiceField",

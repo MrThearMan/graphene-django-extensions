@@ -69,7 +69,7 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
         return get_nested(obj, *args, default=default)
 
 
-def get_filters_from_info(info: GQLInfo) -> dict[str, Any]:
+def get_filters_from_info(info: GQLInfo) -> dict[str, Any]:  # TODO: Copy from optimizer!
     """Find filter arguments in the GraphQL query and return them as a dict."""
     return _get_arguments(info.operation, info.variable_values)
 

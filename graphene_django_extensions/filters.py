@@ -10,7 +10,7 @@ from django.db.models.constants import LOOKUP_SEP
 from django_filters.constants import ALL_FIELDS, EMPTY_VALUES
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
 from graphene.utils.str_converters import to_camel_case
-from graphene_django.utils import maybe_queryset
+from query_optimizer.filter import FilterSet
 
 from .fields import (
     EnumChoiceField,
@@ -201,7 +201,7 @@ class CustomOrderingFilter(django_filters.OrderingFilter):
         return qs.order_by(*ordering)
 
 
-class ModelFilterSet(django_filters.FilterSet):
+class ModelFilterSet(FilterSet):
     """
     Custom FilterSet class for optimizing the filtering of GraphQL queries.
     Adds the following features to all types that inherit it:
@@ -298,22 +298,6 @@ class ModelFilterSet(django_filters.FilterSet):
             cls._meta.fields = []
 
         return super().get_filters()
-
-    @property
-    def qs(self) -> models.QuerySet:
-        if not hasattr(self, "_qs"):
-            # Override the default `qs` property to include this.
-            # It's needed to ensure that the `queryset._result_cache`
-            # is not cleared when using `queryset.all()`
-            qs = maybe_queryset(self.queryset)
-            if self.is_bound:
-                # ensure form validation before filtering
-                # noinspection PyStatementEffect
-                self.errors  # noqa: B018
-                qs = self.filter_queryset(qs)
-            # noinspection PyAttributeOutsideInit
-            self._qs = qs
-        return self._qs
 
     def filter_queryset(self, queryset: models.QuerySet) -> models.QuerySet:
         combination_methods: list[str] = getattr(self.Meta, "combination_methods", [])

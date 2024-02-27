@@ -10,7 +10,7 @@ from django.forms import Form, ModelForm
 from graphene import ClientIDMutation, Field, InputField
 from graphene.types.resolver import attr_resolver
 from graphene.types.utils import yank_fields_from_attrs
-from graphene_django import DjangoListField, DjangoObjectType
+from graphene_django import DjangoObjectType
 from graphene_django.converter import convert_django_field
 from graphene_django.forms.mutation import fields_for_form
 from graphene_django.registry import get_global_registry
@@ -18,9 +18,8 @@ from graphene_django.rest_framework.mutation import fields_for_serializer
 from graphene_django.types import ALL_FIELDS
 from graphene_django.utils import is_valid_django_model
 from graphql_relay import to_global_id
-from query_optimizer import DjangoConnectionField, optimize
+from query_optimizer import DjangoConnectionField, DjangoListField, optimize_single
 from query_optimizer.settings import optimizer_settings
-from query_optimizer.utils import can_optimize
 from rest_framework.exceptions import ValidationError as SerializerValidationError
 from rest_framework.fields import SerializerMethodField, get_attribute
 from rest_framework.serializers import ListSerializer, ModelSerializer, Serializer
@@ -28,7 +27,7 @@ from rest_framework.serializers import ListSerializer, ModelSerializer, Serializ
 from .connections import Connection
 from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
 from .errors import GQLPermissionDeniedError, GQLValidationError
-from .fields import DjangoFilterConnectionField, DjangoFilterListField, RelatedField
+from .fields import RelatedField
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
@@ -104,20 +103,16 @@ class DjangoNode(DjangoObjectType):
         return RelatedField(cls, **kwargs)
 
     @classmethod
-    def ListField(cls, **kwargs: Any) -> DjangoFilterListField | DjangoListField:  # noqa: N802
-        if not cls._meta.filterset_class and not cls._meta.filter_fields:
-            return DjangoListField(cls, **kwargs)  # pragma: no cover
-        return DjangoFilterListField(cls, **kwargs)
+    def ListField(cls, **kwargs: Any) -> DjangoListField:  # noqa: N802
+        return DjangoListField(cls, **kwargs)
 
     @classmethod
     def Node(cls, **kwargs: Any) -> NodeField:  # noqa: N802
         return graphene.relay.Node.Field(cls, **kwargs)
 
     @classmethod
-    def Connection(cls, **kwargs: Any) -> DjangoFilterConnectionField | DjangoConnectionField:  # noqa: N802
-        if not cls._meta.filterset_class and not cls._meta.filter_fields:
-            return DjangoConnectionField(cls, **kwargs)  # pragma: no cover
-        return DjangoFilterConnectionField(cls, **kwargs)
+    def Connection(cls, **kwargs: Any) -> DjangoConnectionField:  # noqa: N802
+        return DjangoConnectionField(cls, **kwargs)  # pragma: no cover
 
     @classmethod
     def filter_queryset(cls, queryset: models.QuerySet, info: GQLInfo) -> models.QuerySet:
@@ -195,25 +190,13 @@ class DjangoNode(DjangoObjectType):
                 message=gdx_settings.FILTER_PERMISSION_ERROR_MESSAGE,
                 code=gdx_settings.FILTER_PERMISSION_ERROR_CODE,
             )
-        if can_optimize(info):
-            queryset = optimize(queryset, info, max_complexity=cls._meta.max_complexity)
         return queryset
 
     @classmethod
     def get_node(cls, info: GQLInfo, pk: Any) -> models.Model | None:
         """Override `filter_queryset` instead of this method to add filtering of possible rows."""
         queryset = cls._meta.model._default_manager.filter(pk=pk)
-        if can_optimize(info):
-            queryset = optimize(queryset, info, max_complexity=cls._meta.max_complexity, pk=pk)
-            if queryset._result_cache is None:  # pragma: no cover
-                instance = queryset.first()  # Optimization was cancelled
-            else:
-                try:
-                    instance = queryset._result_cache[0]
-                except IndexError:  # pragma: no cover
-                    instance = None
-        else:  # pragma: no cover
-            instance = queryset.first()
+        instance = optimize_single(queryset, info, pk=pk, max_complexity=cls._meta.max_complexity)
         if instance is not None and not cls.has_node_permissions(info, instance):
             raise GQLPermissionDeniedError(
                 message=gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE,
