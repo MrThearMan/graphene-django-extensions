@@ -295,7 +295,6 @@ def test_build_filter_operation__not_should_have_only_one_operation():
 
 @pytest.mark.django_db()
 def test_test_client(graphql: GraphQLClient, settings):
-    settings.DEBUG = True
     query = build_query("examples", fields="pk name", connection=True)
     graphql.login_with_superuser()
     response = graphql(query)
