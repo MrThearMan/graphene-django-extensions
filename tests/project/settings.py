@@ -2,6 +2,8 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# --- First Party -----------------------------------------------
+
 DEBUG = True
 SECRET_KEY = "secret"
 ROOT_URLCONF = "tests.project.urls"
@@ -10,6 +12,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 ALLOWED_HOSTS = []
 
+INTERNAL_IPS = [
+    "localhost",
+    "127.0.0.1",
+]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -17,12 +24,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "debug_toolbar",
+    "graphiql_debug_toolbar",
     "rest_framework",
     "graphene_django",
     "tests.example",
 ]
 
 MIDDLEWARE = [
+    "graphiql_debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -68,6 +78,30 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {},
+    "formatters": {
+        "common": {
+            "()": "tests.project.logging.DotPathFormatter",
+            "format": "{asctime} | {levelname} | {module}.{funcName}:{lineno} | {message}",
+            "datefmt": "%Y-%m-%dT%H:%M:%S%z",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "stdout": {
+            "class": "logging.StreamHandler",
+            "formatter": "common",
+        },
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": ["stdout"],
+    },
+}
+
 LANGUAGE_CODE = "en-us"
 LANGUAGES = [("en", "English")]
 TIME_ZONE = "UTC"
@@ -77,10 +111,13 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 
+# --- Third Party -----------------------------------------------
+
 GRAPHENE = {
     "SCHEMA": "tests.example.schema.schema",
     "TESTING_ENDPOINT": "/graphql/",
     "MIDDLEWARE": [
+        "tests.project.logging.TracebackMiddleware",
         "graphene_django.debug.DjangoDebugMiddleware",
     ],
 }
