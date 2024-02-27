@@ -248,6 +248,7 @@ deps =
     pytest-django
     factory-boy
     graphene-file-upload
+    django-graphiql-debug-toolbar
 
     py312: setuptools
 commands =
