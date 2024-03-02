@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from enum import StrEnum
 from functools import cache
 from typing import TYPE_CHECKING
 
@@ -13,7 +12,7 @@ from query_optimizer.utils import get_underlying_type
 
 from .constants import Operation
 from .settings import gdx_settings
-from .typing import GraphQLFilterInfo
+from .typing import GraphQLFilterInfo, StrEnum
 
 if TYPE_CHECKING:
     from django.db import models

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import datetime
 from contextlib import suppress
-from enum import StrEnum
 from typing import TYPE_CHECKING
 
 import graphene
@@ -16,6 +15,7 @@ from graphene_django.converter import convert_django_field
 from graphql import Undefined
 from query_optimizer import DjangoConnectionField, DjangoListField, RelatedField
 
+from ..typing import StrEnum
 from ..utils import get_operator_enum
 
 if TYPE_CHECKING:

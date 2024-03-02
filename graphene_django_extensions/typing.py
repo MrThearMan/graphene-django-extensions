@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
+from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -23,15 +24,18 @@ from typing import (
 # New in version 3.11
 if sys.version_info < (3, 11):  # pragma: no cover
     from typing_extensions import Self
+
+    class StrEnum(str, Enum):
+        pass
+
 else:  # pragma: no cover
+    from enum import StrEnum
     from typing import Self
 
 from django.core.handlers.wsgi import WSGIRequest
 from graphql import GraphQLResolveInfo
 
 if TYPE_CHECKING:
-    from enum import Enum
-
     import django_filters
     from django.contrib.auth.models import AnonymousUser, User
     from django.core.exceptions import ValidationError as DjangoValidationError
@@ -72,6 +76,7 @@ __all__ = [
     "Sequence",
     "SerializerErrorData",
     "SerializerMeta",
+    "StrEnum",
     "TypeAlias",
     "TypeVar",
     "TypedDict",
