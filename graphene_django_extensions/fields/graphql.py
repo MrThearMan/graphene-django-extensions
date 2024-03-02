@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 from contextlib import suppress
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 import graphene
@@ -137,7 +137,7 @@ class OrderingChoices(graphene.Enum):
             msg = "'Meta.fields' is required."
             raise TypeError(msg)
 
-        enum = Enum(f"{model.__name__}OrderingChoices", fields_map)
+        enum = StrEnum(f"{model.__name__}OrderingChoices", fields_map)
         description = f"Ordering fields for the '{model.__name__}' model."
 
         super().__init_subclass_with_meta__(enum=enum, description=description, **options)
@@ -178,7 +178,7 @@ class UserDefinedFilterInputType(graphene.InputObjectType):
         _meta.fields = {
             "field": graphene.Field(
                 graphene.Enum.from_enum(
-                    enum=Enum(f"{model.__name__}FilterFields", fields_map),
+                    enum=StrEnum(f"{model.__name__}FilterFields", fields_map),
                     description=f"Filterable fields for the '{model.__name__}' model.",
                 ),
             ),

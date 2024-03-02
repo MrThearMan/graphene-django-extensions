@@ -33,7 +33,7 @@ from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
 from .typing import Fields, Sequence
-from .utils import add_translatable_fields, get_filters_from_info
+from .utils import add_translatable_fields, get_filter_info
 
 if TYPE_CHECKING:
     from django.db import models
@@ -195,7 +195,7 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def get_node(cls, info: GQLInfo, pk: Any) -> models.Model | None:
         """Override `filter_queryset` instead of this method to add filtering of possible rows."""
-        queryset = cls._meta.model._default_manager.filter(pk=pk)
+        queryset = cls._meta.model._default_manager.all()
         instance = optimize_single(queryset, info, pk=pk, max_complexity=cls._meta.max_complexity)
         if instance is not None and not cls.has_node_permissions(info, instance):
             raise GQLPermissionDeniedError(
@@ -207,7 +207,7 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def has_node_permissions(cls, info: GQLInfo, instance: models.Model) -> bool:
         """Check which permissions are required to access single items of this type."""
-        filters = get_filters_from_info(info)
+        filters = get_filter_info(info)
         return all(
             perm.has_node_permission(
                 instance=instance,
@@ -220,7 +220,7 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def has_filter_permissions(cls, info: GQLInfo) -> bool:
         """Check which permissions are required to access lists of this type."""
-        filters = get_filters_from_info(info)
+        filters = get_filter_info(info)
         return all(
             perm.has_filter_permission(
                 user=info.context.user,

@@ -10,7 +10,7 @@ from .typing import ParamSpec, TypeVar
 if TYPE_CHECKING:
     from django.db.models import Model
 
-    from .typing import Any, AnyUser, Callable, PermCheck
+    from .typing import Any, AnyUser, Callable, GraphQLFilterInfo, PermCheck
 
 
 T = TypeVar("T")
@@ -33,11 +33,11 @@ class BasePermission:
         return False
 
     @classmethod
-    def has_node_permission(cls, instance: Model, user: AnyUser, filters: dict[str, Any]) -> bool:
+    def has_node_permission(cls, instance: Model, user: AnyUser, filters: GraphQLFilterInfo) -> bool:
         return cls.has_permission(user)
 
     @classmethod
-    def has_filter_permission(cls, user: AnyUser, filters: dict[str, Any]) -> bool:
+    def has_filter_permission(cls, user: AnyUser, filters: GraphQLFilterInfo) -> bool:
         return cls.has_permission(user)
 
     @classmethod

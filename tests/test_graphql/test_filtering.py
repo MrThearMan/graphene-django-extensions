@@ -4,7 +4,7 @@ import pytest
 
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.typing import GQLInfo
-from graphene_django_extensions.utils import get_filters_from_info, get_fields_from_info
+from graphene_django_extensions.utils import get_filter_info, get_fields_from_info
 from tests.example.models import ExampleState
 from tests.factories import ExampleFactory, ForwardManyToManyFactory
 
@@ -99,14 +99,36 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
     def tracker(info: GQLInfo):
         nonlocal fields, filters
         fields = get_fields_from_info(info)
-        filters = get_filters_from_info(info)
+        filters = get_filter_info(info)
         return filters
 
-    with patch("graphene_django_extensions.bases.get_filters_from_info", side_effect=tracker):
+    with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == [{"examples": [{"edges": [{"node": ["pk"]}]}]}]
-    assert filters == {"examples": {"filter": {"field": "name", "operation": "EXACT", "value": "foo"}}}
+    assert fields == [
+        {
+            "examples": [
+                {
+                    "edges": [
+                        {
+                            "node": ["pk"],
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    assert filters == {
+        "name": "ExampleNode",
+        "children": {},
+        "filters": {
+            "filter": {
+                "field": "name",
+                "operation": "EXACT",
+                "value": "foo",
+            },
+        },
+    }
 
     assert response.has_errors is False, response
     assert len(response.edges) == 1
@@ -198,19 +220,35 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
     def tracker(info: GQLInfo):
         nonlocal fields, filters
         fields = get_fields_from_info(info)
-        filters = get_filters_from_info(info)
+        filters = get_filter_info(info)
         return filters
 
-    with patch("graphene_django_extensions.bases.get_filters_from_info", side_effect=tracker):
+    with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == [{"examples": [{"edges": [{"node": ["pk"]}]}]}]
+    assert fields == [
+        {
+            "examples": [
+                {
+                    "edges": [
+                        {
+                            "node": ["pk"],
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
     assert filters == {
-        "examples": {
+        "name": "ExampleNode",
+        "children": {},
+        "filters": {
             "filter": {
+                "field": None,
                 "operation": "AND",
                 "operations": [
                     {
+                        "field": None,
                         "operation": "OR",
                         "operations": [
                             {"field": "name", "operation": "CONTAINS", "value": "foo"},
@@ -218,14 +256,15 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
                         ],
                     },
                     {
+                        "field": None,
                         "operation": "NOT",
                         "operations": [
-                            {"field": "number", "operation": "LT", "value": "10"},
+                            {"field": "number", "operation": "LT", "value": 10},
                         ],
                     },
                 ],
             }
-        }
+        },
     }
 
     assert response.has_errors is False, response
@@ -251,14 +290,25 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
     def tracker(info: GQLInfo):
         nonlocal fields, filters
         fields = get_fields_from_info(info)
-        filters = get_filters_from_info(info)
+        filters = get_filter_info(info)
         return filters
 
-    with patch("graphene_django_extensions.bases.get_filters_from_info", side_effect=tracker):
+    with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == [{"exampleItems": ["pk"]}]
-    assert filters == {"exampleItems": {"exampleState": ["ACTIVE", "INACTIVE"], "name": "foo"}}
+    assert fields == [
+        {
+            "exampleItems": ["pk"],
+        },
+    ]
+    assert filters == {
+        "children": {},
+        "filters": {
+            "example_state": [ExampleState.ACTIVE, ExampleState.INACTIVE],
+            "name": "foo",
+        },
+        "name": "ExampleNode",
+    }
 
     assert response.has_errors is False, response
     assert len(response.first_query_object) == 1
@@ -291,14 +341,29 @@ def test_graphql__filter__sub_filter(graphql: GraphQLClient):
     def tracker(info: GQLInfo):
         nonlocal fields, filters
         fields = get_fields_from_info(info)
-        filters = get_filters_from_info(info)
+        filters = get_filter_info(info)
         return filters
 
-    with patch("graphene_django_extensions.bases.get_filters_from_info", side_effect=tracker):
+    with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == [{"exampleItems": ["pk", {"forwardManyToManyFields": ["name"]}]}]
-    assert filters == {"exampleItems": {"forwardManyToManyFields": {"pk": ["1"]}}}
+    assert fields == [
+        {
+            "exampleItems": [
+                "pk",
+                {
+                    "forwardManyToManyFields": ["name"],
+                },
+            ],
+        },
+    ]
+    assert filters == {
+        "name": "ForwardManyToManyNode",
+        "children": {},
+        "filters": {
+            "pk": [1],
+        },
+    }
 
     assert response.has_errors is False, response
     assert len(response.first_query_object) == 2

@@ -1,36 +1,29 @@
 from __future__ import annotations
 
-import enum
+from enum import StrEnum
 from functools import cache
 from typing import TYPE_CHECKING
 
-from graphql.language.ast import (
-    BooleanValueNode,
-    ConstListValueNode,
-    ConstObjectValueNode,
-    EnumValueNode,
-    ExecutableDefinitionNode,
-    FieldNode,
-    FloatValueNode,
-    IntValueNode,
-    ListValueNode,
-    ObjectValueNode,
-    StringValueNode,
-    ValueNode,
-    VariableNode,
-)
+from graphene import Connection
+from graphene.utils.str_converters import to_snake_case
+from graphql import get_argument_values
+from graphql.execution.execute import get_field_def
+from graphql.language.ast import ExecutableDefinitionNode, FieldNode, SelectionNode
+from query_optimizer.utils import get_underlying_type
 
 from .constants import Operation
 from .settings import gdx_settings
+from .typing import GraphQLFilterInfo
 
 if TYPE_CHECKING:
     from django.db import models
+    from graphql import GraphQLField, GraphQLObjectType, GraphQLSchema
 
-    from .typing import Any, GQLInfo, Sequence
+    from .typing import Any, GQLInfo, Iterable, Sequence
 
 __all__ = [
     "get_fields_from_info",
-    "get_filters_from_info",
+    "get_filter_info",
     "get_nested",
     "add_translatable_fields",
     "get_operator_enum",
@@ -69,41 +62,50 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
         return get_nested(obj, *args, default=default)
 
 
-def get_filters_from_info(info: GQLInfo) -> dict[str, Any]:  # TODO: Copy from optimizer!
-    """Find filter arguments in the GraphQL query and return them as a dict."""
-    return _get_arguments(info.operation, info.variable_values)
+def get_filter_info(info: GQLInfo) -> dict[str, Any]:
+    """Find filter arguments from the GraphQL query."""
+    args = _get_arguments(info.field_nodes, info.variable_values, info.parent_type, info.schema)
+    if not args:
+        return {}
+    return args[to_snake_case(info.field_name)]
 
 
-def _get_arguments(field: ExecutableDefinitionNode | FieldNode, variable_values: dict[str, Any]) -> dict[str, Any]:
-    arguments: dict[str, Any] = {}
-    for selection in field.selection_set.selections:
-        if not isinstance(selection, FieldNode):  # pragma: no cover
+def _get_arguments(
+    field_nodes: Iterable[FieldNode | SelectionNode],
+    variable_values: dict[str, Any],
+    parent: GraphQLObjectType,
+    schema: GraphQLSchema,
+) -> dict[str, GraphQLFilterInfo]:
+    arguments: dict[str, GraphQLFilterInfo] = {}
+    for field_node in field_nodes:
+        if not isinstance(field_node, FieldNode):  # pragma: no cover
             continue
 
-        for argument in selection.arguments:
-            args = arguments.setdefault(selection.name.value, {})
-            args[argument.name.value] = _get_filter_argument(argument.value, variable_values)
+        field_def: GraphQLField | None = get_field_def(schema, parent, field_node)
+        if field_def is None:  # pragma: no cover
+            continue
 
-        if selection.selection_set is not None:
-            result = _get_arguments(selection, variable_values)
+        name = to_snake_case(field_node.name.value)
+        filters = get_argument_values(type_def=field_def, node=field_node, variable_values=variable_values)
+
+        new_parent = get_underlying_type(field_def.type)
+
+        # If the field is a connection, we need to go deeper to get the actual field
+        if issubclass(getattr(new_parent, "graphene_type", type(None)), Connection):
+            field_def = new_parent.fields["edges"]
+            new_parent = get_underlying_type(field_def.type)
+            field_def = new_parent.fields["node"]
+            new_parent = get_underlying_type(field_def.type)
+            field_node = field_node.selection_set.selections[0].selection_set.selections[0]  # noqa: PLW2901
+
+        arguments[name] = info = GraphQLFilterInfo(name=new_parent.name, filters=filters, children={})
+
+        if field_node.selection_set is not None:
+            result = _get_arguments(field_node.selection_set.selections, variable_values, new_parent, schema)
             if result:
-                args = arguments.setdefault(selection.name.value, {})
-                args.update(result)
-    return arguments
+                info["children"] = result
 
-
-def _get_filter_argument(value: ValueNode, variable_values: dict[str, Any]) -> Any:
-    if isinstance(value, (IntValueNode, FloatValueNode, StringValueNode, BooleanValueNode, EnumValueNode)):
-        return value.value
-    if isinstance(value, (ListValueNode, ConstListValueNode)):
-        return [_get_filter_argument(val, variable_values) for val in value.values]
-    if isinstance(value, (ObjectValueNode, ConstObjectValueNode)):
-        return {field.name.value: _get_filter_argument(field.value, variable_values) for field in value.fields}
-    if isinstance(value, VariableNode):  # pragma: no cover
-        return variable_values.get(value.name.value)
-
-    msg = f"Unsupported ValueNode for filter argument type: '{type(value).__name__}'"  # pragma: no cover
-    raise ValueError(msg)  # pragma: no cover
+    return {name: field for name, field in arguments.items() if field["filters"] or field["children"]}
 
 
 def get_fields_from_info(info: GQLInfo) -> list[dict[str, Any]]:
@@ -155,4 +157,4 @@ def get_operator_enum() -> type[Operation]:
     for operator in gdx_settings.EXTEND_USER_DEFINED_FILTER_OPERATIONS:
         current_members[operator.upper()] = operator.upper()
 
-    return enum.Enum(Operation.__name__, current_members)  # type: ignore[return-value]
+    return StrEnum(Operation.__name__, current_members)  # type: ignore[return-value]

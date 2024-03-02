@@ -7,6 +7,7 @@ from typing import (
     Any,
     Callable,
     Generic,
+    Iterable,
     Literal,
     Mapping,
     NamedTuple,
@@ -54,8 +55,10 @@ __all__ = [
     "FieldNameStr",
     "FilterOverride",
     "FilterSetMeta",
-    "Generic",
     "GQLInfo",
+    "Generic",
+    "GraphQLFilterInfo",
+    "Iterable",
     "Literal",
     "Mapping",
     "NamedTuple",
@@ -70,8 +73,8 @@ __all__ = [
     "SerializerErrorData",
     "SerializerMeta",
     "TypeAlias",
-    "TypedDict",
     "TypeVar",
+    "TypedDict",
     "Union",
     "ValidationErrorType",
 ]
@@ -159,3 +162,9 @@ class FieldError(TypedDict):
     field: str
     message: str
     code: str
+
+
+class GraphQLFilterInfo(TypedDict, total=False):
+    name: str
+    filters: dict[str, Any]
+    children: dict[str, GraphQLFilterInfo]

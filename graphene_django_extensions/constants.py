@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 __all__ = [
     "Operation",
 ]
 
 
-class Operation(Enum):
+class Operation(StrEnum):
     # Logical
     AND = "AND"
     OR = "OR"
