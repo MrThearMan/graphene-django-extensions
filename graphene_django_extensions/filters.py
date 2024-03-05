@@ -274,7 +274,7 @@ class ModelFilterSet(FilterSet):
             ordering_fields: list[str | tuple[str, str]] = getattr(cls.Meta, "order_by", ["pk"])
             ordering_filter = cls.declared_filters.get(gdx_settings.ORDERING_FILTER_NAME)
 
-            if isinstance(ordering_filter, CustomOrderingFilter):
+            if isinstance(ordering_filter, CustomOrderingFilter):  # pragma: no cover
                 # Param map should be flipped so that OrderingFilter initializes correctly.
                 fields_map: dict[str, str] = {v: k for k, v in ordering_filter.param_map.items()}
                 for field in ordering_fields:

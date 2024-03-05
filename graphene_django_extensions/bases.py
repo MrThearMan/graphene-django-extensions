@@ -162,6 +162,14 @@ class DjangoNode(DjangoObjectType):
         options.setdefault("connection_class", Connection)
         options.setdefault("interfaces", (graphene.relay.Node,))
 
+        filterset_class = options.get("filterset_class", None)
+        filter_fields: dict[str, list[str]] | None = options.pop("filter_fields", None)
+
+        if filterset_class is None and filter_fields is not None:  # pragma: no cover
+            from query_optimizer.filter import create_filterset
+
+            options["filterset_class"] = create_filterset(model, filter_fields)
+
         super().__init_subclass_with_meta__(_meta=_meta, model=model, fields=fields, **options)
 
     @classmethod

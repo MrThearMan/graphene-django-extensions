@@ -505,13 +505,13 @@ doc = ["Sphinx", "sphinx-rtd-theme", "sphinxcontrib-spelling"]
 
 [[package]]
 name = "faker"
-version = "23.3.0"
+version = "24.0.0"
 description = "Faker is a Python package that generates fake data for you."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "Faker-23.3.0-py3-none-any.whl", hash = "sha256:117ce1a2805c1bc5ca753b3dc6f9d567732893b2294b827d3164261ee8f20267"},
-    {file = "Faker-23.3.0.tar.gz", hash = "sha256:458d93580de34403a8dec1e8d5e6be2fee96c4deca63b95d71df7a6a80a690de"},
+    {file = "Faker-24.0.0-py3-none-any.whl", hash = "sha256:2456d674f40bd51eb3acbf85221277027822e529a90cc826453d9a25dff932b1"},
+    {file = "Faker-24.0.0.tar.gz", hash = "sha256:ea6f784c40730de0f77067e49e78cdd590efb00bec3d33f577492262206c17fc"},
 ]
 
 [package.dependencies]
@@ -596,13 +596,13 @@ test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", 
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.2.2"
+version = "0.2.4"
 description = "Automatically optimize SQL queries in Graphene-Django schemas."
 optional = false
 python-versions = ">=3.9,<4"
 files = [
-    {file = "graphene_django_query_optimizer-0.2.2-py3-none-any.whl", hash = "sha256:afaccaaefdc4503609eb11cbc57f95d3757401ff5a1f8df143e86b746fd68c2f"},
-    {file = "graphene_django_query_optimizer-0.2.2.tar.gz", hash = "sha256:10cea9027c7130758422d40d6a60b59acbd2e92ca638bc8ba286795536a85e51"},
+    {file = "graphene_django_query_optimizer-0.2.4-py3-none-any.whl", hash = "sha256:6048df23915569a49d3692a90d8360b8d51d1d7f82830646dd14b0ffc3fcd639"},
+    {file = "graphene_django_query_optimizer-0.2.4.tar.gz", hash = "sha256:9c2c1ef83b27e95b897798054b607dbd5708d0e1b51902f60ba811658cc3a0f0"},
 ]
 
 [package.dependencies]
@@ -1032,13 +1032,13 @@ test = ["coveralls", "futures", "mock", "pytest (>=2.7.3)", "pytest-benchmark", 
 
 [[package]]
 name = "pymdown-extensions"
-version = "10.7"
+version = "10.7.1"
 description = "Extension pack for Python Markdown."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pymdown_extensions-10.7-py3-none-any.whl", hash = "sha256:6ca215bc57bc12bf32b414887a68b810637d039124ed9b2e5bd3325cbb2c050c"},
-    {file = "pymdown_extensions-10.7.tar.gz", hash = "sha256:c0d64d5cf62566f59e6b2b690a4095c931107c250a8c8e1351c1de5f6b036deb"},
+    {file = "pymdown_extensions-10.7.1-py3-none-any.whl", hash = "sha256:f5cc7000d7ff0d1ce9395d216017fa4df3dde800afb1fb72d1c7d3fd35e710f4"},
+    {file = "pymdown_extensions-10.7.1.tar.gz", hash = "sha256:c70e146bdd83c744ffc766b4671999796aba18842b268510a329f7f64700d584"},
 ]
 
 [package.dependencies]
@@ -1490,4 +1490,4 @@ translation = ["django-modeltranslation"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "57f654476c536c4073f770bdd2f42fc9a3309f789493c75b367bec9998861189"
+content-hash = "c6a2a823b48b777341cf6f5bf361d9bfbdecec6a02d8651ffe84c3ecd2a3f830"
