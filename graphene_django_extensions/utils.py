@@ -8,7 +8,7 @@ from graphene.utils.str_converters import to_snake_case
 from graphql import get_argument_values
 from graphql.execution.execute import get_field_def
 from graphql.language.ast import ExecutableDefinitionNode, FieldNode, SelectionNode
-from query_optimizer.utils import get_underlying_type
+from query_optimizer.ast import get_underlying_type
 
 from .constants import Operation
 from .settings import gdx_settings
