@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django import forms  # noqa: TCH002
-from django.db import models  # noqa: TCH002
+from django.db import models
 from graphene.types.enum import Enum  # noqa: TCH002
 from graphene_django.converter import (
     convert_choices_to_named_enum_with_descriptions,
@@ -16,6 +16,7 @@ from graphene_django.forms.converter import convert_form_field, get_form_field_d
 from graphene_django.registry import Registry  # noqa: TCH002
 from graphene_django.rest_framework.serializer_converter import get_graphene_type_from_serializer_field
 from rest_framework.fields import ChoiceField  # noqa: TCH002
+from rest_framework.relations import ManyRelatedField, RelatedField  # noqa: TCH002
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
 from .fields import (
@@ -212,3 +213,26 @@ def convert_serializer_field_to_enum(field: ChoiceField) -> Enum:
         name = field.field_name or field.source or "Choices"
         name = "".join(s.capitalize() for s in name.split("_"))
     return convert_choices_to_named_enum_with_descriptions(name, field.choices)
+
+
+@get_graphene_type_from_serializer_field.register
+def convert_to_one_related(field: RelatedField) -> type[graphene.Scalar]:
+    qs: models.QuerySet | None = field.queryset
+    # Read-only related fields don't have the queryset, so we can't determine the exact type
+    if qs is None:  # pragma: no cover
+        return graphene.ID
+
+    # Determine the used graphene type based on the primary key field on the queryset model
+    primary_key_field: Field = qs.model._meta.pk
+    if isinstance(primary_key_field, models.IntegerField):
+        return graphene.Int
+    if isinstance(primary_key_field, models.UUIDField):
+        return graphene.UUID
+    if isinstance(primary_key_field, models.CharField):
+        return graphene.String
+    return graphene.ID
+
+
+@get_graphene_type_from_serializer_field.register
+def convert_to_many_related(field: ManyRelatedField) -> tuple[type[graphene.List], type[graphene.Scalar]]:
+    return graphene.List, get_graphene_type_from_serializer_field(field.child_relation)  # pragma: no cover

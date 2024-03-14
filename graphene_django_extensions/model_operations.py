@@ -45,7 +45,8 @@ def get_model_lookup_field(model_class: type[models.Model], lookup_field: str | 
 class RelatedFieldInfo:
     """Information about a related field on a model."""
 
-    name: str
+    field_name: str
+    related_name: str
     forward: bool
     relation: RelationType
 
@@ -77,7 +78,8 @@ def get_related_field_info(model: type[models.Model]) -> dict[str, RelatedFieldI
         if isinstance(field, (models.OneToOneRel, models.ManyToOneRel, models.ManyToManyRel)):
             name: str = field.get_accessor_name() or field.name
             mapping[name] = RelatedFieldInfo(
-                name=field.remote_field.name,
+                field_name=name,
+                related_name=field.remote_field.name,
                 forward=False,
                 relation=_get_relation_type(field),
             )
@@ -85,7 +87,8 @@ def get_related_field_info(model: type[models.Model]) -> dict[str, RelatedFieldI
         if isinstance(field, (models.OneToOneField, models.ForeignKey, models.ManyToManyField)):
             value = field.remote_field.get_accessor_name() or field.name
             mapping[field.name] = RelatedFieldInfo(
-                name=value,
+                field_name=field.name,
+                related_name=value,
                 forward=True,
                 relation=_get_relation_type(field),
             )

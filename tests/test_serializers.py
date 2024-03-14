@@ -22,7 +22,15 @@ from tests.example.models import (
     ReverseOneToOne,
     ExampleState,
 )
-from tests.factories import ExampleFactory
+from tests.factories import (
+    ExampleFactory,
+    ForwardOneToOneFactory,
+    ForwardManyToOneFactory,
+    ForwardManyToManyFactory,
+    ReverseManyToManyFactory,
+    ReverseOneToOneFactory,
+    ReverseOneToManyFactory,
+)
 
 pytestmark = [
     pytest.mark.django_db,
@@ -140,6 +148,48 @@ def get_example_data() -> dict[str, Any]:
     }
 
 
+class ExampleSerializerNoFields(NestingModelSerializer):
+    class Meta:
+        model = Example
+        fields = [
+            "pk",
+            "name",
+            "number",
+            "email",
+            "duration",
+            "example_state",
+            "forward_one_to_one_field",
+            "forward_many_to_one_field",
+            "forward_many_to_many_fields",
+            "reverse_one_to_one_rel",
+            "reverse_one_to_many_rels",
+            "reverse_many_to_many_rels",
+        ]
+
+
+def get_example_data_no_fields() -> dict[str, Any]:
+    f_o2o = ForwardOneToOneFactory.create(name="one")
+    f_m2o = ForwardManyToOneFactory.create(name="two")
+    f_m2m = ForwardManyToManyFactory.create(name="three")
+    r_oto = ReverseOneToOneFactory.create(name="four")
+    r_otm = ReverseOneToManyFactory.create(name="five")
+    r_m2m = ReverseManyToManyFactory.create(name="six")
+
+    return {
+        "name": "foo",
+        "number": 1,
+        "email": "foofoo@email.com",
+        "duration": int(datetime.timedelta(seconds=900).total_seconds()),
+        "example_state": ExampleState.ACTIVE.value,
+        "forward_one_to_one_field": f_o2o.pk,
+        "forward_many_to_one_field": f_m2o.pk,
+        "forward_many_to_many_fields": [f_m2m.pk],
+        "reverse_one_to_one_rel": r_oto.pk,
+        "reverse_one_to_many_rels": [r_otm.pk],
+        "reverse_many_to_many_rels": [r_m2m.pk],
+    }
+
+
 def test_nesting_model_serializer__create():
     serializer = ExampleSerializer(data=get_example_data())
     assert serializer.is_valid(raise_exception=True)
@@ -249,3 +299,24 @@ def test_serializer_request_user():
     request.user = user = User.objects.create_user(username="foo", email="foo@example.com")
     serializer = ExampleSerializer(context={"request": request})
     assert serializer.request_user == user
+
+
+def test_nesting_model_serializer__integer_fields():
+    serializer = ExampleSerializerNoFields(data=get_example_data_no_fields())
+    assert serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    example = Example.objects.filter(name="foo").first()
+    f_m2m = example.forward_many_to_many_fields.first()
+    r_o2m = example.reverse_one_to_many_rels.first()
+    r_m2m = example.reverse_many_to_many_rels.first()
+
+    # Forward relations
+    assert example.forward_one_to_one_field.name == "one"
+    assert example.forward_many_to_one_field.name == "two"
+    assert f_m2m.name == "three"
+
+    # Reverse relations
+    assert example.reverse_one_to_one_rel.name == "four"
+    assert r_o2m.name == "five"
+    assert r_m2m.name == "six"

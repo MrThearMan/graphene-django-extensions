@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import dataclasses
 from functools import wraps
 from typing import TYPE_CHECKING
 
 from django.db import IntegrityError, models, transaction
 from graphene_django.types import ALL_FIELDS
 from rest_framework.exceptions import ValidationError
+from rest_framework.relations import ManyRelatedField, RelatedField
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
 from .errors import get_constraint_message
@@ -18,12 +20,19 @@ if TYPE_CHECKING:
     from django.db.models import Model
     from rest_framework.fields import Field
 
-    from .typing import Any, AnyUser, Callable, RelatedSerializer, Self
+    from .typing import Any, AnyUser, Callable, Self
 
 
 __all__ = [
     "NestingModelSerializer",
 ]
+
+
+@dataclasses.dataclass
+class PreSaveInfo:
+    field: Field
+    initial_data: Any
+    related_info: RelatedFieldInfo
 
 
 T = TypeVar("T")
@@ -59,85 +68,7 @@ def _related_pre_and_post_save(func: Callable[P, T]) -> Callable[P, T]:
 class NestingModelSerializer(ModelSerializer):
     """
     ModelSerializer that contains logic for updating and creating related models
-    when they are included as nested serializer fields:
-
-    ```
-    from graphene_django_extensions import NestingModelSerializer
-
-    class SubSerializer(NestingModelSerializer):
-        class Meta:
-            model = Sub
-            fields = ["pk", "field"]
-
-    class MainSerializer(NestingModelSerializer):
-        sub_entry = SubSerializer()
-
-        class Meta:
-            model = Main
-            fields = ["pk", "sub_entry"]
-    ```
-
-    When using the above serializers with the following data:
-
-    ```
-    {
-        "pk": 1,
-        "sub_entities": {
-            "field": "value"
-        }
-    }
-    ```
-
-    This will create the Main entity and the Sub entity,
-    and set the Sub entity's 'main' field to the Main entity.
-
-    If instead this is used:
-
-    ```
-    {
-        "pk": 1,
-        "sub_entities": {
-            "pk": 2
-        }
-    }
-    ```
-
-    This will create the Main entity and link an existing Sub entity with pk=2 to it.
-    If the Sub entity does not exist, a 404 error will be raised. If the sub entity
-    is already linked to another Main entity, this will be a no-op.
-
-    If the 'pk' field is included with some other fields, the Sub entity will also be updated:
-
-    ```
-    {
-        "pk": 1,
-        "sub_entities": {
-            "pk": 2,
-            "field": "value"
-        }
-    }
-    ```
-
-    For "to_many" relations, the serializer field must be a ListSerializer:
-
-    ```
-    class MainSerializer(NestingModelSerializer):
-        sub_entry = SubSerializer(many=True)
-    ```
-
-    Same logic applies for "to_many" relations, but if the relation is a 'one_to_many' relation,
-    and the relation is updated. Any existing related entities that were not included in the request
-    will be deleted (e.g., `pk=1` could have been deleted here):
-
-    ```
-    {
-        "pk": 1,
-        "sub_entities": [
-            {"pk": 2},
-            {"field": "value"}
-        ]
-    }
-    ```
+    when they are included as nested (list)serializer fields or (lists of) primary keys.
     """
 
     instance: Model  # Use this to hint the instance model type in subclasses
@@ -194,13 +125,13 @@ class NestingModelSerializer(ModelSerializer):
         instance.save()
         return instance
 
-    def _pre_save(self, validated_data: dict[str, Any]) -> dict[str, RelatedSerializer]:
+    def _pre_save(self, validated_data: dict[str, Any]) -> list[PreSaveInfo]:
         """
         Prepare related models defined using BaseModelSerializers.
         Forward 'one-to-one' and 'many-to-one' related entities will be fetched, updated, or created.
         Other related entities will be saved to be handled after the main model is saved using '_handle_to_many'.
         """
-        related_serializers: dict[str, RelatedSerializer] = {}
+        pre_save_infos: list[PreSaveInfo] = []
         related_info = get_related_field_info(self.Meta.model)
 
         for name in list(validated_data):  # Copy keys so that we can pop from the original dict in the loop
@@ -212,78 +143,109 @@ class NestingModelSerializer(ModelSerializer):
             if related_field_info is None:
                 continue
 
-            # Handle relation types:
-            #  - Forward one-to-one
-            #  - Forward many-to-one
-            #  - Reverse one-to-one
-            if isinstance(field, NestingModelSerializer):
-                if related_field_info.reverse and related_field_info.one_to_one:
-                    field.initial_data = validated_data.pop(name, None)
-                    if field.initial_data is None:  # pragma: no cover
-                        continue
+            if related_field_info.one_to_one or related_field_info.many_to_one:
+                info = self._pre_handle_to_one(field, related_field_info, validated_data, name)
+                if info is not None:
+                    pre_save_infos.append(info)
 
-                    field.related_field_info = related_field_info
-                    related_serializers[name] = field
-                    continue
+            elif related_field_info.one_to_many or related_field_info.many_to_many:
+                info = self._pre_handle_to_many(field, related_field_info, validated_data, name)
+                if info is not None:
+                    pre_save_infos.append(info)
 
-                rel_data = validated_data.pop(name, None)
-                validated_data[name] = field.get_update_or_create(rel_data)
+        return pre_save_infos
 
-            # Handle relation types:
-            #  - Reverse one-to-many
-            #  - Reverse many-to-many
-            #  - Forward many-to-many
-            elif isinstance(field, ListSerializer) and isinstance(field.child, NestingModelSerializer):
-                field.initial_data = validated_data.pop(name, None)
-                if field.initial_data is None:  # pragma: no cover
-                    continue
+    def _pre_handle_to_one(
+        self,
+        field: Field,
+        related_info: RelatedFieldInfo,
+        validated_data: dict[str, Any],
+        key: str,
+    ) -> PreSaveInfo | None:
+        initial_data: Any = validated_data.pop(key, None)
+        if initial_data is None:  # pragma: no cover
+            return None
+        if related_info.reverse:
+            return PreSaveInfo(field=field, initial_data=initial_data, related_info=related_info)
+        if isinstance(field, NestingModelSerializer):
+            validated_data[key] = field.get_update_or_create(initial_data)
+        else:
+            validated_data[key] = initial_data
+        return None
 
-                field.related_field_info = related_field_info
-                related_serializers[name] = field
+    def _pre_handle_to_many(
+        self,
+        field: Field,
+        related_info: RelatedFieldInfo,
+        validated_data: dict[str, Any],
+        key: str,
+    ) -> PreSaveInfo | None:
+        initial_data: Any = validated_data.pop(key, None)
+        if initial_data is None:  # pragma: no cover
+            return None
+        return PreSaveInfo(field=field, initial_data=initial_data, related_info=related_info)
 
-        return related_serializers
-
-    def _post_save(self, instance: Model, related_serializers: dict[str, RelatedSerializer]) -> None:
+    def _post_save(self, instance: Model, pre_save_info: list[PreSaveInfo]) -> None:
         """
         Handle creating or updating related models after the main model.
         Delete any existing 'one_to_many' entities that were untouched in this request.
         Add any new 'many_to_many' entities that were not previously linked to the main model.
         """
-        for field_name, serializer in related_serializers.items():
-            rel_info: RelatedFieldInfo | None = getattr(serializer, "related_field_info", None)
-            if rel_info is None:  # pragma: no cover
-                continue
-
+        for info in pre_save_info:
             # Handle reverse one-to-one
-            if isinstance(serializer, NestingModelSerializer):
-                serializer.initial_data[rel_info.name] = instance
-                serializer.get_update_or_create(serializer.initial_data)
-                continue
+            if info.related_info.one_to_one and info.related_info.reverse:
+                self._post_handle_reverse_one_to_one(instance, info)
+            elif info.related_info.one_to_many:
+                self._post_handle_one_to_many(instance, info)
+            elif info.related_info.many_to_many:
+                self._post_handle_many_to_many(instance, info)
 
-            instances: list[Model] = []
+    def _post_handle_reverse_one_to_one(self, instance: Model, info: PreSaveInfo) -> None:
+        if isinstance(info.field, NestingModelSerializer):
+            info.initial_data[info.related_info.related_name] = instance
+            info.field.get_update_or_create(info.initial_data)
+            return
+
+        if isinstance(info.field, RelatedField):
+            setattr(info.initial_data, info.related_info.related_name, instance)
+            info.initial_data.save()
+            return
+
+    def _post_handle_one_to_many(self, instance: Model, info: PreSaveInfo) -> None:
+        if isinstance(info.field, ListSerializer) and isinstance(info.field.child, NestingModelSerializer):
             pks: list[Any] = []
-            child_serializer: NestingModelSerializer = serializer.child
 
-            for item in serializer.initial_data:
-                if rel_info.one_to_many:
-                    item[rel_info.name] = instance
-
-                nested_instance = child_serializer.get_update_or_create(item)
-                if nested_instance is None:  # pragma: no cover
-                    continue
-
-                if rel_info.one_to_many:
+            for initial_data in info.initial_data:
+                initial_data[info.related_info.related_name] = instance
+                nested_instance = info.field.child.get_update_or_create(initial_data)
+                if nested_instance is not None:
                     pks.append(nested_instance.pk)
-                if rel_info.many_to_many:
+
+            # Delete related objects that were not created or modified.
+            selector = {info.related_info.related_name: instance}
+            info.field.child.Meta.model.objects.filter(**selector).exclude(pk__in=pks).delete()
+            return
+
+        if isinstance(info.field, ManyRelatedField):
+            getattr(instance, info.related_info.field_name).set(info.initial_data)
+            return
+
+    def _post_handle_many_to_many(self, instance: Model, info: PreSaveInfo) -> None:
+        if isinstance(info.field, ListSerializer) and isinstance(info.field.child, NestingModelSerializer):
+            instances: list[Model] = []
+
+            for item in info.initial_data:
+                nested_instance = info.field.child.get_update_or_create(item)
+                if nested_instance is not None:
                     instances.append(nested_instance)
 
-            if rel_info.one_to_many:
-                # Delete related objects that were not created or modified.
-                child_serializer.Meta.model.objects.filter(**{rel_info.name: instance}).exclude(pk__in=pks).delete()
+            # Add related objects that were not previously linked to the main model.
+            getattr(instance, info.related_info.field_name).set(instances)
+            return
 
-            if rel_info.many_to_many:
-                # Add related objects that were not previously linked to the main model.
-                getattr(instance, field_name).set(instances)
+        if isinstance(info.field, ManyRelatedField):
+            getattr(instance, info.related_info.field_name).set(info.initial_data)
+            return
 
     def get_fields(self) -> dict[str, Field]:
         fields = super().get_fields()
