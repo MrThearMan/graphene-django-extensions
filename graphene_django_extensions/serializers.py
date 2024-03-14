@@ -5,6 +5,7 @@ from functools import wraps
 from typing import TYPE_CHECKING
 
 from django.db import IntegrityError, models, transaction
+from django.db.models import NOT_PROVIDED
 from graphene_django.types import ALL_FIELDS
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import ManyRelatedField, RelatedField
@@ -33,6 +34,14 @@ class PreSaveInfo:
     field: Field
     initial_data: Any
     related_info: RelatedFieldInfo
+
+
+class NotProvided:
+    def __bool__(self) -> bool:
+        return False
+
+
+NotProvided = NotProvided()
 
 
 T = TypeVar("T")
@@ -93,7 +102,10 @@ class NestingModelSerializer(ModelSerializer):
         """
         default = self.Meta.model._meta.get_field(field).default
         default = getattr(self.instance, field, default)
-        return attrs.get(field, default)
+        value = attrs.get(field, default)
+        if value is NOT_PROVIDED:  # pragma: no cover
+            return NotProvided  # This one is falsy
+        return value
 
     @property
     def request_user(self) -> AnyUser:

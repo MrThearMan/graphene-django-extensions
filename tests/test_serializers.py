@@ -5,13 +5,12 @@ from typing import Any
 
 import pytest
 from django.contrib.auth.models import User
-from django.db.models import NOT_PROVIDED
 from django.http import HttpRequest
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 
 from graphene_django_extensions.converters import convert_serializer_fields_to_not_required
-from graphene_django_extensions.serializers import NestingModelSerializer
+from graphene_django_extensions.serializers import NestingModelSerializer, NotProvided
 from tests.example.models import (
     Example,
     ForwardManyToMany,
@@ -290,7 +289,7 @@ def test_serializer_get_or_default():
     data.pop("example_state", None)
     serializer = ExampleSerializer(data=data)
     assert serializer.get_or_default("name", data) == "foo"
-    assert serializer.get_or_default("example_state", data) == NOT_PROVIDED
+    assert serializer.get_or_default("example_state", data) == NotProvided
 
 
 @pytest.mark.django_db()
