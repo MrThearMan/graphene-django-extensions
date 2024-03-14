@@ -58,7 +58,7 @@ python = ">=3.10,<4"
 Django = ">=4.2"
 djangorestframework = ">=3.14.0"
 graphene-django = ">=3.0.0"
-graphene-django-query-optimizer = ">=0.3.0"
+graphene-django-query-optimizer = ">=0.3.4"
 django-settings-holder = ">=0.1.2"
 django-filter = ">=23.5"
 typing-extensions = { version = ">=4.4.0", python = "<3.11" }
