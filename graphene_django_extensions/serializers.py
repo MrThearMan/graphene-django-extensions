@@ -36,7 +36,7 @@ class PreSaveInfo:
     related_info: RelatedFieldInfo
 
 
-class NotProvided:
+class NotProvided:  # pragma: no cover
     def __bool__(self) -> bool:
         return False
 
@@ -175,8 +175,6 @@ class NestingModelSerializer(ModelSerializer):
         key: str,
     ) -> PreSaveInfo | None:
         initial_data: Any = validated_data.pop(key, None)
-        if initial_data is None:  # pragma: no cover
-            return None
         if related_info.reverse:
             return PreSaveInfo(field=field, initial_data=initial_data, related_info=related_info)
         if isinstance(field, NestingModelSerializer):
@@ -213,6 +211,13 @@ class NestingModelSerializer(ModelSerializer):
                 self._post_handle_many_to_many(instance, info)
 
     def _post_handle_reverse_one_to_one(self, instance: Model, info: PreSaveInfo) -> None:
+        if info.initial_data is None:  # pragma: no cover
+            related_instance = getattr(instance, info.related_info.field_name, None)
+            if related_instance is not None:
+                setattr(related_instance, info.related_info.related_name, None)
+                related_instance.save()
+            return
+
         if isinstance(info.field, NestingModelSerializer):
             info.initial_data[info.related_info.related_name] = instance
             info.field.get_update_or_create(info.initial_data)
