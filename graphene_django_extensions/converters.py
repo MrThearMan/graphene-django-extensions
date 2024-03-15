@@ -216,10 +216,10 @@ def convert_serializer_field_to_enum(field: ChoiceField) -> Enum:
 
 
 @get_graphene_type_from_serializer_field.register
-def convert_to_one_related(field: RelatedField) -> type[graphene.Scalar]:
+def convert_to_one_related(field: RelatedField) -> type[graphene.Scalar]:  # pragma: no cover
     qs: models.QuerySet | None = field.queryset
     # Read-only related fields don't have the queryset, so we can't determine the exact type
-    if qs is None:  # pragma: no cover
+    if qs is None:
         return graphene.ID
 
     # Determine the used graphene type based on the primary key field on the queryset model

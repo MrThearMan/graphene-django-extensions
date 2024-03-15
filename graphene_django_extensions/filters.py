@@ -176,7 +176,16 @@ class CustomOrderingFilter(django_filters.OrderingFilter):
         if value in EMPTY_VALUES:
             return qs
 
-        ordering: list[str] = list(qs.query.order_by)
+        ordering: list[str] = []
+
+        # Other filterset methods could potentially change the ordering,
+        # so we need to check if the ordering has been changed from the default.
+        # If it has, we shouldn't cancel that ordering.
+        current_ordering: list[str] = list(qs.query.order_by)
+        default_ordering: list[str] = list(qs.model._meta.ordering)
+        if current_ordering != default_ordering:  # pragma: no cover
+            ordering = current_ordering
+
         for param in value:
             if param in EMPTY_VALUES:  # pragma: no cover
                 continue
@@ -198,7 +207,9 @@ class CustomOrderingFilter(django_filters.OrderingFilter):
             # will clear all ordering when called.
             ordering.extend(qs.query.order_by)
 
-        return qs.order_by(*ordering)
+        # If no filterset ordering was defined, use the default ordering on the model.
+        used_ordering = ordering or default_ordering
+        return qs.order_by(*used_ordering)
 
 
 class ModelFilterSet(FilterSet):
