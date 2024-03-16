@@ -3,7 +3,6 @@ from typing import Any
 
 from django.contrib.auth import get_user_model, login
 from rest_framework.exceptions import ValidationError
-from rest_framework.serializers import Serializer
 
 from graphene_django_extensions import CreateMutation, DeleteMutation, UpdateMutation
 from graphene_django_extensions.bases import DjangoMutation
@@ -11,7 +10,14 @@ from graphene_django_extensions.permissions import AllowAuthenticated
 from graphene_django_extensions.typing import AnyUser, GQLInfo, Self
 from tests.example.forms import ExampleForm, ExampleInputForm, ExampleOutputForm
 from tests.example.models import Example, ExampleState, ForwardManyToOne, ForwardOneToOne
-from tests.example.serializers import ExampleCustomInputSerializer, ExampleCustomOutputSerializer, ExampleSerializer
+from tests.example.serializers import (
+    ExampleCustomInputSerializer,
+    ExampleCustomOutputSerializer,
+    ExampleSerializer,
+    ImageInputSerializer,
+    ImageOutputSerializer,
+    LoginSerializer,
+)
 
 User = get_user_model()
 
@@ -46,14 +52,14 @@ class ExampleCustomMutation(DjangoMutation):
         permission_classes = [AllowAuthenticated]
 
     @classmethod
-    def custom_mutation(cls, info: GQLInfo, **kwargs: Any) -> Self:
-        kwargs["number"] = 1
-        kwargs["email"] = "example@email.com"
-        kwargs["example_state"] = ExampleState.ACTIVE
-        kwargs["duration"] = datetime.timedelta(seconds=900)
-        kwargs["forward_one_to_one_field"] = ForwardOneToOne.objects.create(name="Test")
-        kwargs["forward_many_to_one_field"] = ForwardManyToOne.objects.create(name="Test")
-        example = Example.objects.create(**kwargs)
+    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
+        input_data["number"] = 1
+        input_data["email"] = "example@email.com"
+        input_data["example_state"] = ExampleState.ACTIVE
+        input_data["duration"] = datetime.timedelta(seconds=900)
+        input_data["forward_one_to_one_field"] = ForwardOneToOne.objects.create(name="Test")
+        input_data["forward_many_to_one_field"] = ForwardManyToOne.objects.create(name="Test")
+        example = Example.objects.create(**input_data)
         return cls(pk=example.pk)
 
 
@@ -68,27 +74,37 @@ class ExampleFormCustomMutation(DjangoMutation):
         output_form_class = ExampleOutputForm
 
     @classmethod
-    def custom_mutation(cls, info: GQLInfo, **kwargs: Any) -> Self:
-        kwargs["number"] = 1
-        kwargs["email"] = "example@email.com"
-        kwargs["example_state"] = ExampleState.ACTIVE
-        kwargs["duration"] = datetime.timedelta(seconds=900)
-        kwargs["forward_one_to_one_field"] = ForwardOneToOne.objects.create(name="Test")
-        kwargs["forward_many_to_one_field"] = ForwardManyToOne.objects.create(name="Test")
-        example = Example.objects.create(**kwargs)
+    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
+        input_data["number"] = 1
+        input_data["email"] = "example@email.com"
+        input_data["example_state"] = ExampleState.ACTIVE
+        input_data["duration"] = datetime.timedelta(seconds=900)
+        input_data["forward_one_to_one_field"] = ForwardOneToOne.objects.create(name="Test")
+        input_data["forward_many_to_one_field"] = ForwardManyToOne.objects.create(name="Test")
+        example = Example.objects.create(**input_data)
         return cls(pk=example.pk)
 
 
 class LoginMutation(DjangoMutation):
     class Meta:
-        serializer_class = Serializer
+        serializer_class = LoginSerializer
 
     @classmethod
-    def custom_mutation(cls, info: GQLInfo, **kwargs: Any):
+    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]):
         try:
-            user = User.objects.get(username="test_user")
+            user = User.objects.get(username=input_data["username"])
         except User.DoesNotExist:
-            user = User.objects.create_user(username="test_user", password="test_password")
+            user = User.objects.create_user(username=input_data["username"], password="test_password")
 
         login(info.context, user)
         return cls()
+
+
+class ImageMutation(DjangoMutation):
+    class Meta:
+        serializer_class = ImageInputSerializer
+        output_serializer_class = ImageOutputSerializer
+
+    @classmethod
+    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
+        return cls(success=True, name=input_data["image"].name)

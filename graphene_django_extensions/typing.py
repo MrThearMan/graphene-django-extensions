@@ -7,6 +7,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    ClassVar,
     Generic,
     Iterable,
     Literal,
@@ -20,6 +21,9 @@ from typing import (
     TypeVar,
     Union,
 )
+
+from graphene.types.mountedtype import MountedType
+from graphene.types.unmountedtype import UnmountedType
 
 # New in version 3.11
 if sys.version_info < (3, 11):  # pragma: no cover
@@ -55,10 +59,12 @@ __all__ = [
     "Any",
     "AnyUser",
     "Callable",
+    "ClassVar",
     "FieldError",
     "FieldNameStr",
     "FilterOverride",
     "FilterSetMeta",
+    "GQLFields",
     "GQLInfo",
     "Generic",
     "GraphQLFilterInfo",
@@ -99,6 +105,7 @@ FieldAliasToLookup: TypeAlias = dict[FilterAliasStr, FieldLookupStr]
 FilterFields: TypeAlias = Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasStr]] | Literal["__all__"]
 ValidationErrorType: TypeAlias = Union["DjangoValidationError", "SerializerValidationError"]
 SerializerErrorData: TypeAlias = dict[str, list[Union["ErrorDetail", str]]]
+GQLFields: TypeAlias = dict[str, MountedType | UnmountedType]
 
 T = TypeVar("T")
 

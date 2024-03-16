@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.urls import include, path
-from graphene_django.views import GraphQLView
+
+from graphene_django_extensions.views import FileUploadGraphQLView
 
 urlpatterns = [
-    path("graphql/", GraphQLView.as_view(graphiql=True)),
+    path("graphql/", FileUploadGraphQLView.as_view(graphiql=True)),
 ]
 
 if "debug_toolbar" in settings.INSTALLED_APPS:

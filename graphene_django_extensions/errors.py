@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import re
+from functools import wraps
 from typing import TYPE_CHECKING
 
 from django.apps import apps
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
 from graphene_django.settings import graphene_settings
 from graphene_django.utils import camelize
 from graphql import GraphQLError
+from rest_framework.exceptions import ValidationError as SerializerValidationError
 from rest_framework.serializers import as_serializer_error
 
 from .settings import gdx_settings
@@ -16,7 +19,10 @@ from .typing import FieldError
 if TYPE_CHECKING:
     from rest_framework.exceptions import ErrorDetail
 
-    from .typing import SerializerErrorData, ValidationErrorType
+    from .typing import Callable, ParamSpec, SerializerErrorData, TypeVar, ValidationErrorType
+
+    T = TypeVar("T")
+    P = ParamSpec("P")
 
 
 __all__ = [
@@ -54,6 +60,17 @@ class GQLValidationError(GraphQLError):
             gdx_settings.MUTATION_VALIDATION_ERROR_MESSAGE,
             extensions={"code": gdx_settings.MUTATION_VALIDATION_ERROR_CODE, "errors": errors},
         )
+
+
+def validation_errors_to_graphql_errors(func: Callable[P, T]) -> Callable[P, T]:
+    @wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        try:
+            return func(*args, **kwargs)
+        except (DjangoValidationError, SerializerValidationError) as error:
+            raise GQLValidationError(error) from error
+
+    return wrapper
 
 
 CONSTRAINT_PATTERNS: tuple[re.Pattern, ...] = (

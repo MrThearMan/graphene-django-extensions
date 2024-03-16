@@ -1,3 +1,4 @@
+from django.core import validators
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -53,3 +54,20 @@ class ExampleCustomInputSerializer(serializers.Serializer):
 
 class ExampleCustomOutputSerializer(serializers.Serializer):
     pk = serializers.IntegerField()
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+
+
+class ImageInputSerializer(serializers.Serializer):
+    image = serializers.ImageField(
+        write_only=True,
+        required=True,
+        validators=[validators.validate_image_file_extension],
+    )
+
+
+class ImageOutputSerializer(serializers.Serializer):
+    name = serializers.CharField(read_only=True)
+    success = serializers.BooleanField(read_only=True)

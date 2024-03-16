@@ -15,7 +15,7 @@ from graphene_django.converter import (
 from graphene_django.forms.converter import convert_form_field, get_form_field_description
 from graphene_django.registry import Registry  # noqa: TCH002
 from graphene_django.rest_framework.serializer_converter import get_graphene_type_from_serializer_field
-from rest_framework.fields import ChoiceField  # noqa: TCH002
+from rest_framework.fields import ChoiceField, FileField  # noqa: TCH002
 from rest_framework.relations import ManyRelatedField, RelatedField  # noqa: TCH002
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
@@ -32,6 +32,7 @@ from .fields import (
     UserDefinedFilterField,
     UserDefinedFilterInputType,
 )
+from .fields.graphql import Upload
 from .model_operations import get_model_lookup_field
 
 if TYPE_CHECKING:
@@ -236,3 +237,8 @@ def convert_to_one_related(field: RelatedField) -> type[graphene.Scalar]:  # pra
 @get_graphene_type_from_serializer_field.register
 def convert_to_many_related(field: ManyRelatedField) -> tuple[type[graphene.List], type[graphene.Scalar]]:
     return graphene.List, get_graphene_type_from_serializer_field(field.child_relation)  # pragma: no cover
+
+
+@get_graphene_type_from_serializer_field.register
+def convert_file_field(field: FileField) -> type[graphene.Scalar]:
+    return Upload

@@ -5,9 +5,8 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 import graphene
-from django.core.exceptions import ValidationError as DjangoValidationError
 from django.forms import Form, ModelForm
-from graphene import ClientIDMutation, Field, InputField
+from graphene import Field, InputField, InputObjectType, Mutation
 from graphene.types.resolver import attr_resolver
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_django import DjangoObjectType
@@ -26,20 +25,18 @@ from rest_framework.serializers import ListSerializer, ModelSerializer, Serializ
 
 from .connections import Connection
 from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
-from .errors import GQLPermissionDeniedError, GQLValidationError
+from .errors import GQLPermissionDeniedError, validation_errors_to_graphql_errors
 from .fields import RelatedField
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
-from .typing import Fields, Sequence
+from .typing import Fields, GQLFields, Sequence
 from .utils import add_translatable_fields, get_filter_info
 
 if TYPE_CHECKING:
     from django.db import models
     from graphene.relay.node import NodeField
-    from graphene.types.mountedtype import MountedType
-    from graphene.types.unmountedtype import UnmountedType
 
     from .typing import Any, AnyUser, FieldNameStr, GQLInfo, Literal, PermCheck, Self
 
@@ -243,7 +240,7 @@ class DjangoNode(DjangoObjectType):
         return to_global_id(cls.__name__, pk)
 
 
-class DjangoMutation(ClientIDMutation):
+class DjangoMutation(Mutation):
     """
     Custom base class for GraphQL-mutations that are backed by a Django model.
     Adds the following features to all types that inherit it:
@@ -411,7 +408,7 @@ class DjangoMutation(ClientIDMutation):
 
         _check_serializer_field_models_in_registry(cls, output_serializer)
 
-        input_fields = fields_for_serializer(
+        input_fields: GQLFields = fields_for_serializer(
             serializer,
             only_fields=(),
             exclude_fields=(),
@@ -419,7 +416,7 @@ class DjangoMutation(ClientIDMutation):
             lookup_field=lookup_field,
         )
 
-        output_fields = fields_for_serializer(
+        output_fields: GQLFields = fields_for_serializer(
             output_serializer,
             only_fields=(),
             exclude_fields=(),
@@ -450,8 +447,8 @@ class DjangoMutation(ClientIDMutation):
         if lookup_field != "pk":  # pragma: no cover
             input_field = convert_django_field(model._meta.get_field(lookup_field))
 
-        input_fields = {lookup_field: input_field}
-        output_fields = {"deleted": graphene.Boolean()}
+        input_fields: GQLFields = {lookup_field: input_field}
+        output_fields: GQLFields = {"deleted": graphene.Boolean()}
 
         _meta.lookup_field = lookup_field
 
@@ -477,8 +474,8 @@ class DjangoMutation(ClientIDMutation):
         serializer = serializer_class()
         output_serializer = output_serializer_class()
 
-        input_fields = fields_for_serializer(serializer, only_fields=(), exclude_fields=(), is_input=True)
-        output_fields = fields_for_serializer(output_serializer, only_fields=(), exclude_fields=())
+        input_fields: GQLFields = fields_for_serializer(serializer, only_fields=(), exclude_fields=(), is_input=True)
+        output_fields: GQLFields = fields_for_serializer(output_serializer, only_fields=(), exclude_fields=())
 
         _meta.serializer_class = serializer_class
         _meta.output_serializer_class = output_serializer_class
@@ -507,8 +504,8 @@ class DjangoMutation(ClientIDMutation):
         output_form_class = convert_form_fields_to_not_required(output_form_class)
         output_form = output_form_class()
 
-        input_fields = fields_for_form(form, only_fields=(), exclude_fields=())
-        output_fields = fields_for_form(output_form, only_fields=(), exclude_fields=())
+        input_fields: GQLFields = fields_for_form(form, only_fields=(), exclude_fields=())
+        output_fields: GQLFields = fields_for_form(output_form, only_fields=(), exclude_fields=())
 
         _meta.form_class = form_class
         _meta.output_form_class = output_form_class
@@ -519,68 +516,64 @@ class DjangoMutation(ClientIDMutation):
     def __finish_init_subclass__(
         cls,
         _meta: DjangoMutationOptions,
-        input_fields: dict[str, MountedType | UnmountedType],
-        output_fields: dict[str, MountedType | UnmountedType],
+        input_fields: GQLFields,
+        output_fields: GQLFields,
         **options: Any,
     ) -> None:
-        input_fields = yank_fields_from_attrs(attrs=input_fields, _as=InputField)
+        options["name"] = cls.get_mutation_name(**options)
+
+        arguments = cls.get_input_arguments(input_fields, **options)
         _meta.fields = yank_fields_from_attrs(attrs=output_fields, _as=Field)
-        super().__init_subclass_with_meta__(_meta=_meta, input_fields=input_fields, **options)
+
+        super().__init_subclass_with_meta__(_meta=_meta, arguments=arguments, **options)
 
     @classmethod
+    def get_mutation_name(cls, **options: Any) -> str:
+        base_name = options.get("name", cls.__name__).removesuffix("Payload")
+        return f"{base_name}Payload"
+
+    @classmethod
+    def get_input_arguments(cls, input_fields: GQLFields, **options: Any) -> dict[str, InputObjectType]:
+        input_fields = yank_fields_from_attrs(attrs=input_fields, _as=InputField)
+
+        input_class: type[InputObjectType] = options.pop("input_class", InputObjectType)
+        if not issubclass(input_class, InputObjectType):  # pragma: no cover
+            msg = "`input_class` must be a subclass of `graphene.InputObjectType`."
+            raise TypeError(msg)
+
+        name = cls.get_mutation_name(**options).removesuffix("Payload")
+        new_input_class = type(f"{name}Input", (input_class,), input_fields)
+        return {"input": new_input_class(required=True)}
+
+    @classmethod
+    @validation_errors_to_graphql_errors
     def mutate(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:
-        try:
-            return super().mutate(root, info, kwargs["input"])
-        except (DjangoValidationError, SerializerValidationError) as error:
-            raise GQLValidationError(error) from error
+        input_data: dict[str, Any] = kwargs["input"]
 
-    @classmethod
-    def mutate_and_get_payload(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:
         if cls._meta.model_operation == "delete":
-            return cls.delete(info, **kwargs)
+            return cls.delete(info, input_data)
         if cls._meta.model_operation in ("create", "update"):
-            return cls.update_or_create(info, **kwargs)
+            return cls.update_or_create(info, input_data)
 
-        if not cls.has_mutation_permission(info, kwargs):
-            raise GQLPermissionDeniedError(
-                message=gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE,
-                code=gdx_settings.MUTATION_PERMISSION_ERROR_CODE,
-            )
-
-        cls.run_validation(data=kwargs)
-        return cls.custom_mutation(info, **kwargs)
+        validated_data = cls.validate_custom_mutation_input_data(info, input_data)
+        return cls.custom_mutation(info, validated_data)
 
     @classmethod
-    def custom_mutation(cls, info: GQLInfo, **kwargs: Any) -> Self:  # pragma: no cover
-        """Override this method to perform custom mutations instead of the regular create, update or delete."""
-        raise NotImplementedError(f"Custom model operation not defined for '{cls.__name__}'")  # noqa: EM102
+    def update_or_create(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
+        maybe_instance = cls.get_instance(input_data)
 
-    @classmethod
-    def get_instance(cls, **kwargs: Any) -> models.Model | None:
-        if cls._meta.model_operation == "create":
-            return None
-        lookup_field: str = cls._meta.lookup_field
-        if lookup_field not in kwargs:  # pragma: no cover
-            raise SerializerValidationError({lookup_field: "This field is required."})
-        return get_object_or_404(cls._meta.model_class, **{lookup_field: kwargs[lookup_field]})
-
-    @classmethod
-    def update_or_create(cls, info: GQLInfo, **kwargs: Any) -> Self:
-        maybe_instance = cls.get_instance(**kwargs)
-
-        if cls._meta.model_operation == "create" and not cls.has_create_permissions(info, kwargs):
+        if cls._meta.model_operation == "create" and not cls.has_create_permissions(info, input_data):
             raise GQLPermissionDeniedError(
                 message=gdx_settings.CREATE_PERMISSION_ERROR_MESSAGE,
                 code=gdx_settings.CREATE_PERMISSION_ERROR_CODE,
             )
-        if cls._meta.model_operation == "update" and not cls.has_update_permissions(maybe_instance, info, kwargs):
+        if cls._meta.model_operation == "update" and not cls.has_update_permissions(maybe_instance, info, input_data):
             raise GQLPermissionDeniedError(
                 message=gdx_settings.UPDATE_PERMISSION_ERROR_MESSAGE,
                 code=gdx_settings.UPDATE_PERMISSION_ERROR_CODE,
             )
 
-        validator_kwargs = cls.get_validator_kwargs(maybe_instance, info, kwargs)
-        validator = cls.run_validation(**validator_kwargs)
+        validator = cls.run_validation(input_data, info, maybe_instance)
         instance = validator.save()
 
         if cls._meta.serializer_class is not None:
@@ -591,25 +584,70 @@ class DjangoMutation(ClientIDMutation):
         return cls(**output)  # type: ignore[arg-type]
 
     @classmethod
-    def get_validator_kwargs(cls, instance: models.Model | None, info: GQLInfo, data: dict[str, Any]) -> dict[str, Any]:
-        for input_dict_key, maybe_enum in data.items():
-            if isinstance(maybe_enum, Enum):
-                data[input_dict_key] = maybe_enum.value
+    def delete(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
+        instance = cls.get_instance(input_data)
+        if not cls.has_delete_permissions(instance, info, input_data):
+            raise GQLPermissionDeniedError(
+                message=gdx_settings.DELETE_PERMISSION_ERROR_MESSAGE,
+                code=gdx_settings.DELETE_PERMISSION_ERROR_CODE,
+            )
 
-        validator_kwargs: dict[str, Any] = {"instance": instance, "data": data}
-        if cls._meta.serializer_class is not None:
-            validator_kwargs["context"] = {"request": info.context}
-            validator_kwargs["partial"] = instance is not None
-
-        return validator_kwargs
+        cls.validate_deletion(instance, info.context.user)
+        count, _ = instance.delete()
+        return cls(deleted=bool(count))  # type: ignore[arg-type]
 
     @classmethod
-    def run_validation(cls, **kwargs: Any) -> Serializer | Form:
-        validator_class = cls._meta.serializer_class or cls._meta.form_class
-        validator = validator_class(**kwargs)
+    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:  # pragma: no cover
+        """Override this method to perform custom mutations instead of the regular create, update or delete."""
+        raise NotImplementedError(f"Custom model operation not defined for '{cls.__name__}'")  # noqa: EM102
+
+    @classmethod
+    def validate_custom_mutation_input_data(cls, info: GQLInfo, input_data: dict[str, Any]) -> dict[str, Any]:
+        if not cls.has_mutation_permission(info, input_data):
+            raise GQLPermissionDeniedError(
+                message=gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE,
+                code=gdx_settings.MUTATION_PERMISSION_ERROR_CODE,
+            )
+
+        validator = cls.run_validation(input_data, info)
+        if isinstance(validator, Serializer):
+            return validator.validated_data
+        return validator.cleaned_data
+
+    @classmethod
+    def run_validation(
+        cls,
+        input_data: dict[str, Any],
+        info: GQLInfo,
+        maybe_instance: models.Model | None = None,
+    ) -> Serializer | Form:
+        validator_class: type[Serializer | Form] = cls._meta.serializer_class or cls._meta.form_class
+
+        for key, maybe_enum in input_data.items():
+            if isinstance(maybe_enum, Enum):
+                input_data[key] = maybe_enum.value
+
+        validator_kwargs: dict[str, Any] = {"data": input_data}
+        if issubclass(validator_class, ModelForm):
+            validator_kwargs["instance"] = maybe_instance
+        if issubclass(validator_class, Serializer):
+            validator_kwargs["instance"] = maybe_instance
+            validator_kwargs["context"] = {"request": info.context}
+            validator_kwargs["partial"] = maybe_instance is not None
+
+        validator = validator_class(**validator_kwargs)
         if not validator.is_valid():
             raise SerializerValidationError(validator.errors)
         return validator
+
+    @classmethod
+    def get_instance(cls, input_data: dict[str, Any]) -> models.Model | None:
+        if cls._meta.model_operation == "create":
+            return None
+        lookup_field: str = cls._meta.lookup_field
+        if lookup_field not in input_data:  # pragma: no cover
+            raise SerializerValidationError({lookup_field: "This field is required."})
+        return get_object_or_404(cls._meta.model_class, **{lookup_field: input_data[lookup_field]})
 
     @classmethod
     def get_serializer_output(cls, instance: models.Model) -> dict[str, Any]:
@@ -628,19 +666,6 @@ class DjangoMutation(ClientIDMutation):
     def get_form_output(cls, instance: models.Model) -> dict[str, Any]:
         form = cls._meta.output_form_class()
         return {field_name: get_attribute(instance, [field_name]) for field_name in form.fields}
-
-    @classmethod
-    def delete(cls, info: GQLInfo, **kwargs: Any) -> Self:
-        instance = cls.get_instance(**kwargs)
-        if not cls.has_delete_permissions(instance, info, kwargs):
-            raise GQLPermissionDeniedError(
-                message=gdx_settings.DELETE_PERMISSION_ERROR_MESSAGE,
-                code=gdx_settings.DELETE_PERMISSION_ERROR_CODE,
-            )
-
-        cls.validate_deletion(instance, info.context.user)
-        count, _ = instance.delete()
-        return cls(deleted=bool(count))  # type: ignore[arg-type]
 
     @classmethod
     def validate_deletion(cls, instance: models.Model, user: AnyUser) -> None:
@@ -746,8 +771,8 @@ def _check_serializer_field_models_in_registry(
             msg = (
                 f"Could not find a ObjectType for model: `{field_model.__name__}`. "
                 f"Make sure that the ObjectType for this model is registered before the "
-                f"`{mutation_class.__name__}` mutation class is crated. This can be archived by, "
-                f"for example, setting `{field.__class__.__name__}.Meta.node` to that ObjectType."
+                f"`{mutation_class.__name__}` mutation class is crated. This can be achieved by "
+                f"importing the ObjectType before the mutation class is created."
             )
             raise LookupError(msg)
 

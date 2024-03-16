@@ -1,12 +1,14 @@
 from .bases import CreateMutation, DeleteMutation, DjangoNode, UpdateMutation
 from .filters import ModelFilterSet
 from .serializers import NestingModelSerializer
+from .views import FileUploadGraphQLView
 
 __all__ = [
-    "DjangoNode",
     "CreateMutation",
-    "UpdateMutation",
     "DeleteMutation",
-    "NestingModelSerializer",
+    "DjangoNode",
+    "FileUploadGraphQLView",
     "ModelFilterSet",
+    "NestingModelSerializer",
+    "UpdateMutation",
 ]

@@ -34,6 +34,7 @@ __all__ = [
     "Time",
     "TypedDictField",
     "TypedDictListField",
+    "Upload",
     "UserDefinedFilterInputType",
 ]
 
@@ -69,6 +70,22 @@ class Duration(graphene.Scalar):
         if isinstance(ast, graphql.IntValueNode):
             return int(ast.value)
         return Undefined
+
+
+class Upload(graphene.Scalar):  # pragma: no cover
+    """Represents a file upload."""
+
+    @staticmethod
+    def serialize(value: Any) -> Any:
+        return value
+
+    @staticmethod
+    def parse_literal(node: Any) -> Any:
+        return node
+
+    @staticmethod
+    def parse_value(value: Any) -> Any:
+        return value
 
 
 class TypedDictFieldMixin:

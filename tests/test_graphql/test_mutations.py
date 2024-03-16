@@ -169,3 +169,12 @@ def test_graphql__delete__does_not_exist(graphql: GraphQLClient):
 
     assert response.error_code() == "NOT_FOUND"
     assert response.error_message() == "`Example` object matching query `{'pk': '0'}` does not exist."
+
+
+def test_graphql__file(graphql, mock_png):
+    data = {"image": mock_png}
+    mutation = build_mutation("imageMutation", "ImageMutation", fields="name success")
+    response = graphql(mutation, input_data=data)
+
+    assert response.has_errors is False
+    assert response.first_query_object == {"name": "image.png", "success": True}

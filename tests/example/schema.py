@@ -11,6 +11,7 @@ from tests.example.mutations import (
     ExampleFormCustomMutation,
     ExampleFormMutation,
     ExampleUpdateMutation,
+    ImageMutation,
     LoginMutation,
 )
 from tests.example.nodes import (
@@ -53,6 +54,7 @@ class Mutation(graphene.ObjectType):
     form_mutation = ExampleFormMutation.Field()
     form_custom_mutation = ExampleFormCustomMutation.Field()
     login = LoginMutation.Field()
+    image_mutation = ImageMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
