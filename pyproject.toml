@@ -238,7 +238,7 @@ deps =
     gd31: graphene-django >=3.1.0,<3.2.0
     gd32: graphene-django >=3.2.0,<3.3.0
 
-    djangorestframework
+    djangorestframework <3.15.0
     django-filter
     django-settings-holder
     typing-extensions
