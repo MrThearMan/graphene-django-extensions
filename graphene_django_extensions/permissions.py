@@ -83,12 +83,13 @@ class AllowSuperuser(BasePermission):
 
 def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
     """
-    Decorator for GraphQL field resolvers, which will raise
-    a PermissionDenied error if the request user does not have
-    appropriate permissions based on the given check.
+    Decorator for GraphQL field resolvers, which will check if the request user has
+    appropriate permissions to access the field based on the given check.
 
-    :param check: A callable, which takes the request user, and the ObjectType's Model instance
-                  (or just the request user) as its arguments.
+    :param check: A callable which takes the request user, and optionally
+                  the ObjectType's Model instance, as its arguments, and returns
+                  a boolean indicating whether the user has permission to access the field.
+                  If None is returned from this, the resolver will also return None.
     :param message: The message to raise in the PermissionError.
                     If not given, use default message from settings.
     """
@@ -98,12 +99,14 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             try:
-                if check(args[1].context.user, args[0]):
-                    return func(*args, **kwargs)  # pragma: no cover
+                result = check(args[1].context.user, args[0])
             except TypeError:
-                if check(args[1].context.user):
-                    return func(*args, **kwargs)  # pragma: no cover
+                result = check(args[1].context.user)
 
+            if result is None:  # pragma: no cover
+                return None
+            if result:  # pragma: no cover
+                return func(*args, **kwargs)
             raise GQLPermissionDeniedError(message, gdx_settings.FIELD_PERMISSION_ERROR_CODE)
 
         return wrapper
