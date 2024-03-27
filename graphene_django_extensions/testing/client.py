@@ -12,11 +12,14 @@ from ..files import extract_files
 from .utils import QueryData, capture_database_queries
 
 if TYPE_CHECKING:
-    from django.contrib.auth.models import User
     from django.core.files import File
     from django.http import HttpResponse
 
     from ..typing import Any, ClassVar, FieldError, Self
+
+
+User = get_user_model()
+
 
 __all__ = [
     "GraphQLClient",
@@ -361,12 +364,24 @@ class GraphQLClient(Client):
 
         return self.response_class(response, results)
 
-    def login_with_superuser(self) -> User:
-        user = get_user_model().objects.create_superuser(username="superuser", email="superuser@django.com")
+    def login_with_superuser(self, username: str = "admin", **kwargs: Any) -> User:
+        defaults = {
+            "is_staff": True,
+            "is_superuser": True,
+            "email": "superuser@django.com",
+            **kwargs,
+        }
+        user, _ = User.objects.get_or_create(username=username, defaults=defaults)
         self.force_login(user)
         return user
 
-    def login_with_regular_user(self) -> User:
-        user = get_user_model().objects.create_user(username="user", email="user@django.com")
+    def login_with_regular_user(self, username: str = "user", **kwargs: Any) -> User:
+        defaults = {
+            "is_staff": False,
+            "is_superuser": False,
+            "email": "user@django.com",
+            **kwargs,
+        }
+        user, _ = User.objects.get_or_create(username=username, defaults=defaults)
         self.force_login(user)
         return user
