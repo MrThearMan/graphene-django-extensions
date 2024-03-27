@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+    "GDXWarning",
     "get_constraint_message",
     "GQLNotFoundError",
     "GQLPermissionDeniedError",
@@ -60,6 +61,10 @@ class GQLValidationError(GraphQLError):
             gdx_settings.MUTATION_VALIDATION_ERROR_MESSAGE,
             extensions={"code": gdx_settings.MUTATION_VALIDATION_ERROR_CODE, "errors": errors},
         )
+
+
+class GDXWarning(UserWarning):
+    """Base warning class for graphene-django-extensions."""
 
 
 def validation_errors_to_graphql_errors(func: Callable[P, T]) -> Callable[P, T]:

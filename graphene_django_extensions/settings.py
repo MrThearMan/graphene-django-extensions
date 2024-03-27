@@ -28,6 +28,7 @@ class DefaultSettings(NamedTuple):
     NOT_FOUND_ERROR_CODE: str = "NOT_FOUND"
     ORDERING_FILTER_NAME: str = "order_by"
     EXTEND_USER_DEFINED_FILTER_OPERATIONS: list[str] | None = None
+    ALLOW_MODEL_OBJECT_TYPE_REGISTRY_OVERRIDES: bool = True
 
 
 DEFAULTS: dict[str, Any] = DefaultSettings()._asdict()

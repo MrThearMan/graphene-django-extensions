@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from enum import Enum
 from functools import partial
 from typing import TYPE_CHECKING
@@ -25,7 +26,7 @@ from rest_framework.serializers import ListSerializer, ModelSerializer, Serializ
 
 from .connections import Connection
 from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
-from .errors import GQLPermissionDeniedError, validation_errors_to_graphql_errors
+from .errors import GDXWarning, GQLPermissionDeniedError, validation_errors_to_graphql_errors
 from .fields import RelatedField
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
@@ -166,6 +167,9 @@ class DjangoNode(DjangoObjectType):
             from query_optimizer.filter import create_filterset
 
             options["filterset_class"] = create_filterset(model, filter_fields)
+
+        if not options.get("skip_registry", False):
+            _check_if_model_already_registered(cls, model)
 
         super().__init_subclass_with_meta__(_meta=_meta, model=model, fields=fields, **options)
 
@@ -777,3 +781,35 @@ def _check_serializer_field_models_in_registry(
             raise LookupError(msg)
 
         _check_serializer_field_models_in_registry(mutation_class, field)
+
+
+def _check_if_model_already_registered(object_type: type[DjangoObjectType], model: type[models.Model]) -> None:
+    # This function is only used to check if an object type for a django model already exists in the registry.
+    # In this case, the former object type is replaced with the new one, which can lead to
+    # unexpected behavior if the object types are not identical.
+    global_registry = get_global_registry()
+    existing = global_registry.get_type_for_model(model)
+    if existing is not None:  # pragma: no cover
+        model_path = f"{model.__module__}.{model.__name__}"
+        exising_path = f"{existing.__module__}.{existing.__name__}"
+        new_path = f"{object_type.__module__}.{object_type.__name__}"
+        msg = (
+            f"An object type `{exising_path}` for model `{model_path}` is already registered. "
+            f"This will be replaced with the new object type: `{new_path}`. "
+            f"This means that the latter will be used when automatically determining object types for "
+            f"related model fields in other object types. "
+        )
+        if gdx_settings.ALLOW_MODEL_OBJECT_TYPE_REGISTRY_OVERRIDES:
+            msg += (
+                "The former object type can still be used, but it needs to be defined "
+                "on the other object type explicitly. This warning exists to notify of possible "
+                "unexpected behavior, but if you know what you are doing, you can ignore it. "
+                "You might consider using proxy-models, since they won't cause this issue."
+            )
+            warnings.warn(message=msg, category=GDXWarning, stacklevel=5)  # point to the object type definition
+        else:
+            msg += (
+                "Since this can lead to unexpected behavior, you should either use the existing object type "
+                "or use proxy models to avoid this issue."
+            )
+            raise LookupError(msg)
