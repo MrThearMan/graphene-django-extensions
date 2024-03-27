@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import TYPE_CHECKING
 
 import pytest
@@ -23,6 +24,14 @@ User = get_user_model()
 
 __all__ = [
     "GraphQLClient",
+]
+
+
+SCHEMA_ERRORS: list[re.Pattern] = [
+    # These do not cover all schema errors, only the most common ones.
+    re.compile(r"^Argument '\w+' .*"),
+    re.compile(r"^Variable '\$\w+' .*"),
+    re.compile(r"^\w+ cannot represent .*"),
 ]
 
 
@@ -301,6 +310,21 @@ class GQLResponse:
                     pytest.fail(msg, pytrace=False)
 
         return codes
+
+    @property
+    def has_schema_errors(self) -> bool:
+        """
+        Return True if there are any known GraphQL schema validation errors in the response.
+
+        >>> self.json = {"errors": [{"message": "bar", ...}]}
+        >>> self.has_schema_errors
+        False
+
+        >>> self.json = {"errors": [{"message": f"Variable '$input' got invalid value...", ...}]}
+        >>> self.has_schema_errors
+        True
+        """
+        return any(any(e.match(error["message"]) is not None for e in SCHEMA_ERRORS) for error in self.errors)
 
     def assert_query_count(self, count: int) -> None:  # pragma: no cover
         if len(self.queries) != count:

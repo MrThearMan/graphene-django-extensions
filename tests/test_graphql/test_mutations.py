@@ -178,3 +178,12 @@ def test_graphql__file(graphql, mock_png):
 
     assert response.has_errors is False
     assert response.first_query_object == {"name": "image.png", "success": True}
+
+
+def test_graphql__schema_errors(graphql: GraphQLClient):
+    mutation = build_mutation("createExample", "ExampleCreateMutation", fields="name")
+
+    graphql.login_with_superuser()
+    response = graphql(mutation, input_data={})
+
+    assert response.has_schema_errors is True, response
