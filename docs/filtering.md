@@ -14,7 +14,7 @@ class ExampleFilterSet(ModelFilterSet):
         fields = [...]
 ```
 
-Extends from `django_filters.filterset.FilterSet` and adds the following features:
+Extends `django_filters.filterset.FilterSet` and adds the following features:
 
 - Automatically a `order_by = CustomOrderingFilter(fields=["pk"])` to the class for ordering the filterset.
 - Changes the default filters for all relationships (`one-to-one`, `many-to-one`, etc.) to not make a database

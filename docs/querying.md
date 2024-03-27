@@ -14,7 +14,7 @@ class MyNode(DjangoNode):
         fields = [...]
 ```
 
-Extends form `graphene_django.types.DjangoObjectType` and adds the following features:
+Extends `graphene_django.types.DjangoObjectType` and adds the following features:
 
 - Makes the `graphene.relay.Node` interface the default interface for the type.
 - Adds `total_count = graphene.Int()` field to the default Connection field for the type.
@@ -60,6 +60,8 @@ Some new methods are also added. Here are the most useful ones:
     - `info: GQLInfo`
 
 Can be used to filter available rows for both `get_queryset` and `get_node`.
+Use this instead of `get_queryset` for filtering, since the built-in SQL
+optimizer is able to include these in the query plan.
 
 #### Field
 

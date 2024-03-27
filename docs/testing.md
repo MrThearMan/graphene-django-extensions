@@ -27,5 +27,4 @@ Used to build GraphQL mutations for testing.
 ## GraphQLClient
 
 Testing client with a convenient response object and database query counting.
-Can be accessed through `graphql` fixture. The query counting can be accessed
-separately via `query_counter` fixture.
+Can be accessed through `graphql` fixture.
