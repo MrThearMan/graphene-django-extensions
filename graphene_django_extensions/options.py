@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from graphene.types.mutation import MutationOptions
-from graphene_django.types import DjangoObjectTypeOptions
+from query_optimizer.typing import OptimizedDjangoOptions
 
 if TYPE_CHECKING:
     from django.db import models
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from graphene_django_extensions.permissions import BasePermission
 
-    from .bases import DjangoMutation, DjangoNode
+    from .bases import DjangoMutation
     from .typing import FieldNameStr, Literal, Sequence
 
 
@@ -22,16 +22,8 @@ __all__ = [
 ]
 
 
-class DjangoNodeOptions(DjangoObjectTypeOptions):
-    def __init__(
-        self,
-        class_type: type[DjangoNode],
-        max_complexity: int,
-        permission_classes: Sequence[type[BasePermission]] = (),
-    ) -> None:
-        self.max_complexity = max_complexity
-        self.permission_classes = permission_classes
-        super().__init__(class_type)
+class DjangoNodeOptions(OptimizedDjangoOptions):
+    permission_classes: Sequence[type[BasePermission]] = ()
 
 
 class DjangoMutationOptions(MutationOptions):

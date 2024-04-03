@@ -96,7 +96,7 @@ class ExampleNode(DjangoNode):
     forward_one_to_one_field = ForwardOneToOneNode.RelatedField()
     forward_many_to_one_field = ForwardManyToOneNode.RelatedField()
     forward_many_to_many_fields = ForwardManyToManyNode.ListField()
-    reverse_one_to_one_rel = ReverseOneToOneNode.RelatedField(reverse=True)
+    reverse_one_to_one_rel = ReverseOneToOneNode.RelatedField()
     reverse_one_to_many_rels = ReverseOneToManyNode.ListField()
     reverse_many_to_many_rels = ReverseManyToManyNode.Connection()
 

@@ -10,7 +10,6 @@ from django.forms import Form, ModelForm
 from graphene import Field, InputField, InputObjectType, Mutation
 from graphene.types.resolver import attr_resolver
 from graphene.types.utils import yank_fields_from_attrs
-from graphene_django import DjangoObjectType
 from graphene_django.converter import convert_django_field
 from graphene_django.forms.mutation import fields_for_form
 from graphene_django.registry import get_global_registry
@@ -18,8 +17,7 @@ from graphene_django.rest_framework.mutation import fields_for_serializer
 from graphene_django.types import ALL_FIELDS
 from graphene_django.utils import is_valid_django_model
 from graphql_relay import to_global_id
-from query_optimizer import DjangoConnectionField, DjangoListField, optimize_single
-from query_optimizer.settings import optimizer_settings
+from query_optimizer import DjangoConnectionField, DjangoListField, DjangoObjectType
 from rest_framework.exceptions import ValidationError as SerializerValidationError
 from rest_framework.fields import SerializerMethodField, get_attribute
 from rest_framework.serializers import ListSerializer, ModelSerializer, Serializer
@@ -118,13 +116,13 @@ class DjangoNode(DjangoObjectType):
         return queryset
 
     @classmethod
-    def __init_subclass_with_meta__(  # noqa: PLR0913
+    def __init_subclass_with_meta__(
         cls,
+        _meta: DjangoNodeOptions | None = None,
         model: type[models.Model] | None = None,
         fields: Fields | None = None,
         permission_classes: Sequence[type[BasePermission]] = (AllowAny,),
         restricted_fields: dict[FieldNameStr, PermCheck] | None = None,
-        max_complexity: int | None = None,
         **options: Any,
     ) -> None:
         if model is None:  # pragma: no cover
@@ -146,37 +144,21 @@ class DjangoNode(DjangoObjectType):
         if fields != ALL_FIELDS:
             fields = add_translatable_fields(model, fields)
 
-        if not hasattr(cls, "pk") and (fields == ALL_FIELDS or "pk" in fields):
-            cls._add_pk_field(model)
-
         if restricted_fields is not None:
             cls._add_field_restrictions(fields, restricted_fields)
 
-        _meta = DjangoNodeOptions(
-            class_type=cls,
-            max_complexity=max_complexity or optimizer_settings.MAX_COMPLEXITY,
-            permission_classes=permission_classes,
-        )
+        if _meta is None:
+            _meta = DjangoNodeOptions(cls)
+
+        _meta.permission_classes = permission_classes
+
         options.setdefault("connection_class", Connection)
         options.setdefault("interfaces", (graphene.relay.Node,))
-
-        filterset_class = options.get("filterset_class", None)
-        filter_fields: dict[str, list[str]] | None = options.pop("filter_fields", None)
-
-        if filterset_class is None and filter_fields is not None:  # pragma: no cover
-            from query_optimizer.filter import create_filterset
-
-            options["filterset_class"] = create_filterset(model, filter_fields)
 
         if not options.get("skip_registry", False):
             _check_if_model_already_registered(cls, model)
 
         super().__init_subclass_with_meta__(_meta=_meta, model=model, fields=fields, **options)
-
-    @classmethod
-    def _add_pk_field(cls, model: type[models.Model]) -> None:
-        cls.pk = graphene.Int() if model._meta.pk.name == "id" else graphene.ID()
-        cls.resolve_pk = cls.resolve_id
 
     @classmethod
     def _add_field_restrictions(cls, fields: Fields, restricted_fields: dict[FieldNameStr, PermCheck]) -> None:
@@ -202,16 +184,12 @@ class DjangoNode(DjangoObjectType):
         return queryset
 
     @classmethod
-    def get_node(cls, info: GQLInfo, pk: Any) -> models.Model | None:
-        """Override `filter_queryset` instead of this method to add filtering of possible rows."""
-        queryset = cls._meta.model._default_manager.all()
-        instance = optimize_single(queryset, info, pk=pk, max_complexity=cls._meta.max_complexity)
-        if instance is not None and not cls.has_node_permissions(info, instance):
+    def run_instance_checks(cls, instance: models.Model, info: GQLInfo) -> None:
+        if not cls.has_node_permissions(info, instance):
             raise GQLPermissionDeniedError(
                 message=gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE,
                 code=gdx_settings.QUERY_PERMISSION_ERROR_CODE,
             )
-        return instance
 
     @classmethod
     def has_node_permissions(cls, info: GQLInfo, instance: models.Model) -> bool:
