@@ -3,9 +3,10 @@ from unittest.mock import patch
 import pytest
 from django.db import models
 
+from graphene_django_extensions.selections import get_fields_selections
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.typing import GQLInfo
-from graphene_django_extensions.utils import get_filter_info, get_fields_from_info
+from graphene_django_extensions.utils import get_filter_info
 from tests.example.filtersets import ExampleFilterSet, ForwardManyToManyFilterSet
 from tests.example.models import ExampleState
 from tests.factories import ExampleFactory, ForwardManyToManyFactory
@@ -95,31 +96,20 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
 
     graphql.login_with_superuser()
 
-    fields = {}
+    selections = []
     filters = {}
 
     def tracker(info: GQLInfo, model: type[models.Model]):
-        nonlocal fields, filters
-        fields = get_fields_from_info(info)
+        nonlocal selections, filters
+        if not selections:
+            selections = get_fields_selections(info, model)
         filters = get_filter_info(info, model)
         return filters
 
     with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == [
-        {
-            "examples": [
-                {
-                    "edges": [
-                        {
-                            "node": ["pk"],
-                        },
-                    ],
-                },
-            ],
-        },
-    ]
+    assert selections == ["pk"]
     assert filters == {
         "name": "ExampleNodeConnection",
         "children": {},
@@ -220,31 +210,20 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
 
     graphql.login_with_superuser()
 
-    fields = {}
+    selections = []
     filters = {}
 
     def tracker(info: GQLInfo, model: type[models.Model]):
-        nonlocal fields, filters
-        fields = get_fields_from_info(info)
+        nonlocal selections, filters
+        if not selections:
+            selections = get_fields_selections(info, model)
         filters = get_filter_info(info, model)
         return filters
 
     with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == [
-        {
-            "examples": [
-                {
-                    "edges": [
-                        {
-                            "node": ["pk"],
-                        },
-                    ],
-                },
-            ],
-        },
-    ]
+    assert selections == ["pk"]
     assert filters == {
         "name": "ExampleNodeConnection",
         "children": {},
@@ -294,23 +273,20 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
 
     graphql.login_with_superuser()
 
-    fields = {}
+    selections = []
     filters = {}
 
     def tracker(info: GQLInfo, model: type[models.Model]):
-        nonlocal fields, filters
-        fields = get_fields_from_info(info)
+        nonlocal selections, filters
+        if not selections:
+            selections = get_fields_selections(info, model)
         filters = get_filter_info(info, model)
         return filters
 
     with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == [
-        {
-            "exampleItems": ["pk"],
-        },
-    ]
+    assert selections == ["pk"]
     assert filters == {
         "name": "ExampleNode",
         "children": {},
@@ -349,26 +325,23 @@ def test_graphql__filter__sub_filter(graphql: GraphQLClient):
     )
     graphql.login_with_superuser()
 
-    fields = {}
+    selections = []
     filters = {}
 
     def tracker(info: GQLInfo, model: type[models.Model]):
-        nonlocal fields, filters
-        fields = get_fields_from_info(info)
+        nonlocal selections, filters
+        if not selections:
+            selections = get_fields_selections(info, model)
         filters = get_filter_info(info, model)
         return filters
 
     with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
-    assert fields == [
+    assert selections == [
+        "pk",
         {
-            "exampleItems": [
-                "pk",
-                {
-                    "forwardManyToManyFields": ["name"],
-                },
-            ],
+            "forward_many_to_many_fields": ["name"],
         },
     ]
     assert filters == {

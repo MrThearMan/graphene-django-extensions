@@ -3,7 +3,6 @@ from __future__ import annotations
 from functools import cache
 from typing import TYPE_CHECKING
 
-from graphql.language.ast import ExecutableDefinitionNode, FieldNode
 from query_optimizer.filter_info import get_filter_info
 
 from .constants import Operation
@@ -13,10 +12,9 @@ from .typing import StrEnum
 if TYPE_CHECKING:
     from django.db import models
 
-    from .typing import Any, GQLInfo, Sequence
+    from .typing import Any, Sequence
 
 __all__ = [
-    "get_fields_from_info",
     "get_nested",
     "add_translatable_fields",
     "get_operator_enum",
@@ -54,23 +52,6 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
     except AttributeError:
         obj = None
         return get_nested(obj, *args, default=default)
-
-
-def get_fields_from_info(info: GQLInfo) -> list[dict[str, Any]]:
-    """Find selected fields from the GraphQL query and return them as a list of dicts."""
-    return _get_field_node(info.operation)
-
-
-def _get_field_node(field: ExecutableDefinitionNode | FieldNode) -> dict[str, Any] | list[Any]:
-    filters: list[Any] = []
-    for selection in field.selection_set.selections:
-        if not isinstance(selection, FieldNode):  # pragma: no cover
-            continue
-        if selection.selection_set is not None:
-            filters.append({selection.name.value: _get_field_node(selection)})
-        else:
-            filters.append(selection.name.value)
-    return filters
 
 
 def add_translatable_fields(model: type[models.Model], fields: Sequence[str]) -> Sequence[str]:  # pragma: no cover
