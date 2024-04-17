@@ -25,7 +25,16 @@ from rest_framework.serializers import ListSerializer, ModelSerializer, Serializ
 
 from .connections import Connection
 from .converters import convert_form_fields_to_not_required, convert_serializer_fields_to_not_required
-from .errors import GDXWarning, GQLPermissionDeniedError, validation_errors_to_graphql_errors
+from .errors import (
+    GDXWarning,
+    GQLCreatePermissionDeniedError,
+    GQLDeletePermissionDeniedError,
+    GQLFilterPermissionDeniedError,
+    GQLMutationPermissionDeniedError,
+    GQLNodePermissionDeniedError,
+    GQLUpdatePermissionDeniedError,
+    validation_errors_to_graphql_errors,
+)
 from .fields import RelatedField
 from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
@@ -51,7 +60,7 @@ __all__ = [
 
 class DjangoNode(DjangoObjectType):
     """
-    Custom base class for GraphQL-types that are backed by a Django model.
+    Custom base class for GraphQL types that are backed by a Django model.
     Adds the following features to all types that inherit it:
 
     - Makes the `graphene.relay.Node` interface the default interface for the type.
@@ -178,19 +187,13 @@ class DjangoNode(DjangoObjectType):
     def get_queryset(cls, queryset: models.QuerySet, info: GQLInfo) -> models.QuerySet:
         """Override `filter_queryset` instead of this method to add filtering of possible rows."""
         if not cls.has_filter_permissions(info):
-            raise GQLPermissionDeniedError(
-                message=gdx_settings.FILTER_PERMISSION_ERROR_MESSAGE,
-                code=gdx_settings.FILTER_PERMISSION_ERROR_CODE,
-            )
+            raise GQLFilterPermissionDeniedError
         return queryset
 
     @classmethod
     def run_instance_checks(cls, instance: models.Model, info: GQLInfo) -> None:
         if not cls.has_node_permissions(info, instance):
-            raise GQLPermissionDeniedError(
-                message=gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE,
-                code=gdx_settings.QUERY_PERMISSION_ERROR_CODE,
-            )
+            raise GQLNodePermissionDeniedError
 
     @classmethod
     def has_node_permissions(cls, info: GQLInfo, instance: models.Model) -> bool:
@@ -225,10 +228,10 @@ class DjangoNode(DjangoObjectType):
 
 class DjangoMutation(Mutation):
     """
-    Custom base class for GraphQL-mutations that are backed by a Django model.
+    Custom base class for GraphQL mutations that are backed by a Django model.
     Adds the following features to all types that inherit it:
 
-    - For updates, converts all fields to optional fields, enabling partial updates.
+    - For updates, convert all fields to optional fields, enabling partial updates.
 
     - Checks for missing object types for nested model serializer fields to avoid nebulous import order errors.
 
@@ -546,15 +549,9 @@ class DjangoMutation(Mutation):
         maybe_instance = cls.get_instance(input_data)
 
         if cls._meta.model_operation == "create" and not cls.has_create_permissions(info, input_data):
-            raise GQLPermissionDeniedError(
-                message=gdx_settings.CREATE_PERMISSION_ERROR_MESSAGE,
-                code=gdx_settings.CREATE_PERMISSION_ERROR_CODE,
-            )
+            raise GQLCreatePermissionDeniedError
         if cls._meta.model_operation == "update" and not cls.has_update_permissions(maybe_instance, info, input_data):
-            raise GQLPermissionDeniedError(
-                message=gdx_settings.UPDATE_PERMISSION_ERROR_MESSAGE,
-                code=gdx_settings.UPDATE_PERMISSION_ERROR_CODE,
-            )
+            raise GQLUpdatePermissionDeniedError
 
         validator = cls.run_validation(input_data, info, maybe_instance)
         instance = validator.save()
@@ -570,10 +567,7 @@ class DjangoMutation(Mutation):
     def delete(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
         instance = cls.get_instance(input_data)
         if not cls.has_delete_permissions(instance, info, input_data):
-            raise GQLPermissionDeniedError(
-                message=gdx_settings.DELETE_PERMISSION_ERROR_MESSAGE,
-                code=gdx_settings.DELETE_PERMISSION_ERROR_CODE,
-            )
+            raise GQLDeletePermissionDeniedError
 
         cls.validate_deletion(instance, info.context.user)
         count, _ = instance.delete()
@@ -587,10 +581,7 @@ class DjangoMutation(Mutation):
     @classmethod
     def validate_custom_mutation_input_data(cls, info: GQLInfo, input_data: dict[str, Any]) -> dict[str, Any]:
         if not cls.has_mutation_permission(info, input_data):
-            raise GQLPermissionDeniedError(
-                message=gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE,
-                code=gdx_settings.MUTATION_PERMISSION_ERROR_CODE,
-            )
+            raise GQLMutationPermissionDeniedError
 
         validator = cls.run_validation(input_data, info)
         if isinstance(validator, Serializer):

@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import wraps
 from typing import TYPE_CHECKING
 
-from .errors import GQLPermissionDeniedError
+from .errors import GQLFieldPermissionDeniedError
 from .settings import gdx_settings
 from .typing import ParamSpec, TypeVar
 
@@ -108,7 +108,7 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
                 return None
             if result:  # pragma: no cover
                 return func(*args, **kwargs)
-            raise GQLPermissionDeniedError(message, gdx_settings.FIELD_PERMISSION_ERROR_CODE)
+            raise GQLFieldPermissionDeniedError(message=message)
 
         return wrapper
 

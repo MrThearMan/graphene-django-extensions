@@ -27,25 +27,81 @@ if TYPE_CHECKING:
 
 __all__ = [
     "GDXWarning",
-    "get_constraint_message",
+    "GQLCodeError",
+    "GQLCreatePermissionDeniedError",
+    "GQLDeletePermissionDeniedError",
+    "GQLFieldPermissionDeniedError",
+    "GQLFilterPermissionDeniedError",
+    "GQLMutationPermissionDeniedError",
+    "GQLNodePermissionDeniedError",
     "GQLNotFoundError",
-    "GQLPermissionDeniedError",
+    "GQLUpdatePermissionDeniedError",
     "GQLValidationError",
+    "get_constraint_message",
 ]
 
 
-class GQLPermissionDeniedError(GraphQLError):
-    """Exception raised when the user has insufficient permissions to access a resource."""
+class GQLCodeError(GraphQLError):
+    """Exception raised with a custom error code."""
 
-    def __init__(self, message: str, code: str) -> None:
-        super().__init__(message, extensions={"code": code})
+    code: str = "ERROR_CODE"
+    message: str = "Error message."
+
+    def __init__(self, message: str | None = None, code: str | None = None) -> None:
+        super().__init__(message=message or self.message, extensions={"code": code or self.code})
 
 
-class GQLNotFoundError(GraphQLError):
-    """Exception raised when the user has insufficient permissions to access a resource."""
+class GQLNodePermissionDeniedError(GQLCodeError):
+    """Exception raised when the user has insufficient permissions to access a single resource."""
 
-    def __init__(self, message: str, code: str) -> None:
-        super().__init__(message, extensions={"code": code})
+    code = gdx_settings.QUERY_PERMISSION_ERROR_CODE
+    message = gdx_settings.QUERY_PERMISSION_ERROR_MESSAGE
+
+
+class GQLFilterPermissionDeniedError(GQLCodeError):
+    """Exception raised when the user has insufficient permissions to access multiple resources."""
+
+    code = gdx_settings.FILTER_PERMISSION_ERROR_CODE
+    message = gdx_settings.FILTER_PERMISSION_ERROR_MESSAGE
+
+
+class GQLCreatePermissionDeniedError(GQLCodeError):
+    """Exception raised when the user has insufficient permissions to create a resource."""
+
+    code = gdx_settings.CREATE_PERMISSION_ERROR_CODE
+    message = gdx_settings.CREATE_PERMISSION_ERROR_MESSAGE
+
+
+class GQLUpdatePermissionDeniedError(GQLCodeError):
+    """Exception raised when the user has insufficient permissions to update a resource."""
+
+    code = gdx_settings.UPDATE_PERMISSION_ERROR_CODE
+    message = gdx_settings.UPDATE_PERMISSION_ERROR_MESSAGE
+
+
+class GQLDeletePermissionDeniedError(GQLCodeError):
+    """Exception raised when the user has insufficient permissions to delete a resource."""
+
+    code = gdx_settings.DELETE_PERMISSION_ERROR_CODE
+    message = gdx_settings.DELETE_PERMISSION_ERROR_MESSAGE
+
+
+class GQLMutationPermissionDeniedError(GQLCodeError):
+    """Exception raised when the user has insufficient permissions to mutate a resource."""
+
+    code = gdx_settings.MUTATION_PERMISSION_ERROR_CODE
+    message = gdx_settings.MUTATION_PERMISSION_ERROR_MESSAGE
+
+
+class GQLFieldPermissionDeniedError(GQLCodeError):
+    """Exception raised when the user has insufficient permissions to access a field from a resource."""
+
+    code = gdx_settings.FIELD_PERMISSION_ERROR_CODE
+    message = gdx_settings.FIELD_PERMISSION_ERROR_MESSAGE
+
+
+class GQLNotFoundError(GQLCodeError):
+    """Exception raised when a resource does not exist."""
 
 
 class GQLValidationError(GraphQLError):
