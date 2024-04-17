@@ -9,8 +9,9 @@ from .typing import ParamSpec, TypeVar
 
 if TYPE_CHECKING:
     from django.db.models import Model
+    from query_optimizer.typing import GraphQLFilterInfo
 
-    from .typing import Any, AnyUser, Callable, GraphQLFilterInfo, PermCheck
+    from .typing import Any, AnyUser, Callable, PermCheck
 
 
 T = TypeVar("T")

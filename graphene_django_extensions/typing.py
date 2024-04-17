@@ -67,7 +67,6 @@ __all__ = [
     "GQLFields",
     "GQLInfo",
     "Generic",
-    "GraphQLFilterInfo",
     "Iterable",
     "Literal",
     "Mapping",
@@ -174,9 +173,3 @@ class FieldError(TypedDict):
     field: str
     message: str
     code: str
-
-
-class GraphQLFilterInfo(TypedDict, total=False):
-    name: str
-    filters: dict[str, Any]
-    children: dict[str, GraphQLFilterInfo]

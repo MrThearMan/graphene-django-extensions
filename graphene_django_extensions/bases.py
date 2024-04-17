@@ -18,6 +18,7 @@ from graphene_django.types import ALL_FIELDS
 from graphene_django.utils import is_valid_django_model
 from graphql_relay import to_global_id
 from query_optimizer import DjangoConnectionField, DjangoListField, DjangoObjectType
+from query_optimizer.filter_info import get_filter_info
 from rest_framework.exceptions import ValidationError as SerializerValidationError
 from rest_framework.fields import SerializerMethodField, get_attribute
 from rest_framework.serializers import ListSerializer, ModelSerializer, Serializer
@@ -31,7 +32,7 @@ from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
 from .typing import Fields, GQLFields, Sequence
-from .utils import add_translatable_fields, get_filter_info
+from .utils import add_translatable_fields
 
 if TYPE_CHECKING:
     from django.db import models
@@ -194,7 +195,7 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def has_node_permissions(cls, info: GQLInfo, instance: models.Model) -> bool:
         """Check which permissions are required to access single items of this type."""
-        filters = get_filter_info(info)
+        filters = get_filter_info(info, cls._meta.model)
         return all(
             perm.has_node_permission(
                 instance=instance,
@@ -207,7 +208,7 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def has_filter_permissions(cls, info: GQLInfo) -> bool:
         """Check which permissions are required to access lists of this type."""
-        filters = get_filter_info(info)
+        filters = get_filter_info(info, cls._meta.model)
         return all(
             perm.has_filter_permission(
                 user=info.context.user,

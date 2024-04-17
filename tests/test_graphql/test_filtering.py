@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
 import pytest
+from django.db import models
 
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.typing import GQLInfo
 from graphene_django_extensions.utils import get_filter_info, get_fields_from_info
+from tests.example.filtersets import ExampleFilterSet, ForwardManyToManyFilterSet
 from tests.example.models import ExampleState
 from tests.factories import ExampleFactory, ForwardManyToManyFactory
 
@@ -96,10 +98,10 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
     fields = {}
     filters = {}
 
-    def tracker(info: GQLInfo):
+    def tracker(info: GQLInfo, model: type[models.Model]):
         nonlocal fields, filters
         fields = get_fields_from_info(info)
-        filters = get_filter_info(info)
+        filters = get_filter_info(info, model)
         return filters
 
     with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
@@ -119,7 +121,7 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
         },
     ]
     assert filters == {
-        "name": "ExampleNode",
+        "name": "ExampleNodeConnection",
         "children": {},
         "filters": {
             "filter": {
@@ -128,6 +130,10 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
                 "value": "foo",
             },
         },
+        "filterset_class": ExampleFilterSet,
+        "is_connection": True,
+        "is_node": False,
+        "max_limit": 100,
     }
 
     assert response.has_errors is False, response
@@ -217,10 +223,10 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
     fields = {}
     filters = {}
 
-    def tracker(info: GQLInfo):
+    def tracker(info: GQLInfo, model: type[models.Model]):
         nonlocal fields, filters
         fields = get_fields_from_info(info)
-        filters = get_filter_info(info)
+        filters = get_filter_info(info, model)
         return filters
 
     with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
@@ -240,7 +246,7 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
         },
     ]
     assert filters == {
-        "name": "ExampleNode",
+        "name": "ExampleNodeConnection",
         "children": {},
         "filters": {
             "filter": {
@@ -265,6 +271,10 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
                 ],
             }
         },
+        "filterset_class": ExampleFilterSet,
+        "is_connection": True,
+        "is_node": False,
+        "max_limit": 100,
     }
 
     assert response.has_errors is False, response
@@ -287,10 +297,10 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
     fields = {}
     filters = {}
 
-    def tracker(info: GQLInfo):
+    def tracker(info: GQLInfo, model: type[models.Model]):
         nonlocal fields, filters
         fields = get_fields_from_info(info)
-        filters = get_filter_info(info)
+        filters = get_filter_info(info, model)
         return filters
 
     with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
@@ -302,12 +312,16 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
         },
     ]
     assert filters == {
+        "name": "ExampleNode",
         "children": {},
         "filters": {
             "example_state": [ExampleState.ACTIVE, ExampleState.INACTIVE],
             "name": "foo",
         },
-        "name": "ExampleNode",
+        "filterset_class": ExampleFilterSet,
+        "is_connection": False,
+        "is_node": False,
+        "max_limit": 100,
     }
 
     assert response.has_errors is False, response
@@ -338,10 +352,10 @@ def test_graphql__filter__sub_filter(graphql: GraphQLClient):
     fields = {}
     filters = {}
 
-    def tracker(info: GQLInfo):
+    def tracker(info: GQLInfo, model: type[models.Model]):
         nonlocal fields, filters
         fields = get_fields_from_info(info)
-        filters = get_filter_info(info)
+        filters = get_filter_info(info, model)
         return filters
 
     with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
@@ -363,6 +377,10 @@ def test_graphql__filter__sub_filter(graphql: GraphQLClient):
         "filters": {
             "pk": [1],
         },
+        "filterset_class": ForwardManyToManyFilterSet,
+        "is_connection": False,
+        "is_node": False,
+        "max_limit": 100,
     }
 
     assert response.has_errors is False, response
