@@ -30,6 +30,10 @@ from tests.factories import (
     ReverseOneToOneFactory,
     ReverseOneToManyFactory,
 )
+from rest_framework import __version__ as drf_version
+
+DRF_VERSION = tuple(int(i) for i in drf_version.split("."))
+
 
 pytestmark = [
     pytest.mark.django_db,
@@ -262,6 +266,7 @@ def test_nesting_model_serializer__update():
     assert items_3[0].name == example_data["reverse_many_to_many_rels"][0]["name"]
 
 
+@pytest.mark.skipif(DRF_VERSION >= (3, 15), reason="Unique errors are raised during validation after DRF 3.15.")
 def test_nesting_model_serializer__unique_error():
     ExampleFactory.create(name="foo", number=1)
 

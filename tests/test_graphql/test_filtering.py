@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 import pytest
 from django.db import models
+from query_optimizer.selections import get_field_selections
 
-from graphene_django_extensions.selections import get_fields_selections
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.typing import GQLInfo
 from graphene_django_extensions.utils import get_filter_info
@@ -102,7 +102,7 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
     def tracker(info: GQLInfo, model: type[models.Model]):
         nonlocal selections, filters
         if not selections:
-            selections = get_fields_selections(info, model)
+            selections = get_field_selections(info, model)
         filters = get_filter_info(info, model)
         return filters
 
@@ -216,7 +216,7 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
     def tracker(info: GQLInfo, model: type[models.Model]):
         nonlocal selections, filters
         if not selections:
-            selections = get_fields_selections(info, model)
+            selections = get_field_selections(info, model)
         filters = get_filter_info(info, model)
         return filters
 
@@ -279,7 +279,7 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
     def tracker(info: GQLInfo, model: type[models.Model]):
         nonlocal selections, filters
         if not selections:
-            selections = get_fields_selections(info, model)
+            selections = get_field_selections(info, model)
         filters = get_filter_info(info, model)
         return filters
 
@@ -331,7 +331,7 @@ def test_graphql__filter__sub_filter(graphql: GraphQLClient):
     def tracker(info: GQLInfo, model: type[models.Model]):
         nonlocal selections, filters
         if not selections:
-            selections = get_fields_selections(info, model)
+            selections = get_field_selections(info, model)
         filters = get_filter_info(info, model)
         return filters
 

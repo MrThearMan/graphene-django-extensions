@@ -595,13 +595,13 @@ test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", 
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.5.1"
+version = "0.5.2"
 description = "Automatically optimize SQL queries in Graphene-Django schemas."
 optional = false
 python-versions = "<4,>=3.9"
 files = [
-    {file = "graphene_django_query_optimizer-0.5.1-py3-none-any.whl", hash = "sha256:1650c040a210bc7892986d1edc90a93b4736f9956bf19b1f40e3ef17abc7ec4b"},
-    {file = "graphene_django_query_optimizer-0.5.1.tar.gz", hash = "sha256:ceb0f27850b9a6a4724d4781baae2f6e1cb1b9dbd1aacf9c1d919ce5f4d38abd"},
+    {file = "graphene_django_query_optimizer-0.5.2-py3-none-any.whl", hash = "sha256:20dd491dc10b7a9f06c81027f4d6ef6b62a239a3ab5334d91f69b06ad7cebdb3"},
+    {file = "graphene_django_query_optimizer-0.5.2.tar.gz", hash = "sha256:063559786529136ecf379aea1ca6885aac99c624f0da06a14bb50f9468ef4a23"},
 ]
 
 [package.dependencies]
@@ -1543,4 +1543,4 @@ translation = ["django-modeltranslation"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "cecf0afb481987a247213360271234a96d9ab50aadf575d3d68b47b124fa9758"
+content-hash = "f2c69ace6e47f667e99f7d1d3fb3a8ebe2ead0e03dedf9d3614ec68f2828276d"
