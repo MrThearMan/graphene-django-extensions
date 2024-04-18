@@ -103,6 +103,8 @@ class GQLFieldPermissionDeniedError(GQLCodeError):
 class GQLNotFoundError(GQLCodeError):
     """Exception raised when a resource does not exist."""
 
+    code = gdx_settings.NOT_FOUND_ERROR_CODE
+
 
 class GQLValidationError(GraphQLError):
     """Exception raised when mutation validation fails."""
@@ -114,7 +116,7 @@ class GQLValidationError(GraphQLError):
         detail = flatten_errors(detail)
         errors = to_field_errors(detail)
         super().__init__(
-            gdx_settings.MUTATION_VALIDATION_ERROR_MESSAGE,
+            message=gdx_settings.MUTATION_VALIDATION_ERROR_MESSAGE,
             extensions={"code": gdx_settings.MUTATION_VALIDATION_ERROR_CODE, "errors": errors},
         )
 

@@ -141,7 +141,7 @@ class NestingModelSerializer(ModelSerializer):
         """
         Prepare related models defined using BaseModelSerializers.
         Forward 'one-to-one' and 'many-to-one' related entities will be fetched, updated, or created.
-        Other related entities will be saved to be handled after the main model is saved using '_handle_to_many'.
+        Other related entities will be saved to be handled after the main model is saved using '_post_save'.
         """
         pre_save_infos: list[PreSaveInfo] = []
         related_info = get_related_field_info(self.Meta.model)
