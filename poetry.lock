@@ -297,13 +297,13 @@ files = [
 
 [[package]]
 name = "django"
-version = "5.0.4"
+version = "5.0.6"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "Django-5.0.4-py3-none-any.whl", hash = "sha256:916423499d75d62da7aa038d19aef23d23498d8df229775eb0a6309ee1013775"},
-    {file = "Django-5.0.4.tar.gz", hash = "sha256:4bd01a8c830bb77a8a3b0e7d8b25b887e536ad17a81ba2dce5476135c73312bd"},
+    {file = "Django-5.0.6-py3-none-any.whl", hash = "sha256:8363ac062bb4ef7c3f12d078f6fa5d154031d129a15170a1066412af49d30905"},
+    {file = "Django-5.0.6.tar.gz", hash = "sha256:ff1b61005004e476e0aeea47c7f79b85864c70124030e95146315396f1e7951f"},
 ]
 
 [package.dependencies]
@@ -596,13 +596,13 @@ test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", 
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.5.2"
+version = "0.5.3"
 description = "Automatically optimize SQL queries in Graphene-Django schemas."
 optional = false
 python-versions = "<4,>=3.9"
 files = [
-    {file = "graphene_django_query_optimizer-0.5.2-py3-none-any.whl", hash = "sha256:20dd491dc10b7a9f06c81027f4d6ef6b62a239a3ab5334d91f69b06ad7cebdb3"},
-    {file = "graphene_django_query_optimizer-0.5.2.tar.gz", hash = "sha256:063559786529136ecf379aea1ca6885aac99c624f0da06a14bb50f9468ef4a23"},
+    {file = "graphene_django_query_optimizer-0.5.3-py3-none-any.whl", hash = "sha256:631091911be5a4c8c2ee37f7c4484e2a916c9fc58e47940f75e35d21304ff74a"},
+    {file = "graphene_django_query_optimizer-0.5.3.tar.gz", hash = "sha256:1b41f1e288ebe3d67ef78a8584fa9c0c070cd82dce75bb4c37bd86280236b59a"},
 ]
 
 [package.dependencies]
@@ -1080,13 +1080,13 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pre-commit"
-version = "3.7.0"
+version = "3.7.1"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "pre_commit-3.7.0-py2.py3-none-any.whl", hash = "sha256:5eae9e10c2b5ac51577c3452ec0a490455c45a0533f7960f993a0d01e59decab"},
-    {file = "pre_commit-3.7.0.tar.gz", hash = "sha256:e209d61b8acdcf742404408531f0c37d49d2c734fd7cff2d6076083d191cb060"},
+    {file = "pre_commit-3.7.1-py2.py3-none-any.whl", hash = "sha256:fae36fd1d7ad7d6a5a1c0b0d5adb2ed1a3bda5a21bf6c3e5372073d7a11cd4c5"},
+    {file = "pre_commit-3.7.1.tar.gz", hash = "sha256:8ca3ad567bc78a4972a3f1a477e94a79d4597e8140a6e0b651c5e33899c3654a"},
 ]
 
 [package.dependencies]
@@ -1549,4 +1549,4 @@ translation = ["django-modeltranslation"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "4e3970f63d3c00ba40d3694f8aeb54f467551a754784ac53f8514757aeb9685b"
+content-hash = "2d1c6675ea3867b892191d90e0c6fa6a0d0edc141b1b4cc01713fe598ca64bf3"
