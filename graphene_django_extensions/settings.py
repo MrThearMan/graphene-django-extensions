@@ -1,9 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.conf import settings
-from django.db import models
 from django.test.signals import setting_changed
 from settings_holder import SettingsHolder, reload_settings
 
-from .typing import Any, NamedTuple, Union
+from .typing import Any, NamedTuple
+
+if TYPE_CHECKING:
+    from django.db import models
 
 SETTING_NAME: str = "GRAPHENE_DJANGO_EXTENSIONS"
 
@@ -33,7 +39,7 @@ class DefaultSettings(NamedTuple):
 
 DEFAULTS: dict[str, Any] = DefaultSettings()._asdict()
 
-IMPORT_STRINGS: set[Union[bytes, str]] = set()
+IMPORT_STRINGS: set[bytes | str] = set()
 REMOVED_SETTINGS: set[str] = {
     "PERMISSION_DENIED_MESSAGE",
 }

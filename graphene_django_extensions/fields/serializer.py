@@ -11,14 +11,14 @@ from rest_framework.relations import PKOnlyObject
 if TYPE_CHECKING:
     from django.db.models import Model
 
-    from ..typing import Any
+    from graphene_django_extensions.typing import Any
 
 
 __all__ = [
-    "IntegerPrimaryKeyField",
-    "IntPkOnlyObject",
     "DurationField",
     "EnumFriendlyChoiceField",
+    "IntPkOnlyObject",
+    "IntegerPrimaryKeyField",
 ]
 
 

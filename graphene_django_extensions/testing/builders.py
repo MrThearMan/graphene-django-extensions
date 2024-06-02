@@ -10,13 +10,13 @@ from django.db.models import lookups
 from django.db.models.constants import LOOKUP_SEP
 from graphene.utils.str_converters import to_camel_case
 
-from ..settings import gdx_settings
-from ..typing import Any, NamedTuple
-from ..utils import get_nested
+from graphene_django_extensions.settings import gdx_settings
+from graphene_django_extensions.typing import Any, NamedTuple
+from graphene_django_extensions.utils import get_nested
 
 __all__ = [
-    "build_query",
     "build_mutation",
+    "build_query",
 ]
 
 

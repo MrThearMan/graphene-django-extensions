@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    "DjangoNodeOptions",
     "DjangoMutationOptions",
+    "DjangoNodeOptions",
 ]
 
 

@@ -51,10 +51,10 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    "DjangoNode",
     "CreateMutation",
-    "UpdateMutation",
     "DeleteMutation",
+    "DjangoNode",
+    "UpdateMutation",
 ]
 
 

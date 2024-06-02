@@ -21,13 +21,7 @@ from .fields import (
     UserDefinedFilterField,
 )
 from .settings import gdx_settings
-from .typing import (
-    FieldAliasToLookup,
-    FilterFields,
-    FilterSetMeta,
-    UserDefinedFilterInput,
-    UserDefinedFilterResult,
-)
+from .typing import FieldAliasToLookup, FilterFields, FilterSetMeta, UserDefinedFilterInput, UserDefinedFilterResult
 
 if TYPE_CHECKING:
     from .typing import Any, OrderingFunc

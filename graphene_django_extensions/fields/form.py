@@ -8,15 +8,15 @@ from graphene.utils.str_converters import to_camel_case
 if TYPE_CHECKING:
     from django.db.models import Choices, Model
 
-    from ..typing import Any, FieldAliasToLookup, FieldNameStr
+    from graphene_django_extensions.typing import Any, FieldAliasToLookup, FieldNameStr
 
 __all__ = [
-    "IntChoiceField",
-    "IntMultipleChoiceField",
     "EnumChoiceField",
     "EnumMultipleChoiceField",
-    "UserDefinedFilterField",
+    "IntChoiceField",
+    "IntMultipleChoiceField",
     "OrderByField",
+    "UserDefinedFilterField",
 ]
 
 

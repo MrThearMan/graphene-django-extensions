@@ -15,8 +15,8 @@ from graphene_django.converter import convert_django_field
 from graphql import Undefined
 from query_optimizer import DjangoConnectionField, DjangoListField, RelatedField
 
-from ..typing import StrEnum
-from ..utils import get_operator_enum
+from graphene_django_extensions.typing import StrEnum
+from graphene_django_extensions.utils import get_operator_enum
 
 if TYPE_CHECKING:
     from django.db.models import Model

@@ -8,11 +8,11 @@ from django.db import models
 if TYPE_CHECKING:
     from django.forms import Field
 
-    from ..typing import Any, Sequence
+    from graphene_django_extensions.typing import Any, Sequence
 
 __all__ = [
-    "StrChoiceField",
     "IntChoiceField",
+    "StrChoiceField",
 ]
 
 

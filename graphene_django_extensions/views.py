@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from typing import TYPE_CHECKING
 
@@ -5,10 +7,11 @@ from django.http import HttpRequest, HttpResponseBadRequest
 from graphene_django.views import GraphQLView, HttpError
 
 from .files import place_files
-from .typing import Any
 
 if TYPE_CHECKING:
     from django.core.files import File
+
+    from .typing import Any
 
 __all__ = [
     "FileUploadGraphQLView",

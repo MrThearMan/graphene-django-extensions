@@ -9,14 +9,15 @@ from django.contrib.auth import get_user_model
 from django.test.client import MULTIPART_CONTENT, Client
 from graphene_django.settings import graphene_settings
 
-from ..files import extract_files
+from graphene_django_extensions.files import extract_files
+
 from .utils import QueryData, capture_database_queries
 
 if TYPE_CHECKING:
     from django.core.files import File
     from django.http import HttpResponse
 
-    from ..typing import Any, ClassVar, FieldError, Self
+    from graphene_django_extensions.typing import Any, ClassVar, FieldError, Self
 
 
 User = get_user_model()

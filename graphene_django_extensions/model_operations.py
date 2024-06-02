@@ -15,8 +15,8 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    "get_object_or_404",
     "get_model_lookup_field",
+    "get_object_or_404",
     "get_related_field_info",
 ]
 
