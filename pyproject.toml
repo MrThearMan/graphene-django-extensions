@@ -67,11 +67,11 @@ django-modeltranslation = { version = ">=0.18.13", optional = true }
 pillow = { version = ">=10.2.0", optional = true }
 
 [tool.poetry.group.test.dependencies]
-pytest = "8.2.1"
+pytest = "8.2.2"
 coverage = "7.5.3"
 pytest-django = "4.8.0"
 pre-commit = "3.7.1"
-tox = "4.15.0"
+tox = "4.15.1"
 tox-gh-actions = "3.2.0"
 factory-boy = "3.3.0"
 django-graphiql-debug-toolbar = "0.2.0"
