@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import re
 from typing import Any, NamedTuple
 
 import pytest
 from django.db import models
-from graphene_django_extensions.constants import Operation
 
+from graphene_django_extensions.constants import Operation
 from graphene_django_extensions.filters import UserDefinedFilter
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.testing.utils import compare_unordered, parametrize_helper
@@ -295,7 +297,7 @@ def test_build_filter_operation__not_should_have_only_one_operation():
 
 @pytest.mark.django_db()
 def test_test_client(graphql: GraphQLClient, settings):
-    query = build_query("examples", fields="pk name", connection=True)
+    query = build_query("examples", connection=True)
     graphql.login_with_superuser()
     response = graphql(query)
 

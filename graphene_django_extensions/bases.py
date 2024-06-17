@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.forms import Form, ModelForm
+from django.utils.translation import get_language_from_request
 from graphene import Field, InputField, InputObjectType, Mutation
 from graphene.types.resolver import attr_resolver
 from graphene.types.utils import yank_fields_from_attrs
@@ -40,8 +41,8 @@ from .model_operations import get_model_lookup_field, get_object_or_404
 from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
+from .translation import LanguageListField, TranslationsField, add_translatable_fields, get_translatable_fields
 from .typing import Fields, GQLFields, Sequence
-from .utils import add_translatable_fields
 
 if TYPE_CHECKING:
     from django.db import models
@@ -151,7 +152,7 @@ class DjangoNode(DjangoObjectType):
             msg = f"`Meta.fields` is should be a Sequence of field names or `{ALL_FIELDS}`, received: `{fields}`."
             raise TypeError(msg)
 
-        if fields != ALL_FIELDS:
+        if not gdx_settings.EXPERIMENTAL_TRANSLATION_FIELDS and fields != ALL_FIELDS:
             fields = add_translatable_fields(model, fields)
 
         if restricted_fields is not None:
@@ -169,6 +170,28 @@ class DjangoNode(DjangoObjectType):
             _check_if_model_already_registered(cls, model)
 
         super().__init_subclass_with_meta__(_meta=_meta, model=model, fields=fields, **options)
+
+        if gdx_settings.EXPERIMENTAL_TRANSLATION_FIELDS:
+            cls._modify_translatable_fields()
+
+    @classmethod
+    def _modify_translatable_fields(cls) -> None:
+        for field_name in get_translatable_fields(cls._meta.model):
+            resolver_name = f"resolve_{field_name}"
+            if not hasattr(cls, resolver_name):
+                setattr(cls, resolver_name, partial(cls._resolve_translated_field, field_name=field_name))
+
+            name = f"{field_name}_translations"
+            cls._meta.fields[name] = (
+                TranslationsField(field_name=field_name)
+                if gdx_settings.EXPERIMENTAL_TRANSLATION_FIELDS_KIND == "types"
+                else LanguageListField(field_name=field_name)
+            )
+
+    @classmethod
+    def _resolve_translated_field(cls, root: models.Model, info: GQLInfo, field_name: str) -> str:
+        request_language = get_language_from_request(info.context)
+        return getattr(root, f"{field_name}_{request_language}") or ""
 
     @classmethod
     def _add_field_restrictions(cls, fields: Fields, restricted_fields: dict[FieldNameStr, PermCheck]) -> None:

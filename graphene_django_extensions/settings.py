@@ -6,7 +6,7 @@ from django.conf import settings
 from django.test.signals import setting_changed
 from settings_holder import SettingsHolder, reload_settings
 
-from .typing import Any, NamedTuple
+from .typing import Any, Literal, NamedTuple
 
 if TYPE_CHECKING:
     from django.db import models
@@ -35,6 +35,8 @@ class DefaultSettings(NamedTuple):
     ORDERING_FILTER_NAME: str = "order_by"
     EXTEND_USER_DEFINED_FILTER_OPERATIONS: list[str] | None = None
     ALLOW_MODEL_OBJECT_TYPE_REGISTRY_OVERRIDES: bool = True
+    EXPERIMENTAL_TRANSLATION_FIELDS: bool = False
+    EXPERIMENTAL_TRANSLATION_FIELDS_KIND: Literal["list", "types"] = "list"
 
 
 DEFAULTS: dict[str, Any] = DefaultSettings()._asdict()
@@ -44,11 +46,24 @@ REMOVED_SETTINGS: set[str] = {
     "PERMISSION_DENIED_MESSAGE",
 }
 
+
+def _validate_experimental_translation_fields_kind(value: Any) -> None:  # pragma: no cover
+    if value not in ("list", "types"):
+        msg = (
+            f"Value `{value}` is not valid for `EXPERMENTAL_TRANSLATION_FIELDS_KIND`. "
+            f"Valid values are `list` and `types`."
+        )
+        raise ValueError(msg)
+
+
 gdx_settings = SettingsHolder(
     setting_name=SETTING_NAME,
     defaults=DEFAULTS,
     import_strings=IMPORT_STRINGS,
     removed_settings=REMOVED_SETTINGS,
+    validators={
+        "EXPERMENTAL_TRANSLATION_FIELDS_KIND": _validate_experimental_translation_fields_kind,
+    },
 )
 
 reload_my_settings = reload_settings(SETTING_NAME, gdx_settings)

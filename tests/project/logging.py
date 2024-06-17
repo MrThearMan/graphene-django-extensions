@@ -37,5 +37,5 @@ class TracebackMiddleware:
         try:
             return next(root, info, **kwargs)
         except Exception as err:
-            logger.info(traceback.format_exc())
+            logger.exception(traceback.format_exc())
             return err

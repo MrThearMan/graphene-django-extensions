@@ -10,12 +10,9 @@ from .settings import gdx_settings
 from .typing import StrEnum
 
 if TYPE_CHECKING:
-    from django.db import models
-
-    from .typing import Any, Sequence
+    from .typing import Any
 
 __all__ = [
-    "add_translatable_fields",
     "get_filter_info",
     "get_nested",
     "get_operator_enum",
@@ -52,29 +49,6 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
     except AttributeError:
         obj = None
         return get_nested(obj, *args, default=default)
-
-
-def add_translatable_fields(model: type[models.Model], fields: Sequence[str]) -> Sequence[str]:  # pragma: no cover
-    """
-    If `django-modeltranslation` is installed, find and add all translation fields
-    to the given fields list, for the given fields, in the given model.
-    """
-    try:
-        from modeltranslation.manager import get_translatable_fields_for_model
-        from modeltranslation.utils import get_translation_fields
-    except ImportError:
-        return fields
-
-    translatable_fields: list[str] = get_translatable_fields_for_model(model) or []
-    new_fields: list[str] = []
-    for field in fields:
-        new_fields.append(field)
-        if field not in translatable_fields:
-            continue
-        fields = get_translation_fields(field)
-        new_fields.extend(fields)
-
-    return new_fields
 
 
 @cache

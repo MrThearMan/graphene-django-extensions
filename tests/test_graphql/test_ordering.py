@@ -12,7 +12,7 @@ def test_graphql__ordering__ascending(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(name="foo2")
     example_2 = ExampleFactory.create(name="foo1")
 
-    query = build_query("examples", connection=True, order_by="nameAsc")
+    query = build_query("examples", connection=True, order_by="nameEnAsc")
 
     graphql.login_with_superuser()
     response = graphql(query)
@@ -27,7 +27,7 @@ def test_graphql__ordering__descending(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(name="foo2")
     example_2 = ExampleFactory.create(name="foo1")
 
-    query = build_query("examples", connection=True, order_by="nameDesc")
+    query = build_query("examples", connection=True, order_by="nameEnDesc")
 
     graphql.login_with_superuser()
     response = graphql(query)
@@ -42,7 +42,7 @@ def test_graphql__ordering__multiple(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(name="foo2", number=1)
     example_2 = ExampleFactory.create(name="foo1", number=2)
 
-    query = build_query("examples", connection=True, order_by=["nameAsc", "numberDesc"])
+    query = build_query("examples", connection=True, order_by=["nameEnAsc", "numberDesc"])
 
     graphql.login_with_superuser()
     response = graphql(query)

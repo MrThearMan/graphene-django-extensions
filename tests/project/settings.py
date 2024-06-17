@@ -18,6 +18,7 @@ INTERNAL_IPS = [
 ]
 
 INSTALLED_APPS = [
+    "modeltranslation",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -103,7 +104,10 @@ LOGGING = {
 }
 
 LANGUAGE_CODE = "en-us"
-LANGUAGES = [("en", "English")]
+LANGUAGES = [
+    ("en", "English"),
+    ("fi", "Finnish"),
+]
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_L10N = True
@@ -124,4 +128,6 @@ GRAPHENE = {
 
 GRAPHENE_DJANGO_EXTENSIONS = {
     "EXTEND_USER_DEFINED_FILTER_OPERATIONS": ["foo"],
+    # "EXPERIMENTAL_TRANSLATION_FIELDS": True,
+    # "EXPERIMENTAL_TRANSLATION_FIELDS_KIND": "list",
 }

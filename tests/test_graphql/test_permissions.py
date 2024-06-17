@@ -16,7 +16,7 @@ def test_graphql__query__node__no_perms(graphql: GraphQLClient):
     example = ExampleFactory.create()
 
     global_id = ExampleNode.get_global_id(example.pk)
-    query = build_query("example", fields="pk name", id=global_id)
+    query = build_query("example", id=global_id)
 
     response = graphql(query)
 
@@ -34,7 +34,7 @@ def test_graphql__query__node__no_perms(graphql: GraphQLClient):
 def test_graphql__query__list_field__no_perms(graphql: GraphQLClient):
     ExampleFactory.create()
 
-    query = build_query("exampleItems", fields="pk name")
+    query = build_query("exampleItems")
 
     response = graphql(query)
 
@@ -52,7 +52,7 @@ def test_graphql__query__list_field__no_perms(graphql: GraphQLClient):
 def test_graphql__query__connection__no_perms(graphql: GraphQLClient):
     ExampleFactory.create()
 
-    query = build_query("examples", fields="pk name", connection=True)
+    query = build_query("examples", connection=True)
 
     response = graphql(query)
 

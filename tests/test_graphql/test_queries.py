@@ -21,6 +21,8 @@ def test_graphql__query__all_fields(graphql: GraphQLClient):
     fields = """
         pk
         name
+        nameFi
+        nameEn
         email
         exampleState
         duration
@@ -33,6 +35,8 @@ def test_graphql__query__all_fields(graphql: GraphQLClient):
     assert response.first_query_object == {
         "pk": example.pk,
         "name": example.name,
+        "nameFi": example.name_fi,
+        "nameEn": example.name_en,
         "email": example.email,
         "exampleState": example.example_state,
         "duration": int(example.duration.total_seconds()),
@@ -42,26 +46,23 @@ def test_graphql__query__all_fields(graphql: GraphQLClient):
 def test_graphql__query__field(graphql: GraphQLClient):
     example = ExampleFactory.create()
 
-    query = build_query("exampleItem", fields="pk name")
+    query = build_query("exampleItem")
     response = graphql(query)
 
     assert response.has_errors is False, response
-    assert response.first_query_object == {"pk": example.pk, "name": example.name}
+    assert response.first_query_object == {"pk": example.pk}
 
 
 def test_graphql__query__list(graphql: GraphQLClient):
     example_1 = ExampleFactory.create()
     example_2 = ExampleFactory.create()
 
-    query = build_query("exampleItems", fields="pk name")
+    query = build_query("exampleItems")
     graphql.login_with_superuser()
     response = graphql(query)
 
     assert response.has_errors is False, response
-    assert sorted(response.first_query_object, key=lambda x: x["pk"]) == [
-        {"pk": example_1.pk, "name": example_1.name},
-        {"pk": example_2.pk, "name": example_2.name},
-    ]
+    assert sorted(response.first_query_object, key=lambda x: x["pk"]) == [{"pk": example_1.pk}, {"pk": example_2.pk}]
 
 
 def test_graphql__query__node(graphql: GraphQLClient):
@@ -69,25 +70,25 @@ def test_graphql__query__node(graphql: GraphQLClient):
 
     global_id = ExampleNode.get_global_id(example.pk)
 
-    query = build_query("example", fields="pk name", id=global_id)
+    query = build_query("example", id=global_id)
     graphql.login_with_superuser()
     response = graphql(query)
 
     assert response.has_errors is False, response
-    assert response.first_query_object == {"pk": example.pk, "name": example.name}
+    assert response.first_query_object == {"pk": example.pk}
 
 
 def test_graphql__query__connection(graphql: GraphQLClient):
     example = ExampleFactory.create()
 
-    query = build_query("examples", fields="pk name", connection=True)
+    query = build_query("examples", connection=True)
 
     graphql.login_with_superuser()
     response = graphql(query)
 
     assert response.has_errors is False, response
     assert len(response.edges) == 1
-    assert response.node() == {"pk": example.pk, "name": example.name}
+    assert response.node() == {"pk": example.pk}
 
 
 def test_graphql__query__optimizer(graphql: GraphQLClient):
@@ -95,7 +96,6 @@ def test_graphql__query__optimizer(graphql: GraphQLClient):
 
     fields = """
         pk
-        name
         forwardOneToOneField {
           name
         }
@@ -118,7 +118,6 @@ def test_graphql__query__optimizer(graphql: GraphQLClient):
     assert len(response.edges) == 1
     assert response.node() == {
         "pk": example.pk,
-        "name": example.name,
         "forwardOneToOneField": {
             "name": example.forward_one_to_one_field.name,
         },
@@ -154,7 +153,6 @@ def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient):
 
     fields = """
         pk
-        name
         forwardOneToOneField {
           name
         }
@@ -178,7 +176,7 @@ def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient):
           }
         }
     """
-    query = build_query("examples", fields=fields, connection=True, order_by="nameAsc")
+    query = build_query("examples", fields=fields, connection=True, order_by="nameEnAsc")
 
     graphql.login_with_superuser()
     response = graphql(query)
@@ -196,7 +194,6 @@ def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient):
     assert len(response.edges) == 2
     assert response.node(0) == {
         "pk": example_1.pk,
-        "name": example_1.name,
         "forwardOneToOneField": {
             "name": example_1.forward_one_to_one_field.name,
         },
@@ -231,7 +228,6 @@ def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient):
     }
     assert response.node(1) == {
         "pk": example_2.pk,
-        "name": example_2.name,
         "forwardOneToOneField": {
             "name": example_2.forward_one_to_one_field.name,
         },
@@ -263,4 +259,101 @@ def test_graphql__query__optimizer__all_relations(graphql: GraphQLClient):
                 {"node": {"name": e2_r33.name}},
             ],
         },
+    }
+
+
+@pytest.mark.parametrize("experimental_translation_fields", ["types"], indirect=True)
+def test_graphql__query__translations__accept_language(graphql: GraphQLClient, experimental_translation_fields):
+    example = ExampleFactory.create(name_fi="foo")
+
+    fields = """
+        pk
+        name
+    """
+    query = build_query("examples", fields=fields, connection=True)
+    graphql.login_with_superuser()
+    response = graphql(query, headers={"Accept-Language": "fi"})
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node(0) == {
+        "pk": example.pk,
+        "name": example.name_fi,
+    }
+
+
+@pytest.mark.parametrize("experimental_translation_fields", ["types"], indirect=True)
+def test_graphql__query__translations__accept_language__null(graphql: GraphQLClient, experimental_translation_fields):
+    example = ExampleFactory.create()
+    assert example.name_fi is None
+
+    fields = """
+        pk
+        name
+    """
+    query = build_query("examples", fields=fields, connection=True)
+    graphql.login_with_superuser()
+    response = graphql(query, headers={"Accept-Language": "fi"})
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node(0) == {
+        "pk": example.pk,
+        "name": "",  # empty, since field cannot be null
+    }
+
+
+@pytest.mark.parametrize("experimental_translation_fields", ["types"], indirect=True)
+def test_graphql__query__translations__types(graphql: GraphQLClient, experimental_translation_fields):
+    example = ExampleFactory.create()
+
+    fields = """
+        pk
+        name
+        nameTranslations { fi en }
+    """
+    query = build_query("examples", fields=fields, connection=True)
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node(0) == {
+        "pk": example.pk,
+        "name": example.name_en,
+        "nameTranslations": {
+            "fi": example.name_fi,
+            "en": example.name_en,
+        },
+    }
+
+
+@pytest.mark.parametrize("experimental_translation_fields", ["list"], indirect=True)
+def test_graphql__query__translations__list(graphql: GraphQLClient, experimental_translation_fields):
+    example = ExampleFactory.create()
+
+    fields = """
+        pk
+        name
+        nameTranslations { language value }
+    """
+    query = build_query("examples", fields=fields, connection=True)
+    graphql.login_with_superuser()
+    response = graphql(query)
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node(0) == {
+        "pk": example.pk,
+        "name": example.name_en,
+        "nameTranslations": [
+            {
+                "language": "en",
+                "value": example.name_en,
+            },
+            {
+                "language": "fi",
+                "value": example.name_fi,
+            },
+        ],
     }

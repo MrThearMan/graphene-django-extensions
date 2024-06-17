@@ -1,15 +1,21 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-from django.db import models
 from query_optimizer.selections import get_field_selections
 
 from graphene_django_extensions.testing import GraphQLClient, build_query
-from graphene_django_extensions.typing import GQLInfo
 from graphene_django_extensions.utils import get_filter_info
 from tests.example.filtersets import ExampleFilterSet, ForwardManyToManyFilterSet
 from tests.example.models import ExampleState
 from tests.factories import ExampleFactory, ForwardManyToManyFactory
+
+if TYPE_CHECKING:
+    from django.db import models
+
+    from graphene_django_extensions.typing import GQLInfo
 
 pytestmark = [
     pytest.mark.django_db,
@@ -23,7 +29,7 @@ def test_graphql__filter(graphql: GraphQLClient):
     query = build_query(
         "examples",
         connection=True,
-        name=example.name,
+        name_en=example.name_en,
         example_state=[ExampleState.ACTIVE, ExampleState.INACTIVE],
     )
 
@@ -61,7 +67,7 @@ def test_graphql__filter__combination_filter(graphql: GraphQLClient):
     example_1 = ExampleFactory.create(name="foo1", number=1)
     example_2 = ExampleFactory.create(name="foo2", number=2)
 
-    query = build_query("examples", connection=True, order_by="nameAsc", one=example_1.number, two=example_2.number)
+    query = build_query("examples", connection=True, order_by="nameEnAsc", one=example_1.number, two=example_2.number)
 
     graphql.login_with_superuser()
     response = graphql(query)
@@ -80,7 +86,7 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
         query {
           examples(
             filter: {
-              field: name,
+              field: nameEn,
               operation: EXACT,
               value: "foo",
             }
@@ -106,7 +112,7 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
         filters = get_filter_info(info, model)
         return filters
 
-    with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
+    with patch("query_optimizer.optimizer.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
     assert selections == ["pk"]
@@ -115,7 +121,7 @@ def test_graphql__filter__user_defined(graphql: GraphQLClient):
         "children": {},
         "filters": {
             "filter": {
-                "field": "name",
+                "field": "name_en",  # Actually enum nameEn, but has value name_en.
                 "operation": "EXACT",
                 "value": "foo",
             },
@@ -175,7 +181,7 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
                     operation: OR,
                     operations: [
                       {
-                        field: name,
+                        field: nameEn,
                         operation: CONTAINS,
                         value: "foo",
                       },
@@ -220,7 +226,7 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
         filters = get_filter_info(info, model)
         return filters
 
-    with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
+    with patch("query_optimizer.optimizer.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
     assert selections == ["pk"]
@@ -236,15 +242,27 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
                         "field": None,
                         "operation": "OR",
                         "operations": [
-                            {"field": "name", "operation": "CONTAINS", "value": "foo"},
-                            {"field": "email", "operation": "CONTAINS", "value": "foo"},
+                            {
+                                "field": "name_en",  # Actually enum nameEn, but has value name_en.
+                                "operation": "CONTAINS",
+                                "value": "foo",
+                            },
+                            {
+                                "field": "email",
+                                "operation": "CONTAINS",
+                                "value": "foo",
+                            },
                         ],
                     },
                     {
                         "field": None,
                         "operation": "NOT",
                         "operations": [
-                            {"field": "number", "operation": "LT", "value": 10},
+                            {
+                                "field": "number",
+                                "operation": "LT",
+                                "value": 10,
+                            },
                         ],
                     },
                 ],
@@ -267,7 +285,7 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
 
     query = build_query(
         "exampleItems",
-        name=example.name,
+        name_en=example.name_en,
         example_state=[ExampleState.ACTIVE, ExampleState.INACTIVE],
     )
 
@@ -283,7 +301,7 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
         filters = get_filter_info(info, model)
         return filters
 
-    with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
+    with patch("query_optimizer.optimizer.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
     assert selections == ["pk"]
@@ -292,7 +310,7 @@ def test_graphql__filter__list_field(graphql: GraphQLClient):
         "children": {},
         "filters": {
             "example_state": [ExampleState.ACTIVE, ExampleState.INACTIVE],
-            "name": "foo",
+            "name_en": "foo",
         },
         "filterset_class": ExampleFilterSet,
         "is_connection": False,
@@ -335,7 +353,7 @@ def test_graphql__filter__sub_filter(graphql: GraphQLClient):
         filters = get_filter_info(info, model)
         return filters
 
-    with patch("graphene_django_extensions.bases.get_filter_info", side_effect=tracker):
+    with patch("query_optimizer.optimizer.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
     assert selections == [
@@ -345,15 +363,23 @@ def test_graphql__filter__sub_filter(graphql: GraphQLClient):
         },
     ]
     assert filters == {
-        "name": "ForwardManyToManyNode",
-        "children": {},
-        "filters": {
-            "pk": [1],
-        },
-        "filterset_class": ForwardManyToManyFilterSet,
+        "name": "ExampleNode",
+        "filters": {},
+        "filterset_class": ExampleFilterSet,
         "is_connection": False,
         "is_node": False,
         "max_limit": 100,
+        "children": {
+            "forward_many_to_many_fields": {
+                "name": "ForwardManyToManyNode",
+                "filters": {"pk": [1]},
+                "filterset_class": ForwardManyToManyFilterSet,
+                "is_connection": False,
+                "is_node": False,
+                "max_limit": 100,
+                "children": {},
+            }
+        },
     }
 
     assert response.has_errors is False, response

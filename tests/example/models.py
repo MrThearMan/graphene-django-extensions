@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from django.db import models
 
 
@@ -42,6 +44,10 @@ class Example(models.Model):
         related_name="example_rels",
         # related_query_name="example_query_rels",
     )
+
+    # Translation fields
+    name_en: str | None
+    name_fi: str | None
 
     @property
     def example_property(self) -> str:

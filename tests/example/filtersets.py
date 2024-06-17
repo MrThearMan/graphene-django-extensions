@@ -1,4 +1,6 @@
-from django.db import models
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from graphene_django_extensions.filters import (
     EnumMultipleChoiceFilter,
@@ -18,14 +20,17 @@ from tests.example.models import (
     ReverseOneToOne,
 )
 
+if TYPE_CHECKING:
+    from django.db import models
+
 __all__ = [
     "ExampleFilterSet",
-    "ForwardOneToOneFilterSet",
-    "ForwardManyToOneFilterSet",
     "ForwardManyToManyFilterSet",
-    "ReverseOneToOneFilterSet",
-    "ReverseOneToManyFilterSet",
+    "ForwardManyToOneFilterSet",
+    "ForwardOneToOneFilterSet",
     "ReverseManyToManyFilterSet",
+    "ReverseOneToManyFilterSet",
+    "ReverseOneToOneFilterSet",
 ]
 
 
@@ -43,6 +48,8 @@ class ExampleFilterSet(ModelFilterSet):
         fields=[
             "pk",
             "name",
+            "name_en",
+            "name_fi",
             "number",
             "email",
             ("forward_one_to_one_field__name", "foto_name"),
@@ -54,6 +61,8 @@ class ExampleFilterSet(ModelFilterSet):
         fields = [
             "pk",
             "name",
+            "name_en",
+            "name_fi",
             "number",
             "email",
             "example_state",
@@ -61,6 +70,8 @@ class ExampleFilterSet(ModelFilterSet):
         order_by = [
             "pk",
             "name",
+            "name_en",
+            "name_fi",
             "number",
             "email",
             ("forward_one_to_one_field", "foto"),

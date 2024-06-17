@@ -14,8 +14,8 @@ from rest_framework.serializers import ListSerializer, ModelSerializer
 from .errors import get_constraint_message
 from .fields import DurationField, EnumFriendlyChoiceField, IntegerPrimaryKeyField
 from .model_operations import RelatedFieldInfo, get_object_or_404, get_related_field_info
+from .translation import add_translatable_fields
 from .typing import ParamSpec, SerializerMeta, TypeVar
-from .utils import add_translatable_fields
 
 if TYPE_CHECKING:
     from django.db.models import Model
