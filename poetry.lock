@@ -597,13 +597,13 @@ test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", 
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.8.0"
+version = "0.8.1"
 description = "Automatically optimize SQL queries in Graphene-Django schemas."
 optional = false
 python-versions = "<4,>=3.9"
 files = [
-    {file = "graphene_django_query_optimizer-0.8.0-py3-none-any.whl", hash = "sha256:7efa94001f061846ab48312c1acc98340abf495bf3724c02bc10fb52d1709766"},
-    {file = "graphene_django_query_optimizer-0.8.0.tar.gz", hash = "sha256:1770346aade916d7606b67e7a1dc27d5448132e6321eac5b5de4a53dcc5ca5ee"},
+    {file = "graphene_django_query_optimizer-0.8.1-py3-none-any.whl", hash = "sha256:3e2fcce164b889706636c61267862988841ba6860f472e3e2cf7c8e179cba7a0"},
+    {file = "graphene_django_query_optimizer-0.8.1.tar.gz", hash = "sha256:ae2ff333d22592365198773d757a34b475ed44ea0979e2c3e35a5b5581e78c4a"},
 ]
 
 [package.dependencies]
@@ -1453,13 +1453,13 @@ files = [
 
 [[package]]
 name = "urllib3"
-version = "2.2.1"
+version = "2.2.2"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "urllib3-2.2.1-py3-none-any.whl", hash = "sha256:450b20ec296a467077128bff42b73080516e71b56ff59a60a02bef2232c4fa9d"},
-    {file = "urllib3-2.2.1.tar.gz", hash = "sha256:d0570876c61ab9e520d776c38acbbb5b05a776d3f9ff98a5c8fd5162a444cf19"},
+    {file = "urllib3-2.2.2-py3-none-any.whl", hash = "sha256:a448b2f64d686155468037e1ace9f2d2199776e17f0a46610480d311f73e3472"},
+    {file = "urllib3-2.2.2.tar.gz", hash = "sha256:dd505485549a7a552833da5e6063639d0d177c04f23bc3864e41e5dc5f612168"},
 ]
 
 [package.extras]
