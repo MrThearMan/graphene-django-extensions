@@ -336,7 +336,7 @@ class GQLResponse:
 class GraphQLClient(Client):
     response_class: ClassVar[type[GQLResponse]] = GQLResponse
 
-    def __call__(  # noqa: PLR0913
+    def __call__(
         self: Self,
         query: str,
         input_data: dict[str, Any] | None = None,
