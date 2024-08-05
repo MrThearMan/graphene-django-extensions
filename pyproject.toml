@@ -67,8 +67,8 @@ django-modeltranslation = { version = ">=0.18.13", optional = true }
 pillow = { version = ">=10.2.0", optional = true }
 
 [tool.poetry.group.test.dependencies]
-pytest = "8.3.1"
-coverage = "7.6.0"
+pytest = "8.3.2"
+coverage = "7.6.1"
 pytest-django = "4.8.0"
 tox = "4.16.0"
 tox-gh-actions = "3.2.0"
@@ -78,13 +78,13 @@ django-modeltranslation = "0.19.5"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "1.6.0"
-pymdown-extensions = "10.8.1"
+pymdown-extensions = "10.9"
 mkdocs-mermaid2-plugin = "1.1.1"
 
 [tool.poetry.group.lint.dependencies]
-mypy = "1.11.0"
-pre-commit = "3.7.1"
-django-stubs = "5.0.2"
+mypy = "1.11.1"
+pre-commit = "3.8.0"
+django-stubs = "5.0.4"
 djangorestframework-stubs = "3.15.0"
 
 [tool.poetry.extras]
