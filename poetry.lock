@@ -317,17 +317,17 @@ files = [
 
 [[package]]
 name = "django"
-version = "5.0.7"
+version = "5.1"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "Django-5.0.7-py3-none-any.whl", hash = "sha256:f216510ace3de5de01329463a315a629f33480e893a9024fc93d8c32c22913da"},
-    {file = "Django-5.0.7.tar.gz", hash = "sha256:bd4505cae0b9bd642313e8fb71810893df5dc2ffcacaa67a33af2d5cd61888f2"},
+    {file = "Django-5.1-py3-none-any.whl", hash = "sha256:d3b811bf5371a26def053d7ee42a9df1267ef7622323fe70a601936725aa4557"},
+    {file = "Django-5.1.tar.gz", hash = "sha256:848a5980e8efb76eea70872fb0e4bc5e371619c70fffbe48e3e1b50b2c09455d"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.7.0,<4"
+asgiref = ">=3.8.1,<4"
 sqlparse = ">=0.3.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
@@ -382,13 +382,13 @@ graphene-django = ">=2.0.0"
 
 [[package]]
 name = "django-modeltranslation"
-version = "0.19.5"
+version = "0.19.7"
 description = "Translates Django models using a registration approach."
 optional = false
 python-versions = "*"
 files = [
-    {file = "django_modeltranslation-0.19.5-py3-none-any.whl", hash = "sha256:3b976d8a9ed44d14a2ace6f2ee66394ce5aef04aa80ff28e67078c133c46d5f2"},
-    {file = "django_modeltranslation-0.19.5.tar.gz", hash = "sha256:0d5b65c1a1a9a1142ece6ab79aa1525eec70ccb9977bae945f04620e43313820"},
+    {file = "django_modeltranslation-0.19.7-py3-none-any.whl", hash = "sha256:2ea4cbbe16ef7d3bd5e11e092092f8c8b80f6b2953e4e1accadeda6a52779b3a"},
+    {file = "django_modeltranslation-0.19.7.tar.gz", hash = "sha256:f7d56a406f2a8fbea606bb6040b4e5e86939291aba692af2ff6b60ae00bb96fd"},
 ]
 
 [package.dependencies]
@@ -1405,17 +1405,17 @@ files = [
 
 [[package]]
 name = "tox"
-version = "4.16.0"
+version = "4.17.1"
 description = "tox is a generic virtualenv management and test command line tool"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "tox-4.16.0-py3-none-any.whl", hash = "sha256:61e101061b977b46cf00093d4319438055290ad0009f84497a07bf2d2d7a06d0"},
-    {file = "tox-4.16.0.tar.gz", hash = "sha256:43499656f9949edb681c0f907f86fbfee98677af9919d8b11ae5ad77cb800748"},
+    {file = "tox-4.17.1-py3-none-any.whl", hash = "sha256:2974597c0353577126ab014f52d1a399fb761049e165ff34427f84e8cfe6c990"},
+    {file = "tox-4.17.1.tar.gz", hash = "sha256:2c41565a571e34480bd401d668a4899806169a4633e972ac296c54406d2ded8a"},
 ]
 
 [package.dependencies]
-cachetools = ">=5.3.3"
+cachetools = ">=5.4"
 chardet = ">=5.2"
 colorama = ">=0.4.6"
 filelock = ">=3.15.4"
@@ -1427,8 +1427,8 @@ tomli = {version = ">=2.0.1", markers = "python_version < \"3.11\""}
 virtualenv = ">=20.26.3"
 
 [package.extras]
-docs = ["furo (>=2024.5.6)", "sphinx (>=7.3.7)", "sphinx-argparse-cli (>=1.16)", "sphinx-autodoc-typehints (>=2.2.2)", "sphinx-copybutton (>=0.5.2)", "sphinx-inline-tabs (>=2023.4.21)", "sphinxcontrib-towncrier (>=0.2.1a0)", "towncrier (>=23.11)"]
-testing = ["build[virtualenv] (>=1.2.1)", "covdefaults (>=2.3)", "detect-test-pollution (>=1.2)", "devpi-process (>=1)", "diff-cover (>=9.1)", "distlib (>=0.3.8)", "flaky (>=3.8.1)", "hatch-vcs (>=0.4)", "hatchling (>=1.25)", "psutil (>=6)", "pytest (>=8.2.2)", "pytest-cov (>=5)", "pytest-mock (>=3.14)", "pytest-xdist (>=3.6.1)", "re-assert (>=1.1)", "setuptools (>=70.2)", "time-machine (>=2.14.2)", "wheel (>=0.43)"]
+docs = ["furo (>=2024.7.18)", "sphinx (>=7.4.7)", "sphinx-argparse-cli (>=1.16)", "sphinx-autodoc-typehints (>=2.2.3)", "sphinx-copybutton (>=0.5.2)", "sphinx-inline-tabs (>=2023.4.21)", "sphinxcontrib-towncrier (>=0.2.1a0)", "towncrier (>=23.11)"]
+testing = ["build[virtualenv] (>=1.2.1)", "covdefaults (>=2.3)", "detect-test-pollution (>=1.2)", "devpi-process (>=1)", "diff-cover (>=9.1.1)", "distlib (>=0.3.8)", "flaky (>=3.8.1)", "hatch-vcs (>=0.4)", "hatchling (>=1.25)", "psutil (>=6)", "pytest (>=8.3.2)", "pytest-cov (>=5)", "pytest-mock (>=3.14)", "pytest-xdist (>=3.6.1)", "re-assert (>=1.1)", "setuptools (>=70.3)", "time-machine (>=2.14.2)", "wheel (>=0.43)"]
 
 [[package]]
 name = "tox-gh-actions"
@@ -1582,4 +1582,4 @@ translation = ["django-modeltranslation"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "2fe013b7eb6a0534137c7e9e45daec8032a83f2cea9c0447b3e41a64ee718d31"
+content-hash = "fbd09f5e7f70403f6e918549d4ebaa2612f34c7428b20d44bce466acc16d180a"
