@@ -617,13 +617,13 @@ test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", 
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.9.0"
+version = "0.10.0"
 description = "Automatically optimize SQL queries in Graphene-Django schemas."
 optional = false
-python-versions = "<4,>=3.9"
+python-versions = "<4,>=3.10"
 files = [
-    {file = "graphene_django_query_optimizer-0.9.0-py3-none-any.whl", hash = "sha256:a47004392fc59f517147aebfb41e8fa91fde24abd2b1538d50fee84b7b271ab8"},
-    {file = "graphene_django_query_optimizer-0.9.0.tar.gz", hash = "sha256:cdac33718d6af49eb2e847f02f0e93555def3adf66ba454b9e46d2492df48fbe"},
+    {file = "graphene_django_query_optimizer-0.10.0-py3-none-any.whl", hash = "sha256:877e121ebfa5b33b81ccf3699a9f77dff629ab10277375e23f5891a7004ea12c"},
+    {file = "graphene_django_query_optimizer-0.10.0.tar.gz", hash = "sha256:a64386ea2f295572b6e39ed2072a65b5b686e7879b69833aaaf9398cafc17477"},
 ]
 
 [package.dependencies]
@@ -823,13 +823,13 @@ files = [
 
 [[package]]
 name = "mkdocs"
-version = "1.6.0"
+version = "1.6.1"
 description = "Project documentation with Markdown."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "mkdocs-1.6.0-py3-none-any.whl", hash = "sha256:1eb5cb7676b7d89323e62b56235010216319217d4af5ddc543a91beb8d125ea7"},
-    {file = "mkdocs-1.6.0.tar.gz", hash = "sha256:a73f735824ef83a4f3bcb7a231dcab23f5a838f88b7efc54a0eef5fbdbc3c512"},
+    {file = "mkdocs-1.6.1-py3-none-any.whl", hash = "sha256:db91759624d1647f3f34aa0c3f327dd2601beae39a366d6e064c03468d35c20e"},
+    {file = "mkdocs-1.6.1.tar.gz", hash = "sha256:7b432f01d928c084353ab39c57282f29f92136665bdd6abf7c1ec8d822ef86f2"},
 ]
 
 [package.dependencies]
@@ -1582,4 +1582,4 @@ translation = ["django-modeltranslation"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "af6f74a8663429cf7a1028e377dde7f9897faff9c3e3e22a8484bd728da1dc21"
+content-hash = "563a7fe5da22ace2d1f7dd5e581ed6f545bcb30d884063a3b3d04e89fd0ae6d3"
