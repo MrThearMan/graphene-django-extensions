@@ -30,7 +30,11 @@ if sys.version_info < (3, 11):  # pragma: no cover
     from typing_extensions import Self
 
     class StrEnum(str, Enum):
-        pass
+        def __str__(self) -> str:
+            return str(self.value)
+
+        def __repr__(self) -> str:
+            return repr(self.value)
 
 else:  # pragma: no cover
     from enum import StrEnum

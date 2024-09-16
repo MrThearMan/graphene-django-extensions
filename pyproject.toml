@@ -38,6 +38,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Framework :: Django :: 4.2",
     "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
     "Framework :: Pytest",
 ]
 include = [
@@ -314,7 +315,7 @@ addopts = "-vv -s --disable-warnings"
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{310, 311, 312}-django{42, 50}-gd{30, 31, 32}
+envlist = py{310, 311, 312}-django{42, 50, 51}-gd{31, 32}
 isolated_build = true
 
 [gh-actions]
@@ -332,8 +333,8 @@ setenv =
 deps =
     django42: Django >=4.2,<4.3
     django50: Django >=5.0,<5.1
+    django51: Django >=5.1,<5.2
 
-    gd30: graphene-django >=3.0.0,<3.1.0
     gd31: graphene-django >=3.1.0,<3.2.0
     gd32: graphene-django >=3.2.0,<3.3.0
 
@@ -352,7 +353,7 @@ deps =
 
     py312: setuptools
 commands =
-    coverage run -m pytest -vv -s --log-cli-level=INFO
+    coverage run -m pytest -vv -s --disable-warnings
 """
 
 [build-system]
