@@ -382,13 +382,13 @@ graphene-django = ">=2.0.0"
 
 [[package]]
 name = "django-modeltranslation"
-version = "0.19.7"
+version = "0.19.9"
 description = "Translates Django models using a registration approach."
 optional = false
 python-versions = "*"
 files = [
-    {file = "django_modeltranslation-0.19.7-py3-none-any.whl", hash = "sha256:2ea4cbbe16ef7d3bd5e11e092092f8c8b80f6b2953e4e1accadeda6a52779b3a"},
-    {file = "django_modeltranslation-0.19.7.tar.gz", hash = "sha256:f7d56a406f2a8fbea606bb6040b4e5e86939291aba692af2ff6b60ae00bb96fd"},
+    {file = "django_modeltranslation-0.19.9-py3-none-any.whl", hash = "sha256:3474e61488201b7babdc575c1774f653574d09e410a8c96c5c6a8a84716f1dd6"},
+    {file = "django_modeltranslation-0.19.9.tar.gz", hash = "sha256:78f1bf32b0fb04e5970b988bd7cd17fe2bdfaae69012048c338af4610a7807db"},
 ]
 
 [package.dependencies]
@@ -1586,4 +1586,4 @@ translation = ["django-modeltranslation"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4"
-content-hash = "f20bed03836163c2af45a8d6eef36a9bfbfe90e8ad1ec86f443225991c1d793c"
+content-hash = "019cbe70b14fd3271c71a65003fdf7a27604791bb3bc7f10a8f112e9aa990c78"
