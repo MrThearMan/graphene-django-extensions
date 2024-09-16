@@ -2,9 +2,9 @@ from django.core import validators
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from example_project.app.models import Example, ForwardManyToMany, ForwardOneToOne
+from example_project.app.nodes import ExampleNode, ForwardManyToManyNode, ForwardOneToOneNode
 from graphene_django_extensions import NestingModelSerializer
-from tests.example.models import Example, ForwardManyToMany, ForwardOneToOne
-from tests.example.nodes import ExampleNode, ForwardManyToManyNode, ForwardOneToOneNode
 
 
 class ForwardOneToOneSerializer(NestingModelSerializer):

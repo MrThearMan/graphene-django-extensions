@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 from typing import Any, Iterable
 
@@ -5,7 +7,7 @@ import factory
 from factory import fuzzy
 from factory.django import DjangoModelFactory
 
-from tests.example.models import (
+from example_project.app.models import (
     Example,
     ExampleState,
     ForwardManyToMany,
@@ -68,7 +70,7 @@ class ExampleFactory(DjangoModelFactory):
 
     @factory.post_generation
     def forward_many_to_many_fields(
-        obj: Example,
+        self: Example,
         create: bool,
         objs: Iterable[ForwardManyToMany] | None,
         **kwargs: Any,
@@ -77,21 +79,21 @@ class ExampleFactory(DjangoModelFactory):
             return
 
         if not objs and kwargs:
-            obj.forward_many_to_many_fields.add(ForwardManyToManyFactory.create(**kwargs))
+            self.forward_many_to_many_fields.add(ForwardManyToManyFactory.create(**kwargs))
 
         for group in objs or []:
-            obj.forward_many_to_many_fields.add(group)
+            self.forward_many_to_many_fields.add(group)
 
     @factory.post_generation
-    def symmetrical(obj: Example, create: bool, objs: Iterable[Example] | None, **kwargs: Any) -> None:
+    def symmetrical(self: Example, create: bool, objs: Iterable[Example] | None, **kwargs: Any) -> None:
         if not create:
             return
 
         if not objs and kwargs:
-            obj.symmetrical.add(ExampleFactory.create(**kwargs))
+            self.symmetrical.add(ExampleFactory.create(**kwargs))
 
         for group in objs or []:
-            obj.symmetrical.add(group)
+            self.symmetrical.add(group)
 
 
 class ReverseOneToOneFactory(DjangoModelFactory):
@@ -117,15 +119,15 @@ class ReverseManyToManyFactory(DjangoModelFactory):
         return super().create(**kwargs)
 
     @factory.post_generation
-    def example_fields(obj: ReverseManyToMany, create: bool, objs: Iterable[Example] | None, **kwargs: Any) -> None:
+    def example_fields(self: ReverseManyToMany, create: bool, objs: Iterable[Example] | None, **kwargs: Any) -> None:
         if not create:
             return
 
         if not objs and kwargs:
-            obj.example_fields.add(ExampleFactory.create(**kwargs))
+            self.example_fields.add(ExampleFactory.create(**kwargs))
 
         for group in objs or []:
-            obj.example_fields.add(group)
+            self.example_fields.add(group)
 
 
 class ReverseOneToManyFactory(DjangoModelFactory):

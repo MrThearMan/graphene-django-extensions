@@ -2,6 +2,7 @@ import graphene
 from django import forms
 from django.db import models
 
+from example_project.app.models import Example, ExampleState
 from graphene_django_extensions import ModelFilterSet
 from graphene_django_extensions.converters import (
     convert_form_field_to_enum,
@@ -19,7 +20,6 @@ from graphene_django_extensions.fields import (
     Time,
 )
 from graphene_django_extensions.filters import IntMultipleChoiceFilter
-from tests.example.models import ExampleState, Example
 
 
 def test_time_field_serialize():

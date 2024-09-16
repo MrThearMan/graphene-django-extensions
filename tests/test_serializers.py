@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import re
 from copy import deepcopy
@@ -6,31 +8,31 @@ from typing import Any
 import pytest
 from django.contrib.auth.models import User
 from django.http import HttpRequest
+from rest_framework import __version__ as drf_version
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 
-from graphene_django_extensions.converters import convert_serializer_fields_to_not_required
-from graphene_django_extensions.serializers import NestingModelSerializer, NotProvided
-from tests.example.models import (
+from example_project.app.models import (
     Example,
+    ExampleState,
     ForwardManyToMany,
     ForwardManyToOne,
     ForwardOneToOne,
     ReverseManyToMany,
     ReverseOneToMany,
     ReverseOneToOne,
-    ExampleState,
 )
+from graphene_django_extensions.converters import convert_serializer_fields_to_not_required
+from graphene_django_extensions.serializers import NestingModelSerializer, NotProvided
 from tests.factories import (
     ExampleFactory,
-    ForwardOneToOneFactory,
-    ForwardManyToOneFactory,
     ForwardManyToManyFactory,
+    ForwardManyToOneFactory,
+    ForwardOneToOneFactory,
     ReverseManyToManyFactory,
-    ReverseOneToOneFactory,
     ReverseOneToManyFactory,
+    ReverseOneToOneFactory,
 )
-from rest_framework import __version__ as drf_version
 
 DRF_VERSION = tuple(int(i) for i in drf_version.split("."))
 

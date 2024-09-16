@@ -2,9 +2,9 @@ import datetime
 
 import pytest
 
+from example_project.app.models import ExampleState
+from example_project.app.nodes import ExampleNode
 from graphene_django_extensions.testing import GraphQLClient, build_mutation, build_query
-from tests.example.models import ExampleState
-from tests.example.nodes import ExampleNode
 from tests.factories import ExampleFactory, ForwardManyToOneFactory
 
 pytestmark = [

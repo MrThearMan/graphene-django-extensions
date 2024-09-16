@@ -2,14 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from graphene_django_extensions.filters import (
-    EnumMultipleChoiceFilter,
-    IntChoiceFilter,
-    IntMultipleChoiceFilter,
-    ModelFilterSet,
-    UserDefinedFilter,
-)
-from tests.example.models import (
+from example_project.app.models import (
     Example,
     ExampleState,
     ForwardManyToMany,
@@ -18,6 +11,13 @@ from tests.example.models import (
     ReverseManyToMany,
     ReverseOneToMany,
     ReverseOneToOne,
+)
+from graphene_django_extensions.filters import (
+    EnumMultipleChoiceFilter,
+    IntChoiceFilter,
+    IntMultipleChoiceFilter,
+    ModelFilterSet,
+    UserDefinedFilter,
 )
 
 if TYPE_CHECKING:

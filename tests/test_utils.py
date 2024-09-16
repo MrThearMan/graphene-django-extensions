@@ -6,13 +6,13 @@ from typing import Any, NamedTuple
 import pytest
 from django.db import models
 
+from example_project.app.models import Example
 from graphene_django_extensions.constants import Operation
 from graphene_django_extensions.filters import UserDefinedFilter
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.testing.utils import compare_unordered, parametrize_helper
 from graphene_django_extensions.typing import UserDefinedFilterInput
 from graphene_django_extensions.utils import get_nested
-from tests.example.models import Example
 
 Sentinel = object()
 

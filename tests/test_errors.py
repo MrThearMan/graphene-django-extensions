@@ -4,12 +4,12 @@ from graphene_django_extensions.errors import flatten_errors, get_constraint_mes
 
 
 def test_get_constraint_message__check_postgres():
-    msg = 'new row for relation "example_example" violates check constraint "check_example"'
+    msg = 'new row for relation "app_example" violates check constraint "check_example"'
     assert get_constraint_message(msg) == "Example constraint violation message."
 
 
 def test_get_constraint_message__check_postgres__unknown_constraint():
-    msg = 'new row for relation "example_example" violates check constraint "foo"'
+    msg = 'new row for relation "app_example" violates check constraint "foo"'
     assert get_constraint_message(msg) == msg
 
 
@@ -34,12 +34,12 @@ def test_get_constraint_message__check_sqlite__unknown_constraint():
 
 
 def test_get_constraint_message__unique_sqlite():
-    msg = "UNIQUE constraint failed: example_example.name, example_example.number"
+    msg = "UNIQUE constraint failed: app_example.name, app_example.number"
     assert get_constraint_message(msg) == "Example unique violation message."
 
 
 def test_get_constraint_message__unique_sqlite__unknown_fields():
-    msg = "UNIQUE constraint failed: example_example.foo, example_example.bar"
+    msg = "UNIQUE constraint failed: app_example.foo, app_example.bar"
     assert get_constraint_message(msg) == msg
 
 

@@ -3,7 +3,7 @@ from importlib import reload
 import pytest
 from graphene_django import views
 
-from tests.example import nodes, schema
+from example_project.app import nodes, schema
 
 
 @pytest.fixture()

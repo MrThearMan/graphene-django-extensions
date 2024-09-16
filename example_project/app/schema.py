@@ -1,10 +1,11 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 import graphene
 
-from graphene_django_extensions.typing import GQLInfo
-from tests.example.models import Example
-from tests.example.mutations import (
+from example_project.app.models import Example
+from example_project.app.mutations import (
     ExampleCreateMutation,
     ExampleCustomMutation,
     ExampleDeleteMutation,
@@ -14,7 +15,7 @@ from tests.example.mutations import (
     ImageMutation,
     LoginMutation,
 )
-from tests.example.nodes import (
+from example_project.app.nodes import (
     ExampleNode,
     ForwardManyToManyNode,
     ForwardManyToOneNode,
@@ -23,6 +24,9 @@ from tests.example.nodes import (
     ReverseOneToManyNode,
     ReverseOneToOneNode,
 )
+
+if TYPE_CHECKING:
+    from graphene_django_extensions.typing import GQLInfo
 
 
 class Query(graphene.ObjectType):

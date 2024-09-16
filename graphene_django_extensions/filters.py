@@ -8,9 +8,8 @@ from django.db import models
 from django.db.models import Model, Q, QuerySet
 from django.db.models.constants import LOOKUP_SEP
 from django_filters.constants import ALL_FIELDS, EMPTY_VALUES
-from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS
+from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, FilterSet
 from graphene.utils.str_converters import to_camel_case
-from query_optimizer.filter import FilterSet
 
 from .fields import (
     EnumChoiceField,

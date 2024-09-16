@@ -288,7 +288,7 @@ plugins = [
 ]
 
 [tool.django-stubs]
-django_settings_module = "tests.project.settings"
+django_settings_module = "example_project.config.settings"
 
 [tool.coverage.run]
 relative_files = true
@@ -308,7 +308,7 @@ exclude_lines = [
 ]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "tests.project.settings"
+DJANGO_SETTINGS_MODULE = "example_project.config.settings"
 addopts = "-vv -s --disable-warnings"
 
 [tool.tox]
@@ -328,7 +328,7 @@ allowlist_externals =
     poetry
 setenv =
     PYTHONPATH = {toxinidir}
-    DJANGO_SETTINGS_MODULE = tests.project.settings
+    DJANGO_SETTINGS_MODULE = example_project.config.settings
 deps =
     django42: Django >=4.2,<4.3
     django50: Django >=5.0,<5.1

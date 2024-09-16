@@ -5,7 +5,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from faker import Faker
 
-from tests.example.models import (
+from example_project.app.models import (
     Example,
     ExampleState,
     ForwardManyToMany,
@@ -39,7 +39,7 @@ def create_test_data() -> None:
 
     e1 = Example.objects.create(
         name="foo: " + faker.name(),
-        number=random.randint(0, 100),
+        number=random.randint(0, 100),  # noqa: S311
         email=faker.safe_email(),
         example_state=ExampleState.ACTIVE.value,
         duration=datetime.timedelta(seconds=900),
@@ -50,7 +50,7 @@ def create_test_data() -> None:
 
     e2 = Example.objects.create(
         name="foo: " + faker.name(),
-        number=random.randint(0, 100),
+        number=random.randint(0, 100),  # noqa: S311
         email=faker.safe_email(),
         example_state=ExampleState.INACTIVE.value,
         duration=datetime.timedelta(seconds=1800),

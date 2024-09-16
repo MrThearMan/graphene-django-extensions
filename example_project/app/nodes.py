@@ -1,6 +1,4 @@
-from graphene_django_extensions import DjangoNode
-from graphene_django_extensions.permissions import AllowAuthenticated
-from tests.example.filtersets import (
+from example_project.app.filtersets import (
     ExampleFilterSet,
     ForwardManyToManyFilterSet,
     ForwardManyToOneFilterSet,
@@ -9,7 +7,7 @@ from tests.example.filtersets import (
     ReverseOneToManyFilterSet,
     ReverseOneToOneFilterSet,
 )
-from tests.example.models import (
+from example_project.app.models import (
     Example,
     ForwardManyToMany,
     ForwardManyToOne,
@@ -18,6 +16,8 @@ from tests.example.models import (
     ReverseOneToMany,
     ReverseOneToOne,
 )
+from graphene_django_extensions import DjangoNode
+from graphene_django_extensions.permissions import AllowAuthenticated
 
 
 class ForwardOneToOneNode(DjangoNode):

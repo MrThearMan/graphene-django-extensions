@@ -1,7 +1,7 @@
 import pytest
 
+from example_project.app.nodes import ExampleNode
 from graphene_django_extensions.testing import GraphQLClient, build_query
-from tests.example.nodes import ExampleNode
 from tests.factories import (
     ExampleFactory,
     ForwardManyToManyFactory,

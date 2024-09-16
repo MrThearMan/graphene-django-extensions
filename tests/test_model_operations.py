@@ -2,9 +2,9 @@ import re
 
 import pytest
 
+from example_project.app.models import Example
 from graphene_django_extensions.errors import GQLNotFoundError
 from graphene_django_extensions.model_operations import RelatedFieldInfo, get_object_or_404, get_related_field_info
-from tests.example.models import Example
 from tests.factories import ExampleFactory
 
 

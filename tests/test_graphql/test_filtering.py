@@ -6,10 +6,10 @@ from unittest.mock import patch
 import pytest
 from query_optimizer.selections import get_field_selections
 
+from example_project.app.filtersets import ExampleFilterSet, ForwardManyToManyFilterSet
+from example_project.app.models import ExampleState
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.utils import get_filter_info
-from tests.example.filtersets import ExampleFilterSet, ForwardManyToManyFilterSet
-from tests.example.models import ExampleState
 from tests.factories import ExampleFactory, ForwardManyToManyFactory
 
 if TYPE_CHECKING:

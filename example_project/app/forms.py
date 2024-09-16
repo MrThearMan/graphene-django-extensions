@@ -1,6 +1,6 @@
 from django.forms import CharField, Form, IntegerField, ModelForm
 
-from tests.example.models import Example
+from example_project.app.models import Example
 
 
 class ExampleForm(ModelForm):

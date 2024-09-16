@@ -1,16 +1,14 @@
+from __future__ import annotations
+
 import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth import get_user_model, login
 from rest_framework.exceptions import ValidationError
 
-from graphene_django_extensions import CreateMutation, DeleteMutation, UpdateMutation
-from graphene_django_extensions.bases import DjangoMutation
-from graphene_django_extensions.permissions import AllowAuthenticated
-from graphene_django_extensions.typing import AnyUser, GQLInfo, Self
-from tests.example.forms import ExampleForm, ExampleInputForm, ExampleOutputForm
-from tests.example.models import Example, ExampleState, ForwardManyToOne, ForwardOneToOne
-from tests.example.serializers import (
+from example_project.app.forms import ExampleForm, ExampleInputForm, ExampleOutputForm
+from example_project.app.models import Example, ExampleState, ForwardManyToOne, ForwardOneToOne
+from example_project.app.serializers import (
     ExampleCustomInputSerializer,
     ExampleCustomOutputSerializer,
     ExampleSerializer,
@@ -18,6 +16,12 @@ from tests.example.serializers import (
     ImageOutputSerializer,
     LoginSerializer,
 )
+from graphene_django_extensions import CreateMutation, DeleteMutation, UpdateMutation
+from graphene_django_extensions.bases import DjangoMutation
+from graphene_django_extensions.permissions import AllowAuthenticated
+
+if TYPE_CHECKING:
+    from graphene_django_extensions.typing import AnyUser, GQLInfo, Self
 
 User = get_user_model()
 
@@ -90,11 +94,11 @@ class LoginMutation(DjangoMutation):
         serializer_class = LoginSerializer
 
     @classmethod
-    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]):
+    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
         try:
             user = User.objects.get(username=input_data["username"])
         except User.DoesNotExist:
-            user = User.objects.create_user(username=input_data["username"], password="test_password")
+            user = User.objects.create_user(username=input_data["username"], password="test_password")  # noqa: S106
 
         login(info.context, user)
         return cls()
