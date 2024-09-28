@@ -18,6 +18,16 @@ from example_project.app.models import (
     ReverseOneToOne,
 )
 
+__all__ = [
+    "ExampleFactory",
+    "ForwardManyToManyFactory",
+    "ForwardManyToOneFactory",
+    "ForwardOneToOneFactory",
+    "ReverseManyToManyFactory",
+    "ReverseOneToManyFactory",
+    "ReverseOneToOneFactory",
+]
+
 
 class ForwardOneToOneFactory(DjangoModelFactory):
     name = fuzzy.FuzzyText()

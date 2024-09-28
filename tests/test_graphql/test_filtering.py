@@ -10,7 +10,7 @@ from example_project.app.filtersets import ExampleFilterSet, ForwardManyToManyFi
 from example_project.app.models import ExampleState
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.utils import get_filter_info
-from tests.factories import ExampleFactory, ForwardManyToManyFactory
+from tests.factories import ExampleFactory, ForwardManyToManyFactory, ReverseManyToManyFactory
 
 if TYPE_CHECKING:
     from django.db import models
@@ -176,41 +176,41 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
           examples(
             filter: {
               operation: AND,
-                operations: [
-                  {
-                    operation: OR,
-                    operations: [
-                      {
-                        field: nameEn,
-                        operation: CONTAINS,
-                        value: "foo",
-                      },
-                      {
-                        field: email,
-                        operation: CONTAINS,
-                        value: "foo",
-                      },
-                    ],
-                  },
-                  {
-                    operation: NOT,
-                    operations: [
-                      {
-                        field: number,
-                        operation: LT,
-                        value: 10,
-                      }
-                    ]
-                  },
-                ],
-              }
-            ) {
-              edges {
-                node {
-                  pk
-                }
+              operations: [
+                {
+                  operation: OR,
+                  operations: [
+                    {
+                      field: nameEn,
+                      operation: CONTAINS,
+                      value: "foo",
+                    },
+                    {
+                      field: email,
+                      operation: CONTAINS,
+                      value: "foo",
+                    },
+                  ],
+                },
+                {
+                  operation: NOT,
+                  operations: [
+                    {
+                      field: number,
+                      operation: LT,
+                      value: 10,
+                    }
+                  ]
+                },
+              ],
+            }
+          ) {
+            edges {
+              node {
+                pk
               }
             }
+          }
         }
     """
 
@@ -264,6 +264,171 @@ def test_graphql__filter__user_defined__complex_filter(graphql: GraphQLClient):
                                 "value": 10,
                             },
                         ],
+                    },
+                ],
+            }
+        },
+        "filterset_class": ExampleFilterSet,
+        "is_connection": True,
+        "is_node": False,
+        "max_limit": 100,
+    }
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node() == {"pk": example.pk}
+
+
+def test_graphql__filter__user_defined__all_many_related(graphql: GraphQLClient):
+    example_1 = ExampleFactory.create()
+    example_2 = ExampleFactory.create()
+
+    ReverseManyToManyFactory.create(name="foo", example_fields=[example_1])
+    ReverseManyToManyFactory.create(name="bar", example_fields=[example_1])
+
+    ReverseManyToManyFactory.create(name="foo", example_fields=[example_2])
+    ReverseManyToManyFactory.create(name="baz", example_fields=[example_2])
+
+    query = """
+        query {
+          examples(
+            filter: {
+              field: reverseManyToManyRels,
+              operation: ALL,
+              operations: [
+                {
+                  field: name,
+                  operation: EXACT,
+                  value: "foo",
+                },
+                {
+                  field: name,
+                  operation: EXACT,
+                  value: "bar",
+                },
+              ],
+            }
+          ) {
+            edges {
+              node {
+                pk
+              }
+            }
+          }
+        }
+    """
+
+    graphql.login_with_superuser()
+
+    filters = {}
+
+    def tracker(info: GQLInfo, model: type[models.Model]):
+        nonlocal filters
+        filters = get_filter_info(info, model)
+        return filters
+
+    with patch("query_optimizer.optimizer.get_filter_info", side_effect=tracker):
+        response = graphql(query)
+
+    assert filters == {
+        "name": "ExampleNodeConnection",
+        "children": {},
+        "filters": {
+            "filter": {
+                "field": "reverse_many_to_many_rels",
+                "operation": "ALL",
+                "operations": [
+                    {
+                        "field": "name",
+                        "operation": "EXACT",
+                        "value": "foo",
+                    },
+                    {
+                        "field": "name",
+                        "operation": "EXACT",
+                        "value": "bar",
+                    },
+                ],
+            }
+        },
+        "filterset_class": ExampleFilterSet,
+        "is_connection": True,
+        "is_node": False,
+        "max_limit": 100,
+    }
+
+    assert response.has_errors is False, response
+    assert len(response.edges) == 1
+    assert response.node() == {"pk": example_1.pk}
+
+
+def test_graphql__filter__user_defined__all_many_related__alias(graphql: GraphQLClient):
+    fmtm_1 = ForwardManyToManyFactory.create(name="foo")
+    fmtm_2 = ForwardManyToManyFactory.create(name="bar")
+    fmtm_3 = ForwardManyToManyFactory.create(name="foo")
+    fmtm_4 = ForwardManyToManyFactory.create(name="baz")
+
+    example = ExampleFactory.create(forward_many_to_many_fields=[fmtm_1, fmtm_2])
+    ExampleFactory.create(forward_many_to_many_fields=[fmtm_3, fmtm_4])
+
+    query = """
+        query {
+          examples(
+            filter: {
+              field: fmtm,
+              operation: ALL,
+              operations: [
+                {
+                  field: name,
+                  operation: EXACT,
+                  value: "foo",
+                },
+                {
+                  field: name,
+                  operation: EXACT,
+                  value: "bar",
+                },
+              ],
+            }
+          ) {
+            edges {
+              node {
+                pk
+              }
+            }
+          }
+        }
+    """
+
+    graphql.login_with_superuser()
+
+    filters = {}
+
+    def tracker(info: GQLInfo, model: type[models.Model]):
+        nonlocal filters
+        filters = get_filter_info(info, model)
+        return filters
+
+    with patch("query_optimizer.optimizer.get_filter_info", side_effect=tracker):
+        response = graphql(query)
+
+    assert filters == {
+        "name": "ExampleNodeConnection",
+        "children": {},
+        "filters": {
+            "filter": {
+                "field": "forward_many_to_many_fields",
+                "operation": "ALL",
+                "operations": [
+                    {
+                        "field": "name",
+                        "operation": "EXACT",
+                        "value": "foo",
+                    },
+                    {
+                        "field": "name",
+                        "operation": "EXACT",
+                        "value": "bar",
                     },
                 ],
             }

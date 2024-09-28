@@ -156,7 +156,7 @@ def test_get_nested(value, args, default, expected):
 
 class FilterOperationParams(NamedTuple):
     op: UserDefinedFilterInput
-    result: models.Q
+    result: list[models.Q]
 
 
 @pytest.mark.parametrize(
@@ -168,7 +168,7 @@ class FilterOperationParams(NamedTuple):
                     field="foo",
                     value=1,
                 ),
-                result=models.Q(foo__exact=1),
+                result=[models.Q(foo__exact=1)],
             ),
             "contains": FilterOperationParams(
                 op=UserDefinedFilterInput(
@@ -176,7 +176,7 @@ class FilterOperationParams(NamedTuple):
                     field="foo",
                     value=1,
                 ),
-                result=models.Q(foo__contains=1),
+                result=[models.Q(foo__contains=1)],
             ),
             "and": FilterOperationParams(
                 op=UserDefinedFilterInput(
@@ -194,7 +194,7 @@ class FilterOperationParams(NamedTuple):
                         ),
                     ],
                 ),
-                result=models.Q(foo__gte=1) & models.Q(foo__lte=10),
+                result=[models.Q(foo__gte=1) & models.Q(foo__lte=10)],
             ),
             "or": FilterOperationParams(
                 op=UserDefinedFilterInput(
@@ -212,7 +212,7 @@ class FilterOperationParams(NamedTuple):
                         ),
                     ],
                 ),
-                result=models.Q(foo__gt=1) | models.Q(foo__lt=10),
+                result=[models.Q(foo__gt=1) | models.Q(foo__lt=10)],
             ),
             "xor": FilterOperationParams(
                 op=UserDefinedFilterInput(
@@ -230,7 +230,7 @@ class FilterOperationParams(NamedTuple):
                         ),
                     ],
                 ),
-                result=models.Q(foo__gt=1) ^ models.Q(foo__lt=10),
+                result=[models.Q(foo__gt=1) ^ models.Q(foo__lt=10)],
             ),
             "not": FilterOperationParams(
                 op=UserDefinedFilterInput(
@@ -243,7 +243,7 @@ class FilterOperationParams(NamedTuple):
                         ),
                     ],
                 ),
-                result=~models.Q(foo__endswith="bar"),
+                result=[~models.Q(foo__endswith="bar")],
             ),
             "in": FilterOperationParams(
                 op=UserDefinedFilterInput(
@@ -251,7 +251,7 @@ class FilterOperationParams(NamedTuple):
                     field="foo",
                     value=[1, 2, 3, 4],
                 ),
-                result=models.Q(foo__in=[1, 2, 3, 4]),
+                result=[models.Q(foo__in=[1, 2, 3, 4])],
             ),
         },
     ),
@@ -295,7 +295,7 @@ def test_build_filter_operation__not_should_have_only_one_operation():
         user_filter.build_user_defined_filters(op)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_test_client(graphql: GraphQLClient, settings):
     query = build_query("examples", connection=True)
     graphql.login_with_superuser()
@@ -315,7 +315,7 @@ def test_test_client(graphql: GraphQLClient, settings):
     )
 
 
-@pytest.mark.xfail()
+@pytest.mark.xfail
 @pytest.mark.parametrize(
     ("a", "b"),
     [

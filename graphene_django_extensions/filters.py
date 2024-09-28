@@ -98,14 +98,36 @@ class UserDefinedFilter(django_filters.Filter):
         if result.ordering:  # pragma: no cover
             qs = qs.order_by(*qs.query.order_by, *result.ordering)
 
-        return qs.filter(result.filters)
+        for ftr in result.filters:
+            qs = qs.filter(ftr)
+        return qs
 
-    def build_user_defined_filters(self, data: UserDefinedFilterInput) -> UserDefinedFilterResult:
-        filters: Q = Q()
+    def build_user_defined_filters(self, data: UserDefinedFilterInput, *, prefix: str = "") -> UserDefinedFilterResult:
+        filters: list[Q] = []
         ann: dict[str, Any] = {}
         ordering: list[str] = []
 
-        if data.operation.value in ("AND", "OR", "XOR", "NOT"):
+        if data.operation.value == "ALL":
+            if data.operations is None:
+                msg = "The 'ALL' filter operation requires 'operations' to be set."
+                raise ValueError(msg)
+
+            if data.field is None:
+                msg = "The 'ALL' filter operation requires 'field' to be set."
+                raise ValueError(msg)
+
+            field_name = self.get_field_name(data)
+
+            for operation in data.operations:
+                result = self.build_user_defined_filters(operation, prefix=f"{field_name}{LOOKUP_SEP}{prefix}")
+                if result.annotations:  # pragma: no cover
+                    ann.update(result.annotations)
+                if result.ordering:  # pragma: no cover
+                    ordering.extend(result.ordering)
+
+                filters.extend(result.filters)
+
+        elif data.operation.value in ("AND", "OR", "XOR", "NOT"):
             if data.operations is None:
                 msg = "Logical filter operation requires 'operations' to be set."
                 raise ValueError(msg)
@@ -114,33 +136,41 @@ class UserDefinedFilter(django_filters.Filter):
                 msg = "Logical filter operation 'NOT' requires exactly one operation."
                 raise ValueError(msg)
 
-            for operation in data.operations:
-                result = self.build_user_defined_filters(operation)
-                if result.annotations:  # pragma: no cover
-                    ann.update(result.annotations)
-                if result.ordering:  # pragma: no cover
-                    ordering.extend(result.ordering)
-
-                if data.operation.value == "AND":
-                    filters &= result.filters
-                elif data.operation.value == "OR":
-                    filters |= result.filters
-                elif data.operation.value == "NOT":
-                    filters = ~result.filters
-                elif data.operation.value == "XOR":
-                    filters ^= result.filters
+            frt = self.build_logical_filter(data, ann, ordering)
+            filters.append(frt)
 
         else:
             if data.field is None:
                 msg = "Comparison filter operation requires 'field' to be set."
                 raise ValueError(msg)
 
-            alias: str = getattr(data.field, "name", data.field)
-            field: str = self.extra["fields"][alias]
-            inputs: dict[str, Any] = {f"{field}{LOOKUP_SEP}{data.operation.value.lower()}": data.value}
-            filters = Q(**inputs)
+            field_name = self.get_field_name(data)
+            inputs: dict[str, Any] = {f"{prefix}{field_name}{LOOKUP_SEP}{data.operation.value.lower()}": data.value}
+            filters.append(Q(**inputs))
 
         return UserDefinedFilterResult(filters=filters, annotations=ann, ordering=ordering)
+
+    def build_logical_filter(self, data: UserDefinedFilterInput, annotations: dict[str, Any], ordering: list[str]) -> Q:
+        output = Q()
+
+        for operation in data.operations:
+            result = self.build_user_defined_filters(operation)
+            if result.annotations:  # pragma: no cover
+                annotations.update(result.annotations)
+            if result.ordering:  # pragma: no cover
+                ordering.extend(result.ordering)
+
+            for ftr in result.filters:
+                if data.operation.value == "AND":
+                    output &= ftr
+                elif data.operation.value == "OR":
+                    output |= ftr
+                elif data.operation.value == "NOT":
+                    output &= ~ftr
+                elif data.operation.value == "XOR":
+                    output ^= ftr
+
+        return output
 
     @staticmethod
     def _normalize_fields(model: type[Model], fields: FilterFields) -> FieldAliasToLookup:
@@ -154,6 +184,10 @@ class UserDefinedFilter(django_filters.Filter):
             else:
                 normalized_fields[to_camel_case(field)] = field
         return normalized_fields
+
+    def get_field_name(self, data: UserDefinedFilterInput) -> str:
+        alias: str = getattr(data.field, "name", data.field)
+        return self.extra["fields"][alias]
 
 
 class CustomOrderingFilter(django_filters.OrderingFilter):

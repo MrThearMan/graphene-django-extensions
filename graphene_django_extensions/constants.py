@@ -13,6 +13,7 @@ class Operation(StrEnum):
     OR = "OR"
     XOR = "XOR"
     NOT = "NOT"
+    ALL = "ALL"
 
     # Comparison single value
     EXACT = "EXACT"

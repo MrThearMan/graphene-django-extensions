@@ -2,6 +2,17 @@ from __future__ import annotations
 
 from django.db import models
 
+__all__ = [
+    "Example",
+    "ExampleState",
+    "ForwardManyToMany",
+    "ForwardManyToOne",
+    "ForwardOneToOne",
+    "ReverseManyToMany",
+    "ReverseOneToMany",
+    "ReverseOneToOne",
+]
+
 
 class ForwardOneToOne(models.Model):
     name = models.CharField(max_length=255)

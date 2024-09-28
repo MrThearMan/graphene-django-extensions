@@ -8,6 +8,7 @@
 .PHONY: lint
 .PHONY: migrate
 .PHONY: migrations
+.PHONY: generate
 .PHONY: mypy
 .PHONY: Makefile
 
@@ -30,8 +31,9 @@ define helptext
   tox                  Run all tests with tox.
   hook                 Install pre-commit hook.
   lint                 Run pre-commit hooks on all files.
-  migrate              Run pre-commit hooks on all files.
-  migrations           Run pre-commit hooks on all files.
+  migrate              Create migrations
+  migrations           Run migrations
+  generate             Generate test data.
   mypy                 Run mypy on all files.
 
   Use quotes (" ") if command contains flags (-h / --help)
@@ -68,6 +70,9 @@ migrate:
 
 migrations:
 	@poetry run python manage.py makemigrations
+
+generate:
+	@poetry run python manage.py create_test_data
 
 mypy:
 	@poetry run mypy graphene_django_extensions/

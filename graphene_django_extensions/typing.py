@@ -168,7 +168,7 @@ class UserDefinedFilterInput:
 
 @dataclass
 class UserDefinedFilterResult:
-    filters: Q
+    filters: list[Q]
     annotations: dict[str, Any]
     ordering: list[str]
 
