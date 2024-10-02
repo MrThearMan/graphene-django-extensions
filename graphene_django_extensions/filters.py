@@ -102,7 +102,7 @@ class UserDefinedFilter(django_filters.Filter):
             qs = qs.filter(ftr)
         return qs
 
-    def build_user_defined_filters(self, data: UserDefinedFilterInput, *, prefix: str = "") -> UserDefinedFilterResult:
+    def build_user_defined_filters(self, data: UserDefinedFilterInput) -> UserDefinedFilterResult:
         filters: list[Q] = []
         ann: dict[str, Any] = {}
         ordering: list[str] = []
@@ -112,14 +112,8 @@ class UserDefinedFilter(django_filters.Filter):
                 msg = "The 'ALL' filter operation requires 'operations' to be set."
                 raise ValueError(msg)
 
-            if data.field is None:
-                msg = "The 'ALL' filter operation requires 'field' to be set."
-                raise ValueError(msg)
-
-            field_name = self.get_field_name(data)
-
             for operation in data.operations:
-                result = self.build_user_defined_filters(operation, prefix=f"{field_name}{LOOKUP_SEP}{prefix}")
+                result = self.build_user_defined_filters(operation)
                 if result.annotations:  # pragma: no cover
                     ann.update(result.annotations)
                 if result.ordering:  # pragma: no cover
@@ -145,7 +139,7 @@ class UserDefinedFilter(django_filters.Filter):
                 raise ValueError(msg)
 
             field_name = self.get_field_name(data)
-            inputs: dict[str, Any] = {f"{prefix}{field_name}{LOOKUP_SEP}{data.operation.value.lower()}": data.value}
+            inputs: dict[str, Any] = {f"{field_name}{LOOKUP_SEP}{data.operation.value.lower()}": data.value}
             filters.append(Q(**inputs))
 
         return UserDefinedFilterResult(filters=filters, annotations=ann, ordering=ordering)

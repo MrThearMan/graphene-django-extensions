@@ -53,8 +53,8 @@ class ExampleFilterSet(ModelFilterSet):
             "number",
             "email",
             ("forward_one_to_one_field__name", "foto_name"),
-            "reverse_many_to_many_rels",
-            ("forward_many_to_many_fields", "fmtm"),
+            "reverse_many_to_many_rels__name",
+            ("forward_many_to_many_fields__name", "fmtm_name"),
         ],
     )
 

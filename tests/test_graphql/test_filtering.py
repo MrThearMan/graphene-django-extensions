@@ -293,16 +293,15 @@ def test_graphql__filter__user_defined__all_many_related(graphql: GraphQLClient)
         query {
           examples(
             filter: {
-              field: reverseManyToManyRels,
               operation: ALL,
               operations: [
                 {
-                  field: name,
+                  field: reverseManyToManyRels_Name,
                   operation: EXACT,
                   value: "foo",
                 },
                 {
-                  field: name,
+                  field: reverseManyToManyRels_Name,
                   operation: EXACT,
                   value: "bar",
                 },
@@ -330,21 +329,23 @@ def test_graphql__filter__user_defined__all_many_related(graphql: GraphQLClient)
     with patch("query_optimizer.optimizer.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
+    assert response.has_errors is False, response.errors
+
     assert filters == {
         "name": "ExampleNodeConnection",
         "children": {},
         "filters": {
             "filter": {
-                "field": "reverse_many_to_many_rels",
+                "field": None,
                 "operation": "ALL",
                 "operations": [
                     {
-                        "field": "name",
+                        "field": "reverse_many_to_many_rels__name",
                         "operation": "EXACT",
                         "value": "foo",
                     },
                     {
-                        "field": "name",
+                        "field": "reverse_many_to_many_rels__name",
                         "operation": "EXACT",
                         "value": "bar",
                     },
@@ -357,7 +358,6 @@ def test_graphql__filter__user_defined__all_many_related(graphql: GraphQLClient)
         "max_limit": 100,
     }
 
-    assert response.has_errors is False, response
     assert len(response.edges) == 1
     assert response.node() == {"pk": example_1.pk}
 
@@ -375,16 +375,15 @@ def test_graphql__filter__user_defined__all_many_related__alias(graphql: GraphQL
         query {
           examples(
             filter: {
-              field: fmtm,
               operation: ALL,
               operations: [
                 {
-                  field: name,
+                  field: fmtmName,
                   operation: EXACT,
                   value: "foo",
                 },
                 {
-                  field: name,
+                  field: fmtmName,
                   operation: EXACT,
                   value: "bar",
                 },
@@ -412,21 +411,23 @@ def test_graphql__filter__user_defined__all_many_related__alias(graphql: GraphQL
     with patch("query_optimizer.optimizer.get_filter_info", side_effect=tracker):
         response = graphql(query)
 
+    assert response.has_errors is False, response.errors
+
     assert filters == {
         "name": "ExampleNodeConnection",
         "children": {},
         "filters": {
             "filter": {
-                "field": "forward_many_to_many_fields",
+                "field": None,
                 "operation": "ALL",
                 "operations": [
                     {
-                        "field": "name",
+                        "field": "forward_many_to_many_fields__name",
                         "operation": "EXACT",
                         "value": "foo",
                     },
                     {
-                        "field": "name",
+                        "field": "forward_many_to_many_fields__name",
                         "operation": "EXACT",
                         "value": "bar",
                     },
@@ -439,7 +440,6 @@ def test_graphql__filter__user_defined__all_many_related__alias(graphql: GraphQL
         "max_limit": 100,
     }
 
-    assert response.has_errors is False, response
     assert len(response.edges) == 1
     assert response.node() == {"pk": example.pk}
 
