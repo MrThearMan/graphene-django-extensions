@@ -36,6 +36,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Framework :: Django :: 4.2",
     "Framework :: Django :: 5.0",
     "Framework :: Django :: 5.1",
@@ -60,7 +61,7 @@ python = ">=3.10,<4"
 Django = ">=4.2"
 djangorestframework = ">=3.14.0"
 graphene-django = ">=3.0.0"
-graphene-django-query-optimizer = ">=0.8.0"
+graphene-django-query-optimizer = ">=0.10.3"
 django-settings-holder = ">=0.1.2"
 django-filter = ">=23.5"
 typing-extensions = { version = ">=4.12.1", python = "<3.11" }
@@ -69,7 +70,7 @@ pillow = { version = ">=10.2.0", optional = true }
 
 [tool.poetry.group.test.dependencies]
 pytest = "8.3.3"
-coverage = "7.6.1"
+coverage = "7.6.2"
 pytest-django = "4.9.0"
 tox = "4.21.2"
 tox-gh-actions = "3.2.0"
@@ -84,7 +85,7 @@ mkdocs-mermaid2-plugin = "1.1.1"
 
 [tool.poetry.group.lint.dependencies]
 mypy = "1.11.2"
-pre-commit = "4.0.0"
+pre-commit = "4.0.1"
 django-stubs = "5.1.0"
 djangorestframework-stubs = "3.15.1"
 
@@ -279,7 +280,7 @@ extend-ignore-names = [
 max-complexity = 13
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 warn_return_any = "True"
 warn_unused_configs = "True"
 ignore_missing_imports = "True"
@@ -315,7 +316,7 @@ addopts = "-vv -s --disable-warnings"
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{310, 311, 312}-django{42, 50, 51}-gd{31, 32}
+envlist = py{310, 311, 312, 313}-django{42, 50, 51}-gd{31, 32}
 isolated_build = true
 
 [gh-actions]
@@ -323,6 +324,7 @@ python =
     3.10: py310
     3.11: py311
     3.12: py312
+    3.13: py313
 
 [testenv]
 allowlist_externals =
@@ -352,10 +354,11 @@ deps =
     django-modeltranslation
 
     py312: setuptools
+    py313: setuptools
 commands =
     coverage run -m pytest -vv -s --disable-warnings
 """
 
 [build-system]
-requires = ["poetry-core>=1.7.0"]
+requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"
