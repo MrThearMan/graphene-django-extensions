@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 import graphene
 import graphql
-from aniso8601 import parse_time
 from django.db import models
 from graphene.types.generic import GenericScalar
 from graphene.types.inputobjecttype import InputObjectTypeOptions
@@ -43,11 +42,11 @@ class Time(graphene.Time):
     """Time scalar that can parse time-strings from database."""
 
     @staticmethod
-    def serialize(time: datetime.time | str) -> str:
-        if isinstance(time, str):
+    def serialize(value: datetime.time | str) -> str:
+        if isinstance(value, str):
             with suppress(ValueError):
-                time = parse_time(time)
-        return graphene.Time.serialize(time)
+                value = datetime.time.fromisoformat(value)
+        return graphene.Time.serialize(value)
 
 
 class Duration(graphene.Scalar):
