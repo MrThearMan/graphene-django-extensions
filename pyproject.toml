@@ -76,7 +76,7 @@ tox = "4.23.2"
 tox-gh-actions = "3.2.0"
 factory-boy = "3.3.1"
 django-graphiql-debug-toolbar = "0.2.0"
-django-modeltranslation = "0.19.9"
+django-modeltranslation = "0.19.10"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "1.6.1"
