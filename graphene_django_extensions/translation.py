@@ -32,7 +32,12 @@ def get_translatable_fields(model: type[models.Model]) -> list[str]:
     return get_translatable_fields_for_model(model) or []
 
 
-def add_translatable_fields(model: type[models.Model], fields: Sequence[str]) -> Sequence[str]:
+def add_translatable_fields(
+    model: type[models.Model],
+    fields: Sequence[str],
+    *,
+    remove_base_fields: bool = False,
+) -> Sequence[str]:
     """
     If `django-modeltranslation` is installed, find and add all translation fields
     to the given fields list, for the given fields, in the given model.
@@ -46,9 +51,13 @@ def add_translatable_fields(model: type[models.Model], fields: Sequence[str]) ->
     translatable_fields: list[str] = get_translatable_fields_for_model(model) or []
     new_fields: list[str] = []
     for field in fields:
-        new_fields.append(field)
         if field not in translatable_fields:
+            new_fields.append(field)
             continue
+
+        if not remove_base_fields:
+            new_fields.append(field)
+
         fields = get_translation_fields(field)
         new_fields.extend(fields)
 

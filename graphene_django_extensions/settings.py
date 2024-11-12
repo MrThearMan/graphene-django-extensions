@@ -37,6 +37,7 @@ class DefaultSettings(NamedTuple):
     ALLOW_MODEL_OBJECT_TYPE_REGISTRY_OVERRIDES: bool = True
     EXPERIMENTAL_TRANSLATION_FIELDS: bool = False
     EXPERIMENTAL_TRANSLATION_FIELDS_KIND: Literal["list", "types"] = "list"
+    EXPERIMENTAL_REMOVE_TRANSLATION_BASE_FIELDS: bool = False
 
 
 DEFAULTS: dict[str, Any] = DefaultSettings()._asdict()

@@ -92,7 +92,7 @@ class NestingModelSerializer(ModelSerializer):
 
     def __new__(cls, *args: Any, **kwargs: Any) -> Self:
         if cls.Meta.fields != ALL_FIELDS:
-            cls.Meta.fields = add_translatable_fields(cls.Meta.model, cls.Meta.fields)
+            cls.Meta.fields = add_translatable_fields(cls.Meta.model, cls.Meta.fields, remove_base_fields=False)
         return super().__new__(cls, *args, **kwargs)
 
     def get_or_default(self, field: str, attrs: dict[str, Any]) -> Any:

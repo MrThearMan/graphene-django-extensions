@@ -153,7 +153,11 @@ class DjangoNode(DjangoObjectType):
             raise TypeError(msg)
 
         if not gdx_settings.EXPERIMENTAL_TRANSLATION_FIELDS and fields != ALL_FIELDS:
-            fields = add_translatable_fields(model, fields)
+            fields = add_translatable_fields(
+                model,
+                fields,
+                remove_base_fields=gdx_settings.EXPERIMENTAL_REMOVE_TRANSLATION_BASE_FIELDS,
+            )
 
         if restricted_fields is not None:
             cls._add_field_restrictions(fields, restricted_fields)
