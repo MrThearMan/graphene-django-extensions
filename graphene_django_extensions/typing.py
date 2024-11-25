@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
@@ -9,13 +10,10 @@ from typing import (
     Callable,
     ClassVar,
     Generic,
-    Iterable,
     Literal,
-    Mapping,
     NamedTuple,
     ParamSpec,
     Protocol,
-    Sequence,
     TypeAlias,
     TypedDict,
     TypeVar,

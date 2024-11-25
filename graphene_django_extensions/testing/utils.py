@@ -5,12 +5,15 @@ from dataclasses import dataclass
 from functools import partial
 from inspect import cleandoc
 from io import BytesIO
-from typing import Any, Callable, Generator, NamedTuple, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, TypedDict, TypeVar
 
 import pytest
 import sqlparse
 from django import db
 from django.core.files import File
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 __all__ = [
     "capture_database_queries",

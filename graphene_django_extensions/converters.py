@@ -4,19 +4,19 @@ from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import graphene
-from django import forms  # noqa: TCH002
+from django import forms  # noqa: TC002
 from django.db import models
-from graphene.types.enum import Enum  # noqa: TCH002
+from graphene.types.enum import Enum  # noqa: TC002
 from graphene_django.converter import (
     convert_choices_to_named_enum_with_descriptions,
     convert_django_field,
     get_django_field_description,
 )
 from graphene_django.forms.converter import convert_form_field, get_form_field_description
-from graphene_django.registry import Registry  # noqa: TCH002
+from graphene_django.registry import Registry  # noqa: TC002
 from graphene_django.rest_framework.serializer_converter import get_graphene_type_from_serializer_field
-from rest_framework.fields import ChoiceField, FileField  # noqa: TCH002
-from rest_framework.relations import ManyRelatedField, RelatedField  # noqa: TCH002
+from rest_framework.fields import ChoiceField, FileField  # noqa: TC002
+from rest_framework.relations import ManyRelatedField, RelatedField  # noqa: TC002
 from rest_framework.serializers import ListSerializer, ModelSerializer
 
 from .fields import (
