@@ -87,7 +87,7 @@ mkdocs-mermaid2-plugin = "1.2.1"
 mypy = "1.13.0"
 pre-commit = "4.0.1"
 django-stubs = "5.1.1"
-djangorestframework-stubs = "3.15.1"
+djangorestframework-stubs = "3.15.2"
 
 [tool.poetry.extras]
 files = ["pillow"]
