@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     ClassVar,
     Generic,
     Literal,
@@ -24,7 +23,7 @@ from graphene.types.mountedtype import MountedType
 from graphene.types.unmountedtype import UnmountedType
 
 # New in version 3.11
-if sys.version_info < (3, 11):  # pragma: no cover
+if sys.version_info < (3, 11):  # pragma: no cover  # noqa: PYI066
     from typing_extensions import Self
 
     class StrEnum(str, Enum):

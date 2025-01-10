@@ -1,19 +1,12 @@
-[tool.poetry]
+[project]
 name = "graphene-django-extensions"
 version = "0.4.9"
 description = "Extensions for graphene-django"
 authors = [
-    "Matti Lamppu <lamppu.matti.akseli@gmail.com>",
-]
-packages = [
-    { include = "graphene_django_extensions" },
-    { include = "gdx_pytest" },
+    { name = "Matti Lamppu", email = "lamppu.matti.akseli@gmail.com" },
 ]
 license = "MIT"
 readme = "README.md"
-homepage = "https://mrthearman.github.io/graphene-django-extensions"
-repository = "https://github.com/MrThearMan/graphene-django-extensions"
-documentation = "https://mrthearman.github.io/graphene-django-extensions"
 keywords = [
     "django",
     "graphene",
@@ -42,22 +35,28 @@ classifiers = [
     "Framework :: Django :: 5.1",
     "Framework :: Pytest",
 ]
-include = [
-    "README.md",
-    "LICENSE",
-]
-exclude = [
-    "tests",
+requires-python = ">=3.10,<4"
+dynamic = [
+    "dependencies",
 ]
 
-[tool.poetry.urls]
+[project.urls]
+"Homepage" = "https://mrthearman.github.io/graphene-django-extensions"
+"Repository" = "https://github.com/MrThearMan/graphene-django-extensions"
 "Bug Tracker" = "https://github.com/MrThearMan/graphene-django-extensions/issues"
+"Documentation" = "https://mrthearman.github.io/graphene-django-extensions"
 
-[tool.poetry.plugins.pytest11]
+[project.entry-points.pytest11]
 graphene_django_extensions = "gdx_pytest.fixtures"
 
+[tool.poetry]
+requires-poetry = ">=2.0.0"
+packages = [
+    { include = "graphene_django_extensions" },
+    { include = "gdx_pytest" },
+]
+
 [tool.poetry.dependencies]
-python = ">=3.10,<4"
 Django = ">=4.2"
 djangorestframework = ">=3.14.0"
 graphene-django = ">=3.0.0"
@@ -84,14 +83,7 @@ pymdown-extensions = "10.13"
 mkdocs-mermaid2-plugin = "1.2.1"
 
 [tool.poetry.group.lint.dependencies]
-mypy = "1.14.1"
 pre-commit = "4.0.1"
-django-stubs = "5.1.1"
-djangorestframework-stubs = "3.15.2"
-
-[tool.poetry.extras]
-files = ["pillow"]
-translation = ["django-modeltranslation"]
 
 [tool.ruff]
 fix = true
@@ -178,8 +170,7 @@ lint.extend-select = [
     "UP042",    # replace-str-enum
 ]
 lint.ignore = [
-    "ANN101",  # Missing type annotation for `self` in method
-    "ANN102",  # Missing type annotation for `cls` in method
+    "A005",    # Allow shadowing builtin modules
     "ANN401",  # Any-typing allowed
     "ARG001",  # Unused function argument
     "ARG002",  # Unused method argument
@@ -278,19 +269,6 @@ extend-ignore-names = [
 
 [tool.ruff.lint.mccabe]
 max-complexity = 13
-
-[tool.mypy]
-python_version = "3.13"
-warn_return_any = "True"
-warn_unused_configs = "True"
-ignore_missing_imports = "True"
-plugins = [
-    "mypy_django_plugin.main",
-    "mypy_drf_plugin.main",
-]
-
-[tool.django-stubs]
-django_settings_module = "example_project.config.settings"
 
 [tool.coverage.run]
 relative_files = true

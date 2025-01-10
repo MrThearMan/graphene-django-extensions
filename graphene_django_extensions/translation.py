@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from functools import cache, partial
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import graphene
 from graphene.types.objecttype import ObjectTypeOptions
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from django.db import models
 
     from graphene_django_extensions.typing import Any, GQLInfo, Sequence

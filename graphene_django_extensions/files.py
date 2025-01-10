@@ -56,7 +56,7 @@ def extract_files(variables: dict[str, Any] | list[Any], *, prefix: str = "") ->
             variables[key] = None
             files[value].append(f"{prefix}{key}")
 
-        if isinstance(value, (dict, list)):
+        if isinstance(value, dict | list):
             for sub_filename, sub_value in extract_files(value, prefix=f"{prefix}{key}").items():
                 files[sub_filename] += sub_value
 

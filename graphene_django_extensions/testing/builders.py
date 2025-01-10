@@ -31,7 +31,7 @@ class FieldFilterParams:
     sub_filters: dict[str, FieldFilterParams] = field(default_factory=dict)
 
     def __str__(self) -> str:
-        return f'({", ".join(self.filters)})'
+        return f"({', '.join(self.filters)})"
 
 
 KNOWN_LOOKUP_FIELDS: set[str] = {
@@ -43,7 +43,7 @@ KNOWN_LOOKUP_FIELDS: set[str] = {
 }
 
 
-def build_query(__name: str, *, fields: str = "pk", connection: bool = False, **filter_params: Any) -> str:
+def build_query(__name: str, *, fields: str = "pk", connection: bool = False, **filter_params: Any) -> str:  # noqa: PYI063
     """
     Build a GraphQL query with the given field selections and filter parameters.
 
@@ -58,7 +58,7 @@ def build_query(__name: str, *, fields: str = "pk", connection: bool = False, **
     return f"query {{ {__name}{result.query_filters} {{ {fields} }} }}"
 
 
-def build_mutation(__name: str, __mutation_class_name: str, *, fields: str = "pk") -> str:
+def build_mutation(__name: str, __mutation_class_name: str, *, fields: str = "pk") -> str:  # noqa: PYI063
     """
     Build a GraphqQL mutation with the given field selections.
 

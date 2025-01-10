@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from functools import partial
 from inspect import cleandoc
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Callable, NamedTuple, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict, TypeVar
 
 import pytest
 import sqlparse
@@ -13,7 +13,7 @@ from django import db
 from django.core.files import File
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Callable, Generator
 
 __all__ = [
     "capture_database_queries",
@@ -189,7 +189,7 @@ def _compare_unordered(actual: Any, expected: Any) -> None:  # noqa: PLR0912, C9
             raise ComparisonError(actual, expected, reason_code=5)
 
         if issubclass(actual_type, dict):
-            for act, exp in zip(sorted(actual, key=_dict_sorter), sorted(expected, key=_dict_sorter)):
+            for act, exp in zip(sorted(actual, key=_dict_sorter), sorted(expected, key=_dict_sorter), strict=False):
                 try:
                     _compare_unordered(act, exp)
                 except ComparisonError as error:  # noqa: PERF203
@@ -197,7 +197,7 @@ def _compare_unordered(actual: Any, expected: Any) -> None:  # noqa: PLR0912, C9
                     error.expected_key = f"[-]{error.expected_key}"
                     raise
         else:
-            for act, exp in zip(sorted(actual), sorted(expected)):
+            for act, exp in zip(sorted(actual), sorted(expected), strict=False):
                 try:
                     _compare_unordered(act, exp)
                 except ComparisonError as error:  # noqa: PERF203

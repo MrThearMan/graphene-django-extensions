@@ -74,7 +74,7 @@ def get_related_field_info(model: type[models.Model]) -> dict[str, RelatedFieldI
     """Map of all related fields on the given model to their related entity's field names."""
     mapping: dict[str, RelatedFieldInfo] = {}
     for field in model._meta.get_fields():
-        if isinstance(field, (models.OneToOneRel, models.ManyToOneRel, models.ManyToManyRel)):
+        if isinstance(field, models.OneToOneRel | models.ManyToOneRel | models.ManyToManyRel):
             name: str = field.get_accessor_name() or field.name
             mapping[name] = RelatedFieldInfo(
                 field_name=name,
@@ -83,7 +83,7 @@ def get_related_field_info(model: type[models.Model]) -> dict[str, RelatedFieldI
                 relation=_get_relation_type(field),
             )
 
-        if isinstance(field, (models.OneToOneField, models.ForeignKey, models.ManyToManyField)):
+        if isinstance(field, models.OneToOneField | models.ForeignKey | models.ManyToManyField):
             value = field.remote_field.get_accessor_name() or field.name
             mapping[field.name] = RelatedFieldInfo(
                 field_name=field.name,

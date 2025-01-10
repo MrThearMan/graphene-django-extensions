@@ -9,7 +9,6 @@
 .PHONY: migrate
 .PHONY: migrations
 .PHONY: generate
-.PHONY: mypy
 .PHONY: Makefile
 
 # Trick to allow passing commands to make
@@ -34,7 +33,6 @@ define helptext
   migrate              Create migrations
   migrations           Run migrations
   generate             Generate test data.
-  mypy                 Run mypy on all files.
 
   Use quotes (" ") if command contains flags (-h / --help)
 endef
@@ -73,6 +71,3 @@ migrations:
 
 generate:
 	@poetry run python manage.py create_test_data
-
-mypy:
-	@poetry run mypy graphene_django_extensions/
