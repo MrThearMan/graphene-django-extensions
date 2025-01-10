@@ -11,4 +11,4 @@ jobs:
     secrets:
       pypi-token: ${{ secrets.PYPI_API_TOKEN }}
     with:
-      poerty-version: "2.0.0"
+      poetry-version: "2.0.0"
