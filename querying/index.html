@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Querying - Graphene Django Extensions</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/docs.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Querying";
+        var mkdocs_page_input_path = "querying.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/console.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/json.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Graphene Django Extensions
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Querying</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#djangonode">DjangoNode</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#permission-errors">Permission errors</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#interface">Interface</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#filter_queryset">filter_queryset</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#field">Field</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#relatedfield">RelatedField</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#listfield">ListField</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#node">Node</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#connection">Connection</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../filtering/">Filtering</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../permissions/">Permissions</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../mutations/">Mutations</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../testing/">Testing</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Graphene Django Extensions</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Querying</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="queries">Queries<a class="headerlink" href="#queries" title="Permanent link">🔗</a></h1>
+<h2 id="djangonode">DjangoNode<a class="headerlink" href="#djangonode" title="Permanent link">🔗</a></h2>
+<p>Custom base class for GraphQL ObjectTypes that are backed by a Django model.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">graphene_django_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DjangoNode</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">example.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Example</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyNode</span><span class="p">(</span><span class="n">DjangoNode</span><span class="p">):</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="n">model</span> <span class="o">=</span> <span class="n">Example</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>
+</code></pre></div>
+<p>Extends <code>graphene_django.types.DjangoObjectType</code> and adds the following features:</p>
+<ul>
+<li>Makes the <code>graphene.relay.Node</code> interface the default interface for the type.</li>
+<li>Adds <code>total_count = graphene.Int()</code> field to the default Connection field for the type.</li>
+<li>Adds <code>pk</code> primary key field and resolver  to the ObjectType, if present in <code>Meta.fields</code>.</li>
+<li>Can add permission checks via permission classes.</li>
+</ul>
+<h3 id="permission-errors">Permission errors<a class="headerlink" href="#permission-errors" title="Permanent link">🔗</a></h3>
+<p>If a permission check for a query fails, an error like this will be raised:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="nt">&quot;errors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="p">{</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">            </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;No permission to access node.&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">            </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;examples&quot;</span><span class="p">],</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">            </span><span class="nt">&quot;extensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;NODE_PERMISSION_DENIED&quot;</span><span class="p">},</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">            </span><span class="nt">&quot;locations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="nt">&quot;line&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;column&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">63</span><span class="p">}]</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="p">}</span>
+</code></pre></div>
+<p>The message and code depends on the operation type, and can be changed using the following settings.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Message setting</th>
+<th>Message default</th>
+<th>Code setting</th>
+<th>Code default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>field / node</td>
+<td><code>QUERY_PERMISSION_ERROR_MESSAGE</code></td>
+<td>No permission to access node.</td>
+<td><code>QUERY_PERMISSION_ERROR_CODE</code></td>
+<td><code>NODE_PERMISSION_DENIED</code></td>
+</tr>
+<tr>
+<td>list / connection</td>
+<td><code>FILTER_PERMISSION_ERROR_MESSAGE</code></td>
+<td>No permission to access node.</td>
+<td><code>FILTER_PERMISSION_ERROR_CODE</code></td>
+<td><code>FILTER_PERMISSION_DENIED</code></td>
+</tr>
+</tbody>
+</table>
+<p>More on permissions on the <a href="https://mrthearman.github.io/graphene-django-extensions/permissions/">permissions page</a>.</p>
+<hr />
+<h3 id="interface">Interface<a class="headerlink" href="#interface" title="Permanent link">🔗</a></h3>
+<p>Some new methods are also added. Here are the most useful ones:</p>
+<h4 id="filter_queryset">filter_queryset<a class="headerlink" href="#filter_queryset" title="Permanent link">🔗</a></h4>
+<ul>
+<li>args:<ul>
+<li><code>queryset: QuerySet</code></li>
+<li><code>info: GQLInfo</code></li>
+</ul>
+</li>
+</ul>
+<p>Can be used to filter available rows for both <code>get_queryset</code> and <code>get_node</code>.
+Use this instead of <code>get_queryset</code> for filtering, since the built-in SQL
+optimizer is able to include these in the query plan.</p>
+<h4 id="field">Field<a class="headerlink" href="#field" title="Permanent link">🔗</a></h4>
+<ul>
+<li>args:<ul>
+<li><code>kwargs: dict[str, Any]</code></li>
+</ul>
+</li>
+</ul>
+<p>Create a 'regular' Field from the type.</p>
+<h4 id="relatedfield">RelatedField<a class="headerlink" href="#relatedfield" title="Permanent link">🔗</a></h4>
+<ul>
+<li>args:<ul>
+<li><code>kwargs: dict[str, Any]</code></li>
+</ul>
+</li>
+</ul>
+<p>Create a one-to-one or many-to-one related Field from the type.</p>
+<h4 id="listfield">ListField<a class="headerlink" href="#listfield" title="Permanent link">🔗</a></h4>
+<ul>
+<li>args:<ul>
+<li><code>kwargs: dict[str, Any]</code></li>
+</ul>
+</li>
+</ul>
+<p>Create a DjangoListField from the type.</p>
+<h4 id="node">Node<a class="headerlink" href="#node" title="Permanent link">🔗</a></h4>
+<ul>
+<li>args:<ul>
+<li><code>kwargs: dict[str, Any]</code></li>
+</ul>
+</li>
+</ul>
+<p>Create a Relay Node from the type.</p>
+<h4 id="connection">Connection<a class="headerlink" href="#connection" title="Permanent link">🔗</a></h4>
+<ul>
+<li>args:<ul>
+<li><code>kwargs: dict[str, Any]</code></li>
+</ul>
+</li>
+</ul>
+<p>Create a Relay Connection Field from the type.</p>
+<hr />
+<p>Subclasses can be configured through the <code>Meta</code>-class. Here are the most useful options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>model</code></td>
+<td><code>type[Model]</code></td>
+<td>Required. The model class for the node.</td>
+</tr>
+<tr>
+<td><code>fields</code></td>
+<td><code>list[str]</code> or <code>__all__</code></td>
+<td>Required. The fields to include in the node. If <code>__all__</code> is used, all fields are included.</td>
+</tr>
+<tr>
+<td><code>filterset_class</code></td>
+<td><code>type[FilterSet]</code></td>
+<td>Optional. The FilterSet class to use for filtering the ObjectType queryset.</td>
+</tr>
+<tr>
+<td><code>permission_classes</code></td>
+<td><code>list[type[BasePermission]]</code></td>
+<td>Optional. Set <a href="https://mrthearman.github.io/graphene-django-extensions/permissions/#permission-classes">permission classes</a> for the node. Defaults to (<code>AllowAny</code>,).</td>
+</tr>
+<tr>
+<td><code>restricted_fields</code></td>
+<td><code>dict[str, PermCheck]</code></td>
+<td>Optional. Adds <a href="https://mrthearman.github.io/graphene-django-extensions/permissions/#restricted-fields">permission checks</a> to the resolvers of the fields as defined in the dict.</td>
+</tr>
+</tbody>
+</table>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../filtering/" class="btn btn-neutral float-right" title="Filtering">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../filtering/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
