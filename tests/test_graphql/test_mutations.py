@@ -15,6 +15,8 @@ def test_graphql__create(graphql: GraphQLClient):
     mto = ForwardManyToOneFactory.create()
     input_data = {
         "name": "foo",
+        "nameFi": "foo",
+        "nameEn": "foo",
         "number": 123,
         "email": "foo@email.com",
         "exampleState": ExampleState.ACTIVE.value,

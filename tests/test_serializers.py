@@ -122,6 +122,8 @@ class ExampleSerializer(NestingModelSerializer):
 def get_example_data() -> dict[str, Any]:
     return {
         "name": "foo",
+        "name_fi": "foo",
+        "name_en": "foo",
         "number": 1,
         "email": "foofoo@email.com",
         "duration": int(datetime.timedelta(seconds=900).total_seconds()),
@@ -182,6 +184,8 @@ def get_example_data_no_fields() -> dict[str, Any]:
 
     return {
         "name": "foo",
+        "name_fi": "foo",
+        "name_en": "foo",
         "number": 1,
         "email": "foofoo@email.com",
         "duration": int(datetime.timedelta(seconds=900).total_seconds()),
@@ -283,6 +287,8 @@ def test_nesting_model_serializer__unique_error():
 def test_nesting_model_serializer__constraint_error():
     data = get_example_data()
     data["name"] = "bar"
+    data["name_fi"] = "bar"
+    data["name_en"] = "bar"
     serializer = ExampleSerializer(data=data)
     assert serializer.is_valid(raise_exception=True)
 
@@ -299,7 +305,7 @@ def test_serializer_get_or_default():
     assert serializer.get_or_default("example_state", data) == NotProvided
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_serializer_request_user():
     request = Request(HttpRequest())
     request.user = user = User.objects.create_user(username="foo", email="foo@example.com")
