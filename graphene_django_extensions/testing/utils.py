@@ -168,7 +168,7 @@ def _compare_unordered(actual: Any, expected: Any) -> None:  # noqa: PLR0912, C9
         for key in actual:
             try:
                 _compare_unordered(actual[key], expected[key])
-            except ComparisonError as error:  # noqa: PERF203
+            except ComparisonError as error:
                 error.actual_key = f"['{key}']{error.actual_key}"
                 error.expected_key = f"['{key}']{error.expected_key}"
                 raise
@@ -192,7 +192,7 @@ def _compare_unordered(actual: Any, expected: Any) -> None:  # noqa: PLR0912, C9
             for act, exp in zip(sorted(actual, key=_dict_sorter), sorted(expected, key=_dict_sorter), strict=False):
                 try:
                     _compare_unordered(act, exp)
-                except ComparisonError as error:  # noqa: PERF203
+                except ComparisonError as error:
                     error.actual_key = f"[-]{error.actual_key}"
                     error.expected_key = f"[-]{error.expected_key}"
                     raise
@@ -200,7 +200,7 @@ def _compare_unordered(actual: Any, expected: Any) -> None:  # noqa: PLR0912, C9
             for act, exp in zip(sorted(actual), sorted(expected), strict=False):
                 try:
                     _compare_unordered(act, exp)
-                except ComparisonError as error:  # noqa: PERF203
+                except ComparisonError as error:
                     error.actual_key = f"[-]{error.actual_key}"
                     error.expected_key = f"[-]{error.expected_key}"
                     raise
@@ -210,7 +210,7 @@ def _compare_unordered(actual: Any, expected: Any) -> None:  # noqa: PLR0912, C9
 
 
 def create_mock_png() -> File:
-    from PIL import Image
+    from PIL import Image  # noqa: PLC0415
 
     bytes_io = BytesIO()
     img = Image.new("RGB", (1, 1))

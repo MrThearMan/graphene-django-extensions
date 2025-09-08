@@ -27,7 +27,7 @@ __all__ = [
 def get_translatable_fields(model: type[models.Model]) -> list[str]:
     """If `django-modeltranslation` is installed, find all translatable fields in the given model."""
     try:
-        from modeltranslation.manager import get_translatable_fields_for_model
+        from modeltranslation.manager import get_translatable_fields_for_model  # noqa: PLC0415
     except ImportError:
         return []
 
@@ -45,8 +45,8 @@ def add_translatable_fields(
     to the given fields list, for the given fields, in the given model.
     """
     try:
-        from modeltranslation.manager import get_translatable_fields_for_model
-        from modeltranslation.utils import get_translation_fields
+        from modeltranslation.manager import get_translatable_fields_for_model  # noqa: PLC0415
+        from modeltranslation.utils import get_translation_fields  # noqa: PLC0415
     except ImportError:
         return fields
 
@@ -70,7 +70,7 @@ def add_translatable_fields(
 def get_available_languages() -> list[str]:
     """Get a list of all available translation languages."""
     try:
-        from modeltranslation.settings import AVAILABLE_LANGUAGES
+        from modeltranslation.settings import AVAILABLE_LANGUAGES  # noqa: PLC0415
     except ImportError:
         return []
 

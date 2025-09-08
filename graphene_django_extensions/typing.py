@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import sys
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from enum import Enum
+
+# New in version 3.11
+from enum import Enum, StrEnum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -13,31 +14,16 @@ from typing import (
     NamedTuple,
     ParamSpec,
     Protocol,
+    Self,
     TypeAlias,
     TypedDict,
     TypeVar,
     Union,
 )
 
+from django.core.handlers.wsgi import WSGIRequest
 from graphene.types.mountedtype import MountedType
 from graphene.types.unmountedtype import UnmountedType
-
-# New in version 3.11
-if sys.version_info < (3, 11):  # pragma: no cover  # noqa: PYI066
-    from typing_extensions import Self
-
-    class StrEnum(str, Enum):
-        def __str__(self) -> str:
-            return str(self.value)
-
-        def __repr__(self) -> str:
-            return repr(self.value)
-
-else:  # pragma: no cover
-    from enum import StrEnum
-    from typing import Self
-
-from django.core.handlers.wsgi import WSGIRequest
 from graphql import GraphQLResolveInfo
 
 if TYPE_CHECKING:
