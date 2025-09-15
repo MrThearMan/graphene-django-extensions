@@ -73,7 +73,7 @@ pytest-django = "4.11.1"
 nox = "2025.5.1"
 factory-boy = "3.3.3"
 django-graphiql-debug-toolbar = "0.2.0"
-django-modeltranslation = "0.19.16"
+django-modeltranslation = "0.19.17"
 pillow = ">=10.2.0"
 
 [tool.poetry.group.docs.dependencies]
