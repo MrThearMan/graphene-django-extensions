@@ -68,7 +68,7 @@ pillow = { version = ">=10.2.0", optional = true }
 
 [tool.poetry.group.test.dependencies]
 pytest = "8.4.2"
-coverage = "7.10.6"
+coverage = "7.10.7"
 pytest-django = "4.11.1"
 nox = "2025.5.1"
 factory-boy = "3.3.3"
