@@ -381,14 +381,14 @@ files = [
 
 [[package]]
 name = "django"
-version = "5.2.6"
+version = "5.2.7"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "test"]
 files = [
-    {file = "django-5.2.6-py3-none-any.whl", hash = "sha256:60549579b1174a304b77e24a93d8d9fafe6b6c03ac16311f3e25918ea5a20058"},
-    {file = "django-5.2.6.tar.gz", hash = "sha256:da5e00372763193d73cecbf71084a3848458cecf4cee36b9a1e8d318d114a87b"},
+    {file = "django-5.2.7-py3-none-any.whl", hash = "sha256:59a13a6515f787dec9d97a0438cd2efac78c8aca1c80025244b0fe507fe0754b"},
+    {file = "django-5.2.7.tar.gz", hash = "sha256:e0f6f12e2551b1716a95a63a1366ca91bbcd7be059862c1b18f989b1da356cdd"},
 ]
 
 [package.dependencies]
@@ -418,18 +418,21 @@ sqlparse = ">=0.2"
 
 [[package]]
 name = "django-filter"
-version = "25.1"
+version = "25.2"
 description = "Django-filter is a reusable Django application for allowing users to filter querysets dynamically."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_filter-25.1-py3-none-any.whl", hash = "sha256:4fa48677cf5857b9b1347fed23e355ea792464e0fe07244d1fdfb8a806215b80"},
-    {file = "django_filter-25.1.tar.gz", hash = "sha256:1ec9eef48fa8da1c0ac9b411744b16c3f4c31176c867886e4c48da369c407153"},
+    {file = "django_filter-25.2-py3-none-any.whl", hash = "sha256:9c0f8609057309bba611062fe1b720b4a873652541192d232dd28970383633e3"},
+    {file = "django_filter-25.2.tar.gz", hash = "sha256:760e984a931f4468d096f5541787efb8998c61217b73006163bf2f9523fe8f23"},
 ]
 
 [package.dependencies]
-Django = ">=4.2"
+Django = ">=5.2"
+
+[package.extras]
+drf = ["djangorestframework"]
 
 [[package]]
 name = "django-graphiql-debug-toolbar"
@@ -621,14 +624,14 @@ test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", 
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.10.14"
+version = "0.10.15"
 description = "Automatically optimize SQL queries in Graphene-Django schemas."
 optional = false
 python-versions = "<4,>=3.11"
 groups = ["main"]
 files = [
-    {file = "graphene_django_query_optimizer-0.10.14-py3-none-any.whl", hash = "sha256:f81cba94720f132f8498978970af7948c04927b5c5cba0abf426173628dc220a"},
-    {file = "graphene_django_query_optimizer-0.10.14.tar.gz", hash = "sha256:5822631837162ee62e887ea5ac5ba5957445534edfcc29e22b736ec2aa64d6d6"},
+    {file = "graphene_django_query_optimizer-0.10.15-py3-none-any.whl", hash = "sha256:0217fc269580d8c8631d0c719b2a0d79f474f765b2466bebdceef7c62ff19d8c"},
+    {file = "graphene_django_query_optimizer-0.10.15.tar.gz", hash = "sha256:f4cc39dda4aff72964117a8afb554352f7a3d7a0d9f1d43d1b09f675c007a07a"},
 ]
 
 [package.dependencies]
