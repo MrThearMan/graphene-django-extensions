@@ -78,7 +78,7 @@ pillow = ">=10.2.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "1.6.1"
-pymdown-extensions = "10.17.1"
+pymdown-extensions = "10.17.2"
 mkdocs-mermaid2-plugin = "1.2.3"
 
 [tool.poetry.group.lint.dependencies]
