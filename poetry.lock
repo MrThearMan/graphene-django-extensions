@@ -441,18 +441,19 @@ graphene-django = ">=2.0.0"
 
 [[package]]
 name = "django-modeltranslation"
-version = "0.19.17"
+version = "0.19.19"
 description = "Translates Django models using a registration approach."
 optional = false
-python-versions = "<4,>=3.9"
+python-versions = "<4,>=3.10"
 groups = ["main", "test"]
 files = [
-    {file = "django_modeltranslation-0.19.17-py3-none-any.whl", hash = "sha256:fda198c08b4ede0c2fd09b795ab420a04c7b5a868315fdf4aade0d0a526c269f"},
-    {file = "django_modeltranslation-0.19.17.tar.gz", hash = "sha256:13bd9cab4e4aed0bef5624c17a7da2ac8c5538f0650adbd89ce8c878cbef02fd"},
+    {file = "django_modeltranslation-0.19.19-py3-none-any.whl", hash = "sha256:55ac2ce47486b9e8ca18b155f7705170a53b7e1346bf7bf89304e99787486e8f"},
+    {file = "django_modeltranslation-0.19.19.tar.gz", hash = "sha256:26dd8454f19540a2eb05e303608a2d89dd80aacb75ab95f8ea272cf4324d2644"},
 ]
 
 [package.dependencies]
-django = ">=4.2"
+django = ">=5.1"
+typing-extensions = ">=4.0.1"
 
 [[package]]
 name = "django-settings-holder"
@@ -1121,14 +1122,14 @@ testing = ["coverage", "pytest", "pytest-benchmark"]
 
 [[package]]
 name = "pre-commit"
-version = "4.5.0"
+version = "4.5.1"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 optional = false
 python-versions = ">=3.10"
 groups = ["lint"]
 files = [
-    {file = "pre_commit-4.5.0-py2.py3-none-any.whl", hash = "sha256:25e2ce09595174d9c97860a95609f9f852c0614ba602de3561e267547f2335e1"},
-    {file = "pre_commit-4.5.0.tar.gz", hash = "sha256:dc5a065e932b19fc1d4c653c6939068fe54325af8e741e74e88db4d28a4dd66b"},
+    {file = "pre_commit-4.5.1-py2.py3-none-any.whl", hash = "sha256:3b3afd891e97337708c1674210f8eba659b52a38ea5f822ff142d10786221f77"},
+    {file = "pre_commit-4.5.1.tar.gz", hash = "sha256:eb545fcff725875197837263e977ea257a402056661f09dae08e4b149b030a61"},
 ]
 
 [package.dependencies]
@@ -1528,4 +1529,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4"
-content-hash = "7a1d8e9ae244d4268ae6f6019e0235fbd5d9410fdd11d2586d419d9f4f8f2b05"
+content-hash = "114fdec651ad9fa034e959959da22a15fe773fbdc627fb92d326ff9fdc0f186e"
