@@ -65,7 +65,7 @@ graphene-django-query-optimizer = ">=0.10.3"
 django-settings-holder = ">=0.1.2"
 django-filter = ">=23.5"
 typing-extensions = { version = ">=4.12.1", python = "<3.11" }
-django-modeltranslation = { version = ">=0.18.13", optional = true }
+django-modeltranslation = { version = ">=0.20.3", optional = true }
 pillow = { version = ">=10.2.0", optional = true }
 
 [tool.poetry.group.test.dependencies]
@@ -75,7 +75,7 @@ pytest-django = "4.12.0"
 nox = "2026.4.10"
 factory-boy = "3.3.3"
 django-graphiql-debug-toolbar = "0.2.0"
-django-modeltranslation = "0.20.2"
+django-modeltranslation = "0.20.3"
 pillow = ">=10.2.0"
 
 [tool.poetry.group.docs.dependencies]
