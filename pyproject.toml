@@ -70,7 +70,7 @@ pillow = { version = ">=10.2.0", optional = true }
 
 [tool.poetry.group.test.dependencies]
 pytest = "9.1.1"
-coverage = "7.14.2"
+coverage = "7.14.3"
 pytest-django = "4.12.0"
 nox = "2026.4.10"
 factory-boy = "3.3.3"
@@ -80,7 +80,7 @@ pillow = ">=10.2.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "1.6.1"
-pymdown-extensions = "10.21.3"
+pymdown-extensions = "11.0"
 mkdocs-mermaid2-plugin = "1.2.3"
 
 [tool.poetry.group.lint.dependencies]
