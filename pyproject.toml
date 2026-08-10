@@ -58,8 +58,8 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-Django = ">=5.2.16"
-djangorestframework = ">=3.14.0"
+Django = ">=5.2.17"
+djangorestframework = ">=3.17.2"
 graphene-django = ">=3.0.0"
 graphene-django-query-optimizer = ">=0.10.3"
 django-settings-holder = ">=0.1.2"
@@ -70,8 +70,8 @@ pillow = { version = ">=12.3.0", optional = true }
 
 [tool.poetry.group.test.dependencies]
 pytest = "9.1.1"
-coverage = "7.15.2"
-pytest-django = "4.12.0"
+coverage = "7.15.4"
+pytest-django = "4.13.0"
 nox = "2026.7.11"
 factory-boy = "3.3.3"
 django-graphiql-debug-toolbar = "0.2.0"
