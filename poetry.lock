@@ -959,14 +959,14 @@ files = [
 
 [[package]]
 name = "nox"
-version = "2026.8.10"
+version = "2026.8.17"
 description = "Flexible test automation."
 optional = false
 python-versions = ">=3.10"
 groups = ["test"]
 files = [
-    {file = "nox-2026.8.10-py3-none-any.whl", hash = "sha256:943f1ebcace1efb35d91ad2034007df1942d2a1bed75fb33e1bf0ed5a0df1cdb"},
-    {file = "nox-2026.8.10.tar.gz", hash = "sha256:13f45e46552eade9f4b60474133e31e1e0bb341234a3cc0c9d6fff17570ce8bb"},
+    {file = "nox-2026.8.17-py3-none-any.whl", hash = "sha256:a96a5286007cbc0d1eb1930e85738668f6722adba1ffaa48287296a96963086e"},
+    {file = "nox-2026.8.17.tar.gz", hash = "sha256:8d9c69c9b996a59db1eb2c6968deaebc2edbc55317d205981bbc4a37351d3f2e"},
 ]
 
 [package.dependencies]
@@ -1571,4 +1571,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4"
-content-hash = "b5844f60b408a98317d127ba56b920684fb9238e793714b18cf8e66bb686d953"
+content-hash = "f585cec7a1d7f0a66b2eaf8fc72f6f244008fe214cbe93f66dfbec7592369624"
