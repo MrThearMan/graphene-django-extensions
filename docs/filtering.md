@@ -8,6 +8,7 @@ A custom FilterSet class for optimizing the filtering of GraphQL queries.
 from graphene_django_extensions import ModelFilterSet
 from example.models import Example
 
+
 class ExampleFilterSet(ModelFilterSet):
     class Meta:
         model = Example
@@ -43,6 +44,7 @@ can be used to add custom orderings.
 ```python
 from graphene_django_extensions import ModelFilterSet
 
+
 class ExampleFilterSet(ModelFilterSet):
     class Meta:
         model = Example
@@ -67,6 +69,7 @@ need vs. what has been predefined.
 
 ```python
 from graphene_django_extensions.filters import ModelFilterSet, UserDefinedFilter
+
 
 class ExampleFilterSet(ModelFilterSet):
     filter = UserDefinedFilter(

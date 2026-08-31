@@ -77,15 +77,13 @@ an exception if the permission check fails.
 There are two allowed interfaces for permissions checks:
 
 ```python
-def permission_check(user: User | AnonymousUser) -> bool:
-    ...
+def permission_check(user: User | AnonymousUser) -> bool: ...
 ```
 
 or
 
 ```python
-def permission_check(user: User | AnonymousUser, instance: Model) -> bool:
-    ...
+def permission_check(user: User | AnonymousUser, instance: Model) -> bool: ...
 ```
 
 ...where the instance is the instance of the model that the field resolver is being called on.
@@ -97,8 +95,8 @@ without having to use the decorator on each field resolver.
 from graphene_django_extensions import DjangoNode
 from graphene_django_extensions.permissions import restricted_field
 
-class ExampleNode(DjangoNode):
 
+class ExampleNode(DjangoNode):
     class Meta:
         model = Example
         fields = ["example_field"]
@@ -111,7 +109,6 @@ class ExampleNode(DjangoNode):
     @restricted_field(lambda user: user.is_authenticated)
     def resolve_example_field(root: Example, info: GQLInfo):
         return root.example_field
-
 ```
 
 Field permissions will return errors in the following format:

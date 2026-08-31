@@ -9,15 +9,18 @@ which should cover most use cases, but custom mutations can also be created.
 ```python
 from graphene_django_extensions import CreateMutation, UpdateMutation, DeleteMutation
 
+
 class ExampleCreateMutation(CreateMutation):
     class Meta:
         model = Example
         serializer_class = ExampleSerializer
 
+
 class ExampleUpdateMutation(UpdateMutation):
     class Meta:
         model = Example
         serializer_class = ExampleSerializer
+
 
 class ExampleDeleteMutation(DeleteMutation):
     class Meta:
@@ -148,6 +151,7 @@ and output types.
 ```python
 from graphene_django_extensions.bases import DjangoMutation
 
+
 class ExampleCustomMutation(DjangoMutation):
     class Meta:
         serializer_class = ExampleInputSerializer
@@ -173,10 +177,12 @@ when they are included as nested serializer fields:
 ```python
 from graphene_django_extensions import NestingModelSerializer
 
+
 class SubSerializer(NestingModelSerializer):
     class Meta:
         model = Sub
         fields = ["pk", "sub_field"]
+
 
 class MainSerializer(NestingModelSerializer):
     sub_entry = SubSerializer()
