@@ -8,6 +8,7 @@ Custom base class for GraphQL ObjectTypes that are backed by a Django model.
 from graphene_django_extensions import DjangoNode
 from example.models import Example
 
+
 class MyNode(DjangoNode):
     class Meta:
         model = Example
