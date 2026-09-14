@@ -470,14 +470,14 @@ graphene-django = ">=2.0.0"
 
 [[package]]
 name = "django-modeltranslation"
-version = "0.20.4"
+version = "0.20.6"
 description = "Translates Django models using a registration approach."
 optional = false
 python-versions = "<4,>=3.10"
 groups = ["main", "test"]
 files = [
-    {file = "django_modeltranslation-0.20.4-py3-none-any.whl", hash = "sha256:76871815982a136d722bf25407673d41c58e8421a904bfa87fd8fa4cadbdb510"},
-    {file = "django_modeltranslation-0.20.4.tar.gz", hash = "sha256:105676e3afcb08dd51ae5e97ac61c74dd51cff9e0e0d2cd333cd16dd93e24315"},
+    {file = "django_modeltranslation-0.20.6-py3-none-any.whl", hash = "sha256:913658af75510a4f71573441f267b5831a6034c524f917f337adc666a60fe724"},
+    {file = "django_modeltranslation-0.20.6.tar.gz", hash = "sha256:29eb584f017206a0bea5e2a44ae5da514ad6ebf1e43536ff7fed7df67b795b0c"},
 ]
 
 [package.dependencies]
@@ -501,14 +501,14 @@ Django = ">=4.2"
 
 [[package]]
 name = "djangorestframework"
-version = "3.18.0"
+version = "3.18.1"
 description = "Web APIs for Django, made easy."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "djangorestframework-3.18.0-py3-none-any.whl", hash = "sha256:381fc44d3249c9565c5f723850855b734e99030eb30957a49f506d3fe11d7dcb"},
-    {file = "djangorestframework-3.18.0.tar.gz", hash = "sha256:2323a5111837e0b784dcb8323abc78ecc54fa2a5af7aff2677cf50cdd849477f"},
+    {file = "djangorestframework-3.18.1-py3-none-any.whl", hash = "sha256:f1409d698967aaf82d5d98d76b549c8fba8bd92ebd0d83d24454508f72168dc2"},
+    {file = "djangorestframework-3.18.1.tar.gz", hash = "sha256:605d79fa2ec2f02905492e5ea13d903c2d842d0b4c915a57f7bf02ab9f3c91dd"},
 ]
 
 [package.dependencies]
@@ -1571,4 +1571,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4"
-content-hash = "88248db34ddd8bd5e328b24d2d9352de298f090f9d4e58e2943c4e3a7caf2411"
+content-hash = "be8e69be094a7f19667c095e2d1a59a0e03e2bce35ecb939e078837ea7c9165a"
