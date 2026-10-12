@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth import get_user_model, login
@@ -60,7 +60,7 @@ class ExampleCustomMutation(DjangoMutation):
         input_data["number"] = 1
         input_data["email"] = "example@email.com"
         input_data["example_state"] = ExampleState.ACTIVE
-        input_data["duration"] = datetime.timedelta(seconds=900)
+        input_data["duration"] = dt.timedelta(seconds=900)
         input_data["forward_one_to_one_field"] = ForwardOneToOne.objects.create(name="Test")
         input_data["forward_many_to_one_field"] = ForwardManyToOne.objects.create(name="Test")
         example = Example.objects.create(**input_data)
@@ -82,7 +82,7 @@ class ExampleFormCustomMutation(DjangoMutation):
         input_data["number"] = 1
         input_data["email"] = "example@email.com"
         input_data["example_state"] = ExampleState.ACTIVE
-        input_data["duration"] = datetime.timedelta(seconds=900)
+        input_data["duration"] = dt.timedelta(seconds=900)
         input_data["forward_one_to_one_field"] = ForwardOneToOne.objects.create(name="Test")
         input_data["forward_many_to_one_field"] = ForwardManyToOne.objects.create(name="Test")
         example = Example.objects.create(**input_data)

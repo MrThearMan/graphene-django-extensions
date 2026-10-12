@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
@@ -42,10 +42,10 @@ class Time(graphene.Time):
     """Time scalar that can parse time-strings from database."""
 
     @staticmethod
-    def serialize(value: datetime.time | str) -> str:
+    def serialize(value: dt.time | str) -> str:
         if isinstance(value, str):
             with suppress(ValueError):
-                value = datetime.time.fromisoformat(value)
+                value = dt.time.fromisoformat(value)
         return graphene.Time.serialize(value)
 
 
@@ -54,15 +54,15 @@ class Duration(graphene.Scalar):
 
     @staticmethod
     def serialize(value: Any) -> int | None:
-        if not isinstance(value, datetime.timedelta):  # pragma: no cover
+        if not isinstance(value, dt.timedelta):  # pragma: no cover
             return None
         return int(value.total_seconds())
 
     @staticmethod
-    def parse_value(value: Any) -> datetime.timedelta | None:
+    def parse_value(value: Any) -> dt.timedelta | None:
         if not isinstance(value, int):  # pragma: no cover
             return None
-        return datetime.timedelta(seconds=value)
+        return dt.timedelta(seconds=value)
 
     @staticmethod
     def parse_literal(ast: graphql.ValueNode, _variables: Any = None) -> int | Undefined:  # pragma: no cover
@@ -98,9 +98,9 @@ class TypedDictFieldMixin:
         set: models.JSONField,
         tuple: models.JSONField,
         bytes: models.BinaryField,
-        datetime.datetime: models.DateTimeField,
-        datetime.date: models.DateField,
-        datetime.time: models.TimeField,
+        dt.datetime: models.DateTimeField,
+        dt.date: models.DateField,
+        dt.time: models.TimeField,
     }
 
     def __init__(self, typed_dict: type[TypedDict], *arg: Any, **kwargs: Any) -> None:  # pragma: no cover

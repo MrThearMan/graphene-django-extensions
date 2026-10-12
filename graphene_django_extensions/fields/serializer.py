@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -67,7 +67,7 @@ class EnumFriendlyChoiceField(serializers.ChoiceField):
 
 
 class MinDurationValidator(MinValueValidator):
-    def clean(self, x: datetime.timedelta) -> int:
+    def clean(self, x: dt.timedelta) -> int:
         return int(x.total_seconds())
 
 
@@ -76,22 +76,22 @@ class DurationField(serializers.IntegerField):
         super().__init__(**kwargs)
         self.validators.append(MinDurationValidator(0))
 
-    def to_internal_value(self, data: Any) -> datetime.timedelta:
-        if isinstance(data, datetime.timedelta):
+    def to_internal_value(self, data: Any) -> dt.timedelta:
+        if isinstance(data, dt.timedelta):
             return data
         if isinstance(data, int):
-            return datetime.timedelta(seconds=data)
+            return dt.timedelta(seconds=data)
         try:  # pragma: no cover
             data = int(data)
         except (ValueError, TypeError):  # pragma: no cover
             self.fail("invalid")
-        return datetime.timedelta(seconds=data)  # pragma: no cover
+        return dt.timedelta(seconds=data)  # pragma: no cover
 
-    def to_representation(self, value: datetime.timedelta) -> int:  # pragma: no cover
+    def to_representation(self, value: dt.timedelta) -> int:  # pragma: no cover
         return int(value.total_seconds())
 
     def get_attribute(self, instance: Any) -> int | None:
         value = super().get_attribute(instance)
-        if isinstance(value, datetime.timedelta):
+        if isinstance(value, dt.timedelta):
             return int(value.total_seconds())
         return value  # pragma: no cover
