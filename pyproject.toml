@@ -58,12 +58,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-Django = ">=5.2.17"
-djangorestframework = ">=3.18.1"
+Django = ">=5.2.18"
+djangorestframework = ">=3.18.3"
 graphene-django = ">=3.0.0"
 graphene-django-query-optimizer = ">=0.10.16"
 django-settings-holder = ">=0.1.2"
-django-filter = ">=26.1"
+django-filter = ">=26.2"
 typing-extensions = { version = ">=4.16.0", python = "<3.11" }
 django-modeltranslation = { version = ">=0.20.6", optional = true }
 pillow = { version = ">=12.3.0", optional = true }
