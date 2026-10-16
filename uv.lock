@@ -465,6 +465,7 @@ dependencies = [
     { name = "djangorestframework" },
     { name = "graphene-django" },
     { name = "graphene-django-query-optimizer" },
+    { name = "typing-extensions" },
 ]
 
 [package.optional-dependencies]
@@ -511,6 +512,7 @@ requires-dist = [
     { name = "graphene-django", specifier = ">=3.0.0" },
     { name = "graphene-django-query-optimizer", specifier = ">=0.10.16" },
     { name = "pillow", marker = "extra == 'files'", specifier = ">=12.3.0" },
+    { name = "typing-extensions", specifier = ">=4.16.0" },
 ]
 provides-extras = ["files", "translation"]
 

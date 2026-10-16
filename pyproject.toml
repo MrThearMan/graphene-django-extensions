@@ -43,6 +43,7 @@ dependencies = [
     "graphene-django-query-optimizer>=0.10.16",
     "django-settings-holder>=0.1.2",
     "django-filter>=26.2",
+    "typing-extensions>=4.16.0",
 ]
 
 [project.optional-dependencies]
