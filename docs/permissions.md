@@ -70,6 +70,36 @@ Override this method to add specific permissions to an update mutation defined b
 
 Override this method to add specific permissions to a delete mutation defined by `DeleteMutation`.
 
+### Typing
+
+`BasePermission` is generic over the model and the user type. Without subscription,
+the model is `Model` and the user is `User | AnonymousUser`, as in the method arguments above.
+Subscribe the class to type the methods for a specific model and user, for example
+when the project uses a custom user model:
+
+```python
+from graphene_django_extensions.permissions import BasePermission
+
+
+class ExamplePermission(BasePermission[Example, MyUser]):
+    @classmethod
+    def has_update_permission(cls, instance: Example, user: MyUser, input_data: dict[str, Any]) -> bool:
+        return user.is_staff
+```
+
+To avoid repeating the user type, make a project base class that only takes the model:
+
+```python
+from django.db.models import Model
+from graphene_django_extensions import permissions
+
+
+class BasePermission[TModel: Model](permissions.BasePermission[TModel, MyUser]): ...
+
+
+class ExamplePermission(BasePermission[Example]): ...
+```
+
 ---
 
 ## Restricted fields
@@ -91,6 +121,8 @@ def permission_check(user: User | AnonymousUser, instance: Model) -> bool: ...
 ```
 
 ...where the instance is the instance of the model that the field resolver is being called on.
+The user and the model can be any type. When `restricted_field` is used as a decorator,
+the types are taken from the permission check.
 
 When using `DjangoNode`, the `Meta.restricted_fields` option can be used to add permission checks
 without having to use the decorator on each field resolver.

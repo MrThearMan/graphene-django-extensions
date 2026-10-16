@@ -68,6 +68,29 @@ Can be used to filter available rows for both `get_queryset` and `get_node`.
 Use this instead of `get_queryset` for filtering, since the built-in SQL
 optimizer is able to include these in the query plan.
 
+### Typing
+
+`DjangoNode` is generic over the model and the user type. Without subscription,
+the model is `Model` and the user is `User | AnonymousUser`. Subscribe the class
+to type its methods for a specific model and user:
+
+```python
+from graphene_django_extensions import DjangoNode
+from graphene_django_extensions.typing import GQLInfo
+
+
+class ExampleNode(DjangoNode[Example, MyUser]):
+    class Meta:
+        model = Example
+        fields = [...]
+
+    @classmethod
+    def filter_queryset(cls, queryset: QuerySet[Example], info: GQLInfo[MyUser]) -> QuerySet[Example]:
+        return queryset.filter(owner=info.context.user)
+```
+
+`GQLInfo` is generic over the user type in the same way.
+
 #### Field
 
 - args:

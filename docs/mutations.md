@@ -38,6 +38,19 @@ Adds the following features to all types that inherit it:
 - Converts and formats errors raised from serializers (also nested ones) into GraphQL errors.
 - Checks for missing object types for nested model serializer fields to avoid nebulous import order errors.
 
+`DjangoMutation` and its subclasses are generic over the model and the user type.
+Without subscription, the model is `Model` and the user is `User | AnonymousUser`.
+Subscribe the class to type its methods, such as `validate_deletion`, for a specific model and user:
+
+```python
+class ExampleDeleteMutation(DeleteMutation[Example, MyUser]):
+    class Meta:
+        model = Example
+
+    @classmethod
+    def validate_deletion(cls, instance: Example, user: MyUser) -> None: ...
+```
+
 ### Permission errors
 
 If a permission check for a mutation fails, an error like this will be raised:
@@ -267,6 +280,25 @@ will be deleted (e.g. Sub entity with `pk=1` could have been deleted here):
         {"sub_field": "value"}
     ]
 }
+```
+
+### Typing
+
+`NestingModelSerializer` is generic over the model and the validated data type.
+Without subscription, the model is `Model` and the validated data is `dict[str, Any]`.
+Subscribe the class to type `create` and `update`, for example with a `TypedDict`:
+
+```python
+class ExampleData(TypedDict):
+    name: str
+
+
+class ExampleSerializer(NestingModelSerializer[Example, ExampleData]):
+    class Meta:
+        model = Example
+        fields = ["pk", "name"]
+
+    def update(self, instance: Example, validated_data: ExampleData) -> Example: ...
 ```
 
 [permissions page]: https://mrthearman.github.io/graphene-django-extensions/permissions/
