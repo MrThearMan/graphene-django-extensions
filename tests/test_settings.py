@@ -17,9 +17,17 @@ def test_validate_experimental_translation_fields_kind(value):
 
 
 def test_validate_experimental_translation_fields_kind__invalid():
-    msg = "Value `foo` is not valid for `EXPERMENTAL_TRANSLATION_FIELDS_KIND`. Valid values are `list` and `types`."
+    msg = "Value `foo` is not valid for `EXPERIMENTAL_TRANSLATION_FIELDS_KIND`. Valid values are `list` and `types`."
     with pytest.raises(ValueError, match=re.escape(msg)):
         _validate_experimental_translation_fields_kind("foo")
+
+
+def test_experimental_translation_fields_kind__invalid_setting(settings):
+    settings.GRAPHENE_DJANGO_EXTENSIONS = {**settings.GRAPHENE_DJANGO_EXTENSIONS, "EXPERIMENTAL_TRANSLATION_FIELDS_KIND": "foo"}
+
+    msg = "Value `foo` is not valid for `EXPERIMENTAL_TRANSLATION_FIELDS_KIND`. Valid values are `list` and `types`."
+    with pytest.raises(ValueError, match=re.escape(msg)):
+        gdx_settings_module.gdx_settings.EXPERIMENTAL_TRANSLATION_FIELDS_KIND  # noqa: B018
 
 
 def test_enum_name__from_field_name():

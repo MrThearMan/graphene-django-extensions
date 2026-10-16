@@ -51,7 +51,7 @@ REMOVED_SETTINGS: dict[str, str | None] = {
 def _validate_experimental_translation_fields_kind(value: Any) -> None:
     if value not in ("list", "types"):
         msg = (
-            f"Value `{value}` is not valid for `EXPERMENTAL_TRANSLATION_FIELDS_KIND`. "
+            f"Value `{value}` is not valid for `EXPERIMENTAL_TRANSLATION_FIELDS_KIND`. "
             f"Valid values are `list` and `types`."
         )
         raise ValueError(msg)
@@ -63,7 +63,7 @@ gdx_settings = SettingsHolder(
     import_strings=IMPORT_STRINGS,
     removed_settings=REMOVED_SETTINGS,
     validators={
-        "EXPERMENTAL_TRANSLATION_FIELDS_KIND": _validate_experimental_translation_fields_kind,
+        "EXPERIMENTAL_TRANSLATION_FIELDS_KIND": _validate_experimental_translation_fields_kind,
     },
 )
 
