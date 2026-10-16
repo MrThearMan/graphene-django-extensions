@@ -26,20 +26,28 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "Framework :: Django :: 5.0",
-    "Framework :: Django :: 5.1",
+    "Programming Language :: Python :: 3.15",
     "Framework :: Django :: 5.2",
     "Framework :: Django :: 6.0",
+    "Framework :: Django :: 6.1",
     "Framework :: Pytest",
 ]
-requires-python = ">=3.11,<4"
-dynamic = [
-    "dependencies",
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=5.2.18",
+    "djangorestframework>=3.18.3",
+    "graphene-django>=3.0.0",
+    "graphene-django-query-optimizer>=0.10.16",
+    "django-settings-holder>=0.1.2",
+    "django-filter>=26.2",
 ]
+
+[project.optional-dependencies]
+files = ["pillow>=12.3.0"]
+translation = ["django-modeltranslation>=0.20.6"]
 
 [project.urls]
 "Homepage" = "https://mrthearman.github.io/graphene-django-extensions"
@@ -50,41 +58,42 @@ dynamic = [
 [project.entry-points.pytest11]
 graphene_django_extensions = "gdx_pytest.fixtures"
 
-[tool.poetry]
-requires-poetry = ">=2.0.0"
-packages = [
-    { include = "graphene_django_extensions" },
-    { include = "gdx_pytest" },
+[dependency-groups]
+# Development installs the library with every extra, so that "uv run" needs no
+# extra flags and every optional integration is importable.
+dev = [
+    "graphene-django-extensions[files,translation]",
+]
+test = [
+    "pytest==9.1.1",
+    "pytest-django==4.14.0",
+    "coverage==7.16.2",
+    "nox==2026.8.17",
+    "factory-boy==3.3.3",
+    "django-graphiql-debug-toolbar==0.2.0",
+]
+docs = [
+    "mkdocs==1.6.1",
+    "pymdown-extensions==12.3",
+]
+lint = [
+    "pre-commit==4.6.2",
 ]
 
-[tool.poetry.dependencies]
-Django = ">=5.2.18"
-djangorestframework = ">=3.18.3"
-graphene-django = ">=3.0.0"
-graphene-django-query-optimizer = ">=0.10.16"
-django-settings-holder = ">=0.1.2"
-django-filter = ">=26.2"
-typing-extensions = { version = ">=4.16.0", python = "<3.11" }
-django-modeltranslation = { version = ">=0.20.6", optional = true }
-pillow = { version = ">=12.3.0", optional = true }
+[tool.uv]
+default-groups = "all"
 
-[tool.poetry.group.test.dependencies]
-pytest = "9.1.1"
-coverage = "7.16.2"
-pytest-django = "4.14.0"
-nox = "2026.8.17"
-factory-boy = "3.3.3"
-django-graphiql-debug-toolbar = "0.2.0"
-django-modeltranslation = "0.20.6"
-pillow = ">=12.3.0"
+[tool.uv.sources]
+# Lets the "dev" group name this project's own extras.
+graphene-django-extensions = { workspace = true }
 
-[tool.poetry.group.docs.dependencies]
-mkdocs = "1.6.1"
-pymdown-extensions = "12.1"
-mkdocs-mermaid2-plugin = "1.2.3"
-
-[tool.poetry.group.lint.dependencies]
-pre-commit = "4.6.2"
+[tool.uv.build-backend]
+# The packages are at the repository root, not under "src".
+module-root = ""
+module-name = [
+    "graphene_django_extensions",
+    "gdx_pytest",
+]
 
 [tool.ruff]
 fix = true
@@ -292,52 +301,6 @@ exclude_lines = [
 DJANGO_SETTINGS_MODULE = "example_project.config.settings"
 addopts = "-vv -s --disable-warnings"
 
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = py{310, 311, 312, 313}-django{42, 50, 51}-gd{31, 32}
-isolated_build = true
-
-[gh-actions]
-python =
-    3.10: py310
-    3.11: py311
-    3.12: py312
-    3.13: py313
-
-[testenv]
-allowlist_externals =
-    poetry
-setenv =
-    PYTHONPATH = {toxinidir}
-    DJANGO_SETTINGS_MODULE = example_project.config.settings
-deps =
-    django42: Django >=4.2,<4.3
-    django50: Django >=5.0,<5.1
-    django51: Django >=5.1,<5.2
-
-    gd31: graphene-django >=3.1.0,<3.2.0
-    gd32: graphene-django >=3.2.0,<3.3.0
-
-    djangorestframework <3.15.0
-    django-filter
-    django-settings-holder
-    typing-extensions
-
-    pytest
-    coverage
-    pytest-django
-    factory-boy
-    django-graphiql-debug-toolbar
-    pillow
-    django-modeltranslation
-
-    py312: setuptools
-    py313: setuptools
-commands =
-    coverage run -m pytest -vv -s --disable-warnings
-"""
-
 [build-system]
-requires = ["poetry-core>=1.9.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
