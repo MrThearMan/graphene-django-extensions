@@ -133,7 +133,7 @@ class DjangoNode(DjangoObjectType):
         _meta: DjangoNodeOptions | None = None,
         model: type[models.Model] | None = None,
         fields: Fields | None = None,
-        permission_classes: Sequence[type[BasePermission]] = (AllowAny,),
+        permission_classes: Sequence[type[BasePermission[Any, Any]]] = (AllowAny,),
         restricted_fields: dict[FieldNameStr, PermCheck] | None = None,
         **options: Any,
     ) -> None:
@@ -321,7 +321,7 @@ class DjangoMutation(Mutation):
         output_serializer_class: type[ModelSerializer | Serializer] | None = None,
         form_class: type[ModelForm | Form] | None = None,
         output_form_class: type[ModelForm | Form] | None = None,
-        permission_classes: Sequence[type[BasePermission]] = (AllowAny,),
+        permission_classes: Sequence[type[BasePermission[Any, Any]]] = (AllowAny,),
         model_operation: Literal["create", "update", "delete", "custom"] = "custom",
         **options: Any,
     ) -> None:

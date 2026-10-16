@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from functools import wraps
 from inspect import signature
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic
 
 from .errors import GQLFieldPermissionDeniedError
 from .settings import gdx_settings
-from .typing import ParamSpec, TypeVar
+from .typing import ParamSpec, TModel, TUser, TypeVar
 
 if TYPE_CHECKING:
-    from django.db.models import Model
     from query_optimizer.typing import GraphQLFilterInfo
 
     from .typing import Any, AnyUser, Callable, PermCheck
@@ -29,33 +28,41 @@ __all__ = [
 ]
 
 
-class BasePermission:
+# Type parameter defaults need Python 3.13 in the PEP 695 syntax.
+class BasePermission(Generic[TModel, TUser]):  # noqa: UP046
+    """
+    Base class for permission classes.
+
+    Subscribe with the model and the user type, e.g. `BasePermission[Example, User]`,
+    to type the hooks for them. Without subscription, the defaults apply.
+    """
+
     @classmethod
-    def has_permission(cls, user: AnyUser) -> bool:
+    def has_permission(cls, user: TUser) -> bool:
         return False
 
     @classmethod
-    def has_node_permission(cls, instance: Model, user: AnyUser, filters: GraphQLFilterInfo) -> bool:
+    def has_node_permission(cls, instance: TModel, user: TUser, filters: GraphQLFilterInfo) -> bool:
         return cls.has_permission(user)
 
     @classmethod
-    def has_filter_permission(cls, user: AnyUser, filters: GraphQLFilterInfo) -> bool:
+    def has_filter_permission(cls, user: TUser, filters: GraphQLFilterInfo) -> bool:
         return cls.has_permission(user)
 
     @classmethod
-    def has_mutation_permission(cls, user: AnyUser, input_data: dict[str, Any]) -> bool:
+    def has_mutation_permission(cls, user: TUser, input_data: dict[str, Any]) -> bool:
         return cls.has_permission(user)
 
     @classmethod
-    def has_create_permission(cls, user: AnyUser, input_data: dict[str, Any]) -> bool:
+    def has_create_permission(cls, user: TUser, input_data: dict[str, Any]) -> bool:
         return cls.has_mutation_permission(user, input_data)
 
     @classmethod
-    def has_update_permission(cls, instance: Model, user: AnyUser, input_data: dict[str, Any]) -> bool:
+    def has_update_permission(cls, instance: TModel, user: TUser, input_data: dict[str, Any]) -> bool:
         return cls.has_mutation_permission(user, input_data)
 
     @classmethod
-    def has_delete_permission(cls, instance: Model, user: AnyUser, input_data: dict[str, Any]) -> bool:
+    def has_delete_permission(cls, instance: TModel, user: TUser, input_data: dict[str, Any]) -> bool:
         return cls.has_mutation_permission(user, input_data)
 
 

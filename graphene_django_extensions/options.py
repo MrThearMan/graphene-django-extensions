@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from graphene_django_extensions.permissions import BasePermission
 
     from .bases import DjangoMutation
-    from .typing import FieldNameStr, Literal, Sequence
+    from .typing import Any, FieldNameStr, Literal, Sequence
 
 
 __all__ = [
@@ -23,7 +23,7 @@ __all__ = [
 
 
 class DjangoNodeOptions(OptimizedDjangoOptions):
-    permission_classes: Sequence[type[BasePermission]] = ()
+    permission_classes: Sequence[type[BasePermission[Any, Any]]] = ()
 
 
 class DjangoMutationOptions(MutationOptions):
@@ -36,7 +36,7 @@ class DjangoMutationOptions(MutationOptions):
         output_serializer_class: type[ModelSerializer | Serializer] | None,
         form_class: type[ModelForm | Form] | None,
         output_form_class: type[ModelForm | Form] | None,
-        permission_classes: Sequence[type[BasePermission]],
+        permission_classes: Sequence[type[BasePermission[Any, Any]]],
         model_operation: Literal["create", "update", "delete", "custom"],
     ) -> None:
         self.lookup_field = lookup_field
