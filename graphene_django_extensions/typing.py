@@ -88,7 +88,8 @@ type FilterAliasStr = str
 type LookupNameStr = str
 type MethodNameStr = str
 type AnyUser = User | AnonymousUser
-type PermCheck = Callable[[AnyUser], bool | None] | Callable[[AnyUser, Model], bool | None]
+# Takes the user, and optionally the model instance. Without subscription, both are 'Any'.
+type PermCheck[U, M: Model] = Callable[[U], bool | None] | Callable[[U, M], bool | None]
 type RelationType = Literal["one_to_one", "many_to_one", "one_to_many", "many_to_many"]
 type RelatedSerializer = NestingModelSerializer | ListSerializer
 type Fields = Sequence[FieldNameStr] | Literal["__all__"]

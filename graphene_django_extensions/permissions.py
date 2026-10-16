@@ -6,16 +6,13 @@ from typing import TYPE_CHECKING, Generic
 
 from .errors import GQLFieldPermissionDeniedError
 from .settings import gdx_settings
-from .typing import ParamSpec, TModel, TUser, TypeVar
+from .typing import TModel, TUser
 
 if TYPE_CHECKING:
+    from django.db.models import Model
     from query_optimizer.typing import GraphQLFilterInfo
 
     from .typing import Any, AnyUser, Callable, PermCheck
-
-
-T = TypeVar("T")
-P = ParamSpec("P")
 
 
 __all__ = [
@@ -90,7 +87,11 @@ class AllowSuperuser(BasePermission):
         return user.is_superuser
 
 
-def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callable[P, T]], Callable[P, T | None]]:
+def restricted_field[U, M: Model, **P, T](
+    check: PermCheck[U, M],
+    *,
+    message: str = "",
+) -> Callable[[Callable[P, T]], Callable[P, T | None]]:
     """
     Decorator for GraphQL field resolvers, which will check if the request user has
     appropriate permissions to access the field based on the given check.
