@@ -268,6 +268,14 @@ def test_mutation__custom__not_implemented():
         DjangoMutation.custom_mutation(Mock(), {})
 
 
+def test_mutation__custom__custom_mutation_must_be_overridden():
+    with pytest.raises(ValueError, match=r"`custom_mutation` must be overridden in subclasses for custom mutations"):
+
+        class Mutation(DjangoMutation):
+            class Meta:
+                serializer_class = ExampleCustomInputSerializer
+
+
 def test_mutation__custom__serializer_or_form_required():
     with pytest.raises(ValueError, match=r"`Meta.serializer_class` or `Meta.form_class` is required for custom"):
 

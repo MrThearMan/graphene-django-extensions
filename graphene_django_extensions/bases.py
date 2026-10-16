@@ -3,6 +3,7 @@ from __future__ import annotations
 import warnings
 from enum import Enum
 from functools import partial
+from inspect import getattr_static
 from typing import TYPE_CHECKING, cast
 
 import graphene
@@ -366,7 +367,8 @@ class DjangoMutation(Mutation):
                 **options,
             )
 
-        if cls.custom_mutation == DjangoMutation.custom_mutation:
+        # Bound classmethods of different classes never compare equal, so compare the classmethod objects.
+        if getattr_static(cls, "custom_mutation") is getattr_static(DjangoMutation, "custom_mutation"):
             msg = "`custom_mutation` must be overridden in subclasses for custom mutations."
             raise ValueError(msg)
 
