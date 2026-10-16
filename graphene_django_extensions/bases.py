@@ -43,7 +43,7 @@ from .options import DjangoMutationOptions, DjangoNodeOptions
 from .permissions import AllowAny, BasePermission, restricted_field
 from .settings import gdx_settings
 from .translation import LanguageListField, TranslationsField, add_translatable_fields, get_translatable_fields
-from .typing import Fields, GQLFields, Sequence
+from .typing import Fields, GQLFields, Sequence, TModel, TUser
 
 if TYPE_CHECKING:
     from django.db import models
@@ -60,9 +60,11 @@ __all__ = [
 ]
 
 
-class DjangoNode(DjangoObjectType):
+class DjangoNode(DjangoObjectType[TModel, TUser]):
     """
     Custom base class for GraphQL types that are backed by a Django model.
+    Subscribe with the model and the user type, e.g. `DjangoNode[Example, User]`,
+    to type the hooks for them. Without subscription, the defaults apply.
     Adds the following features to all types that inherit it:
 
     - Makes the `graphene.relay.Node` interface the default interface for the type.
@@ -123,7 +125,7 @@ class DjangoNode(DjangoObjectType):
         return DjangoConnectionField(cls, **kwargs)
 
     @classmethod
-    def filter_queryset(cls, queryset: models.QuerySet, info: GQLInfo) -> models.QuerySet:
+    def filter_queryset(cls, queryset: models.QuerySet[TModel], info: GQLInfo[TUser]) -> models.QuerySet[TModel]:
         """Implement this method filter to the available rows from the model on this node."""
         return queryset
 
@@ -194,7 +196,7 @@ class DjangoNode(DjangoObjectType):
             )
 
     @classmethod
-    def _resolve_translated_field(cls, root: models.Model, info: GQLInfo, field_name: str) -> str:
+    def _resolve_translated_field(cls, root: models.Model, info: GQLInfo[TUser], field_name: str) -> str:
         request_language = get_language_from_request(info.context)
         return getattr(root, f"{field_name}_{request_language}") or ""
 
@@ -212,19 +214,19 @@ class DjangoNode(DjangoObjectType):
             setattr(cls, f"resolve_{field_name}", restricted_field(check)(resolver))
 
     @classmethod
-    def get_queryset(cls, queryset: models.QuerySet, info: GQLInfo) -> models.QuerySet:
+    def get_queryset(cls, queryset: models.QuerySet[TModel], info: GQLInfo[TUser]) -> models.QuerySet[TModel]:
         """Override `filter_queryset` instead of this method to add filtering of possible rows."""
         if not cls.has_filter_permissions(info):
             raise GQLFilterPermissionDeniedError
         return queryset
 
     @classmethod
-    def run_instance_checks(cls, instance: models.Model, info: GQLInfo) -> None:
+    def run_instance_checks(cls, instance: TModel, info: GQLInfo[TUser]) -> None:
         if not cls.has_node_permissions(info, instance):
             raise GQLNodePermissionDeniedError
 
     @classmethod
-    def has_node_permissions(cls, info: GQLInfo, instance: models.Model) -> bool:
+    def has_node_permissions(cls, info: GQLInfo[TUser], instance: TModel) -> bool:
         """Check which permissions are required to access single items of this type."""
         filters = get_filter_info(info, cls._meta.model)
         return all(
@@ -237,7 +239,7 @@ class DjangoNode(DjangoObjectType):
         )
 
     @classmethod
-    def has_filter_permissions(cls, info: GQLInfo) -> bool:
+    def has_filter_permissions(cls, info: GQLInfo[TUser]) -> bool:
         """Check which permissions are required to access lists of this type."""
         filters = get_filter_info(info, cls._meta.model)
         return all(
