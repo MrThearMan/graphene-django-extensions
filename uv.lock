@@ -510,7 +510,7 @@ requires-dist = [
     { name = "django-settings-holder", specifier = ">=0.1.2" },
     { name = "djangorestframework", specifier = ">=3.18.3" },
     { name = "graphene-django", specifier = ">=3.0.0" },
-    { name = "graphene-django-query-optimizer", specifier = ">=0.10.16" },
+    { name = "graphene-django-query-optimizer", specifier = ">=0.11.0" },
     { name = "pillow", marker = "extra == 'files'", specifier = ">=12.3.0" },
     { name = "typing-extensions", specifier = ">=4.16.0" },
 ]
@@ -542,7 +542,7 @@ test = [
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.10.17"
+version = "0.11.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
@@ -551,10 +551,11 @@ dependencies = [
     { name = "graphene-django" },
     { name = "graphql-core" },
     { name = "graphql-relay" },
+    { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7c/0b/6135ae5ddb12d364863d2d5301155af877d4fd20498c2e471cd9e203f448/graphene_django_query_optimizer-0.10.17.tar.gz", hash = "sha256:134947e14195e76ffcd686e17b3f222fa4b7a21c7b233e30a22603a1ac4eec63", size = 25452, upload-time = "2026-10-16T06:59:45.668Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/50/8d/83a7111e242730e534e51f1e203c46e5062b43098ba2c35e17e9fe554877/graphene_django_query_optimizer-0.11.0.tar.gz", hash = "sha256:aec095e119f86d00b3914dfce17c3c61b66b026b8fd4efc3d26e33d4625d7e68", size = 25746, upload-time = "2026-10-16T09:17:07.653Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/55/53/4295cf931e5450d453de0cbf7b9e77a86389337314ddceba3168c202d8c3/graphene_django_query_optimizer-0.10.17-py3-none-any.whl", hash = "sha256:58f85016a1cef6bd29c6e768b3f164572500aa1febcdf634ae04ef7ebcecf1c4", size = 32231, upload-time = "2026-10-16T06:59:44.499Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/1c/bfa8c781488af6b951f1e23602e17d3b4d7420fd6ac9a7c80c79a5c3f074/graphene_django_query_optimizer-0.11.0-py3-none-any.whl", hash = "sha256:ef9d3685630f5a84577b75fb1cd9ae1f1547fe2e700ebcc2b07d825692217758", size = 32674, upload-time = "2026-10-16T09:17:06.717Z" },
 ]
 
 [[package]]
