@@ -14,6 +14,7 @@ from graphene_django_extensions.files import extract_files
 from .utils import QueryData, capture_database_queries
 
 if TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractUser
     from django.core.files import File
     from django.http import HttpResponse
 
@@ -389,7 +390,7 @@ class GraphQLClient(Client):
 
         return self.response_class(response, results)
 
-    def login_with_superuser(self, username: str = "admin", **kwargs: Any) -> User:
+    def login_with_superuser(self, username: str = "admin", **kwargs: Any) -> AbstractUser:
         defaults = {
             "is_staff": True,
             "is_superuser": True,
@@ -400,7 +401,7 @@ class GraphQLClient(Client):
         self.force_login(user)
         return user
 
-    def login_with_regular_user(self, username: str = "user", **kwargs: Any) -> User:
+    def login_with_regular_user(self, username: str = "user", **kwargs: Any) -> AbstractUser:
         defaults = {
             "is_staff": False,
             "is_superuser": False,
