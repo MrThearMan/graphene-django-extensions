@@ -158,7 +158,7 @@ class NestingModelSerializer(ModelSerializer):
                 if info is not None:
                     pre_save_infos.append(info)
 
-            elif related_field_info.one_to_many or related_field_info.many_to_many:
+            else:  # one-to-many or many-to-many
                 info = self._pre_handle_to_many(field, related_field_info, validated_data, name)
                 if info is not None:
                     pre_save_infos.append(info)
@@ -205,7 +205,7 @@ class NestingModelSerializer(ModelSerializer):
                 self._post_handle_reverse_one_to_one(instance, info)
             elif info.related_info.one_to_many:
                 self._post_handle_one_to_many(instance, info)
-            elif info.related_info.many_to_many:
+            else:  # many-to-many
                 self._post_handle_many_to_many(instance, info)
 
     def _post_handle_reverse_one_to_one(self, instance: Model, info: PreSaveInfo) -> None:

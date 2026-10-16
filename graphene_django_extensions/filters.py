@@ -166,7 +166,7 @@ class UserDefinedFilter(django_filters.Filter):
                     output |= ftr
                 elif data.operation.value == "NOT":
                     output &= ~ftr
-                elif data.operation.value == "XOR":
+                else:  # XOR
                     output ^= ftr
 
         return output
