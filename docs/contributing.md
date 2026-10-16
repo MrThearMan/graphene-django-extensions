@@ -1,3 +1,7 @@
+---
+description: "How to contribute to Graphene Django Extensions."
+---
+
 # Contributing
 
 Thank you for your interest in contributing!

@@ -1,3 +1,7 @@
+---
+description: "Define GraphQL object types for Django models with DjangoNode, with permissions, filtering and field helpers."
+---
+
 # Queries
 
 ## DjangoNode

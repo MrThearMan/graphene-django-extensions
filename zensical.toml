@@ -1,0 +1,57 @@
+[project]
+site_name = "Graphene Django Extensions"
+site_description = "Extensions for graphene-django."
+site_url = "https://mrthearman.github.io/graphene-django-extensions/"
+
+repo_url = "https://github.com/MrThearMan/graphene-django-extensions"
+repo_name = "MrThearMan/graphene-django-extensions"
+
+extra_css = [
+  "css/docs.css",
+  "css/pygments.css",
+]
+extra_javascript = [
+  "js/docs.js",
+]
+
+nav = [
+  { "Home" = "index.md" },
+  { "Querying" = "querying.md" },
+  { "Filtering" = "filtering.md" },
+  { "Permissions" = "permissions.md" },
+  { "Mutations" = "mutations.md" },
+  { "Testing" = "testing.md" },
+  { "Contributing" = "contributing.md" },
+]
+
+[project.theme]
+variant = "modern"
+custom_dir = "docs/overrides"
+language = "en"
+features = [
+  "content.code.copy",
+  "navigation.instant",
+  "navigation.instant.prefetch",
+  "navigation.top",
+  "navigation.tracking",
+  "search.highlight",
+  "search.suggest",
+  "toc.follow",
+]
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "custom"
+accent = "custom"
+
+[project.markdown_extensions]
+attr_list = {}
+meta = {}
+toc.permalink = "🔗"
+pymdownx.blocks.details = {}
+pymdownx.highlight.anchor_linenums = true
+pymdownx.highlight.linenums = true
+pymdownx.inlinehilite = {}
+pymdownx.superfences.custom_fences = [
+  { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]

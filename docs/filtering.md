@@ -1,3 +1,7 @@
+---
+description: "Filter and order GraphQL queries with ModelFilterSet, CustomOrderingFilter, UserDefinedFilter and choice filters."
+---
+
 # Filtering
 
 ## ModelFilterSet

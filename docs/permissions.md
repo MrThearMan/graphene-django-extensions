@@ -1,3 +1,7 @@
+---
+description: "Restrict access to GraphQL nodes, filters and mutations with permission classes, and to fields with restricted fields."
+---
+
 # Permissions
 
 ## Permissions classes

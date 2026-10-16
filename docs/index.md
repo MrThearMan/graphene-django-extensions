@@ -1,3 +1,7 @@
+---
+description: "Graphene Django Extensions: extensions for writing GraphQL schemas with graphene-django with less boilerplate."
+---
+
 # Graphene Django Extensions
 
 [![Coverage Status][coverage-badge]][coverage]
