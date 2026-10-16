@@ -43,8 +43,8 @@ class DefaultSettings(NamedTuple):
 DEFAULTS: dict[str, Any] = DefaultSettings()._asdict()
 
 IMPORT_STRINGS: set[bytes | str] = set()
-REMOVED_SETTINGS: set[str] = {
-    "PERMISSION_DENIED_MESSAGE",
+REMOVED_SETTINGS: dict[str, str | None] = {
+    "PERMISSION_DENIED_MESSAGE": None,
 }
 
 
