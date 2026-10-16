@@ -93,10 +93,8 @@ type ValidationErrorType = DjangoValidationError | SerializerValidationError
 type SerializerErrorData = dict[str, list[ErrorDetail | str]]
 type GQLFields = dict[str, MountedType | UnmountedType]
 
-T = TypeVar("T")
 
-
-class NodeConnectionType(Protocol[T]):
+class NodeConnectionType[T: Model](Protocol):
     page_info: PageInfo
     edged: list[Edge]
     iterable: QuerySet[T]
