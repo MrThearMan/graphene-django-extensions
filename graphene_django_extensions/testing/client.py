@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import pytest
 from django.contrib.auth import get_user_model
 from django.test.client import MULTIPART_CONTENT, Client
-from graphene_django.settings import graphene_settings
+from graphene_django import settings as graphene_django_settings
 
 from graphene_django_extensions.files import extract_files
 
@@ -386,7 +386,7 @@ class GraphQLClient(Client):
 
         with capture_database_queries() as results:
             response: HttpResponse = self.post(  # type: ignore[assignment]
-                path=graphene_settings.TESTING_ENDPOINT,
+                path=graphene_django_settings.graphene_settings.TESTING_ENDPOINT,
                 data=data,
                 content_type=MULTIPART_CONTENT if files else "application/json",
                 headers=headers,

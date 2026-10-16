@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from django.apps import apps
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
-from graphene_django.settings import graphene_settings
+from graphene_django import settings as graphene_django_settings
 from graphene_django.utils import camelize
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError as SerializerValidationError
@@ -108,7 +108,8 @@ class GQLValidationError(GraphQLError):
 
     def __init__(self, error: ValidationErrorType) -> None:
         detail = as_serializer_error(error)
-        if graphene_settings.CAMELCASE_ERRORS:
+        # graphene-django replaces its settings object when the settings change, so it is looked up here.
+        if graphene_django_settings.graphene_settings.CAMELCASE_ERRORS:
             detail = camelize(detail)
         errors = to_field_errors(flatten_errors(detail))
         super().__init__(
