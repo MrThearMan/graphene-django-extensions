@@ -29,6 +29,19 @@ def test_gql_response__getitem():
     assert response["foo"] == {"name": "bar"}
 
 
+def test_gql_response__contains():
+    response = make_response({"data": {"foo": {"name": "bar"}}})
+
+    assert "foo" in response
+    assert "bar" not in response
+
+
+def test_gql_response__contains__data_null():
+    response = make_response({"data": None, "errors": [{"message": "foo"}]})
+
+    assert "foo" not in response
+
+
 def test_gql_response__first_query_object():
     response = make_response({"data": {"foo": {"name": "bar"}}})
 
