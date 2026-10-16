@@ -231,7 +231,8 @@ class NestingModelSerializer(ModelSerializer):
             pks: list[Any] = []
 
             for initial_data in info.initial_data:
-                initial_data[info.related_info.related_name] = instance
+                if initial_data is not None:
+                    initial_data[info.related_info.related_name] = instance
                 nested_instance = info.field.child.get_update_or_create(initial_data)
                 if nested_instance is not None:
                     pks.append(nested_instance.pk)

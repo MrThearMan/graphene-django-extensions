@@ -367,6 +367,7 @@ def test_nesting_model_serializer__get_update_or_create__no_data():
 class ExampleNullableRelationsSerializer(NestingModelSerializer):
     forward_many_to_many_fields = ForwardManyToManySerializer(many=True, allow_null=True, required=False)
     reverse_one_to_one_rel = ReverseOneToOneSerializer(allow_null=True, required=False)
+    reverse_one_to_many_rels = ReverseOneToManySerializer(many=True, allow_null=True, required=False)
 
     class Meta:
         model = Example
@@ -375,6 +376,7 @@ class ExampleNullableRelationsSerializer(NestingModelSerializer):
             "name",
             "forward_many_to_many_fields",
             "reverse_one_to_one_rel",
+            "reverse_one_to_many_rels",
         ]
 
 
@@ -399,6 +401,21 @@ def test_nesting_model_serializer__many_to_many__null_items_are_skipped():
     serializer.save()
 
     items = list(example.forward_many_to_many_fields.all())
+    assert len(items) == 1
+    assert items[0].name == "foo"
+
+
+def test_nesting_model_serializer__one_to_many__null_items_are_skipped():
+    example = ExampleFactory.create()
+    ReverseOneToManyFactory.create(example_field=example, name="old")
+
+    data = {"reverse_one_to_many_rels": [None, {"name": "foo"}]}
+    serializer = ExampleNullableRelationsSerializer(instance=example, data=data, partial=True)
+    assert serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    # Items that were not given are deleted.
+    items = list(example.reverse_one_to_many_rels.all())
     assert len(items) == 1
     assert items[0].name == "foo"
 
