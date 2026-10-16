@@ -92,7 +92,8 @@ class BaseTranslatable(graphene.ObjectType):
         super().__init_subclass_with_meta__(_meta=_meta, **options)
 
 
-class Translatable(BaseTranslatable): ...
+class Translatable(BaseTranslatable):
+    pass
 
 
 class LanguageString(graphene.ObjectType):
