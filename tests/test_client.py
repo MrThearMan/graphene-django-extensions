@@ -176,6 +176,13 @@ def test_gql_response__error_code__by_index():
     assert response.error_code() == "bar"
 
 
+def test_gql_response__error_code__index_out_of_range():
+    response = make_response({"errors": [{"extensions": {"code": "foo"}}]})
+
+    with pytest.raises(pytest.fail.Exception, match="Errors list doesn't have an index 1"):
+        response.error_code(1)
+
+
 def test_gql_response__error_code__by_index__no_extensions():
     response = make_response({"errors": [{"message": "foo"}]})
 

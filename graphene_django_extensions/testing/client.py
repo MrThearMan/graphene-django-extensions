@@ -262,6 +262,9 @@ class GQLResponse:
         if isinstance(selector, int):
             try:
                 return self.errors[selector]["extensions"]["code"]
+            except IndexError:
+                msg = f"Errors list doesn't have an index {selector}: {self.json}"
+                pytest.fail(msg, pytrace=False)
             except (KeyError, TypeError):
                 msg = f"Error code not found in error content: {self.json}"
                 pytest.fail(msg, pytrace=False)
