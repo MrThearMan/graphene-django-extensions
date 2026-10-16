@@ -79,6 +79,10 @@ docs = [
 lint = [
     "prek==0.5.5",
     "ruff==0.17.1",
+    "mypy==2.4.0",
+    "django-stubs==6.1.2",
+    "djangorestframework-stubs==3.18.1",
+    "types-django-filter==26.2.0.20261005",
 ]
 
 [tool.uv]
@@ -95,6 +99,31 @@ module-name = [
     "graphene_django_extensions",
     "gdx_pytest",
 ]
+
+[tool.mypy]
+plugins = [
+    "mypy_django_plugin.main",
+]
+exclude = [
+    "^tests/",
+    "^docs/",
+    "^site/",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "graphene.*",
+    "graphene_django.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# "django-modeltranslation" replaces the model managers at runtime with classes the plugin cannot resolve.
+module = "example_project.app.models"
+disable_error_code = ["django-manager-missing"]
+
+[tool.django-stubs]
+django_settings_module = "example_project.config.settings"
 
 [tool.coverage.run]
 relative_files = true
