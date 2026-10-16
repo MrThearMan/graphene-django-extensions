@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from functools import wraps
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic, cast
 
 from django.db import IntegrityError, models, transaction
 from django.db.models import NOT_PROVIDED
@@ -15,7 +15,7 @@ from .errors import get_constraint_message
 from .fields import DurationField, EnumFriendlyChoiceField, IntegerPrimaryKeyField
 from .model_operations import RelatedFieldInfo, get_object_or_404, get_related_field_info
 from .translation import add_translatable_fields
-from .typing import SerializerMeta
+from .typing import SerializerMeta, TData, TModel
 
 if TYPE_CHECKING:
     from django.db.models import Model
@@ -72,13 +72,17 @@ def _related_pre_and_post_save[**P, T: models.Model](func: Callable[P, T]) -> Ca
     return wrapper
 
 
-class NestingModelSerializer(ModelSerializer):
+# Type parameter defaults need Python 3.13 in the PEP 695 syntax.
+class NestingModelSerializer(ModelSerializer[TModel], Generic[TModel, TData]):  # noqa: UP046
     """
     ModelSerializer that contains logic for updating and creating related models
     when they are included as nested (list)serializer fields or (lists of) primary keys.
+
+    Subscribe with the model and the validated data type, e.g. `NestingModelSerializer[Example, ExampleData]`,
+    to type `create` and `update` for them. Without subscription, the defaults apply.
     """
 
-    instance: Model  # Use this to hint the instance model type in subclasses
+    instance: TModel
     serializer_related_field = IntegerPrimaryKeyField  # Related fields defined in Meta are integers by default
     serializer_choice_field = EnumFriendlyChoiceField  # Converts enums to string correctly
     serializer_field_mapping = ModelSerializer.serializer_field_mapping | {
@@ -118,17 +122,18 @@ class NestingModelSerializer(ModelSerializer):
             instance = get_object_or_404(self.Meta.model, pk=pk)
             if not data:
                 return instance
-            return self.update(instance, data)
+            # The data is validated by this serializer, so it matches its types.
+            return self.update(cast("TModel", instance), cast("TData", data))
 
-        return self.create(data)
+        return self.create(cast("TData", data))
 
     @_related_pre_and_post_save
-    def create(self, validated_data: dict[str, Any]) -> Model:
+    def create(self, validated_data: TData) -> TModel:
         """Create a new instance of the model, while also handling related models."""
-        return self.Meta.model._default_manager.create(**validated_data)
+        return cast("TModel", self.Meta.model._default_manager.create(**validated_data))
 
     @_related_pre_and_post_save
-    def update(self, instance: Model, validated_data: dict[str, Any]) -> Model:
+    def update(self, instance: TModel, validated_data: TData) -> TModel:
         """Update an existing instance of the model, while also handling related models."""
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
