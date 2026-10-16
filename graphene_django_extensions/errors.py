@@ -19,10 +19,7 @@ from .typing import FieldError
 if TYPE_CHECKING:
     from rest_framework.exceptions import ErrorDetail
 
-    from .typing import Callable, ParamSpec, SerializerErrorData, TypeVar, ValidationErrorType
-
-    T = TypeVar("T")
-    P = ParamSpec("P")
+    from .typing import Callable, SerializerErrorData, ValidationErrorType
 
 
 __all__ = [
@@ -125,7 +122,7 @@ class GDXWarning(UserWarning):
     """Base warning class for graphene-django-extensions."""
 
 
-def validation_errors_to_graphql_errors(func: Callable[P, T]) -> Callable[P, T]:
+def validation_errors_to_graphql_errors[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     @wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         try:

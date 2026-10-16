@@ -77,21 +77,21 @@ __all__ = [
 ]
 
 
-FieldNameStr: TypeAlias = str
-FieldLookupStr: TypeAlias = str
-FilterAliasStr: TypeAlias = str
-LookupNameStr: TypeAlias = str
-MethodNameStr: TypeAlias = str
-AnyUser: TypeAlias = Union["User", "AnonymousUser"]
-PermCheck: TypeAlias = Callable[[AnyUser], bool | None] | Callable[[AnyUser, "Model"], bool | None]
-RelationType: TypeAlias = Literal["one_to_one", "many_to_one", "one_to_many", "many_to_many"]
-RelatedSerializer: TypeAlias = Union["NestingModelSerializer", "ListSerializer"]
-Fields: TypeAlias = Sequence[FieldNameStr] | Literal["__all__"]
-FieldAliasToLookup: TypeAlias = dict[FilterAliasStr, FieldLookupStr]
-FilterFields: TypeAlias = Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasStr]] | Literal["__all__"]
-ValidationErrorType: TypeAlias = Union["DjangoValidationError", "SerializerValidationError"]
-SerializerErrorData: TypeAlias = dict[str, list[Union["ErrorDetail", str]]]
-GQLFields: TypeAlias = dict[str, MountedType | UnmountedType]
+type FieldNameStr = str
+type FieldLookupStr = str
+type FilterAliasStr = str
+type LookupNameStr = str
+type MethodNameStr = str
+type AnyUser = User | AnonymousUser
+type PermCheck = Callable[[AnyUser], bool | None] | Callable[[AnyUser, Model], bool | None]
+type RelationType = Literal["one_to_one", "many_to_one", "one_to_many", "many_to_many"]
+type RelatedSerializer = NestingModelSerializer | ListSerializer
+type Fields = Sequence[FieldNameStr] | Literal["__all__"]
+type FieldAliasToLookup = dict[FilterAliasStr, FieldLookupStr]
+type FilterFields = Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasStr]] | Literal["__all__"]
+type ValidationErrorType = DjangoValidationError | SerializerValidationError
+type SerializerErrorData = dict[str, list[ErrorDetail | str]]
+type GQLFields = dict[str, MountedType | UnmountedType]
 
 T = TypeVar("T")
 

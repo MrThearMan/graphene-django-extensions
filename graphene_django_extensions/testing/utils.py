@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from functools import partial
 from inspect import cleandoc
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, NamedTuple, TypedDict
 
 import pytest
 import sqlparse
@@ -72,16 +72,13 @@ def capture_database_queries() -> Generator[QueryData, None, None]:
         yield results
 
 
-TNamedTuple = TypeVar("TNamedTuple", bound=NamedTuple)
-
-
-class ParametrizeArgs(TypedDict):
+class ParametrizeArgs[TNamedTuple: NamedTuple](TypedDict):
     argnames: list[str]
     argvalues: list[TNamedTuple]
     ids: list[str]
 
 
-def parametrize_helper(__tests: dict[str, TNamedTuple], /) -> ParametrizeArgs:
+def parametrize_helper[TNamedTuple: NamedTuple](__tests: dict[str, TNamedTuple], /) -> ParametrizeArgs[TNamedTuple]:
     """Construct parametrize input while setting test IDs."""
     assert __tests, "I need some tests, please!"  # noqa: S101
     values = list(__tests.values())

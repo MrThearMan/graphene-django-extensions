@@ -15,7 +15,7 @@ from .errors import get_constraint_message
 from .fields import DurationField, EnumFriendlyChoiceField, IntegerPrimaryKeyField
 from .model_operations import RelatedFieldInfo, get_object_or_404, get_related_field_info
 from .translation import add_translatable_fields
-from .typing import ParamSpec, SerializerMeta, TypeVar
+from .typing import SerializerMeta
 
 if TYPE_CHECKING:
     from django.db.models import Model
@@ -44,11 +44,7 @@ class NotProvided:  # pragma: no cover
 NotProvided = NotProvided()
 
 
-T = TypeVar("T")
-P = ParamSpec("P")
-
-
-def _related_pre_and_post_save(func: Callable[P, T]) -> Callable[P, T]:
+def _related_pre_and_post_save[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """Handle related models before and after creating or updating the main model."""
 
     @wraps(func)
