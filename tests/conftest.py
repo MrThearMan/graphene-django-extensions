@@ -1,12 +1,23 @@
+import warnings
 from importlib import reload
 
 import pytest
 from graphene_django import views
 
 from example_project.app import nodes, schema
+from graphene_django_extensions.errors import GDXWarning
 
 
-@pytest.fixture()
+def reload_schema() -> None:
+    # Reloading the nodes registers the same object types again, which is expected here.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=GDXWarning)
+        reload(nodes)
+    reload(schema)
+    reload(views)
+
+
+@pytest.fixture
 def experimental_translation_fields(settings, request):
     param = getattr(request, "param", "types")
 
@@ -20,16 +31,12 @@ def experimental_translation_fields(settings, request):
         # Reload graphene settings so that views know about the new schema.
         settings.GRAPHENE = settings.GRAPHENE
 
-        # Reload these modules:
-        reload(nodes)  # Recreate nodes
-        reload(schema)  # Recreate schema
-        reload(views)  # Recreate views (new schema added)
+        # Recreate nodes, schema and views (new schema added).
+        reload_schema()
         yield
 
     finally:
         # Restore settings and schema.
         settings.GRAPHENE_DJANGO_EXTENSIONS = old_settings
         settings.GRAPHENE = settings.GRAPHENE
-        reload(nodes)
-        reload(schema)
-        reload(views)
+        reload_schema()

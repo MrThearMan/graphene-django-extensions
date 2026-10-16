@@ -144,7 +144,10 @@ exclude_lines = [
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "example_project.config.settings"
-addopts = "-vv -s --disable-warnings"
+addopts = "-vv -s"
+filterwarnings = [
+    "error",
+]
 
 [build-system]
 requires = ["uv_build>=0.13.1,<0.14.0"]

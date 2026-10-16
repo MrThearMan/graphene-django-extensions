@@ -73,6 +73,7 @@ class ExampleFactory(DjangoModelFactory):
 
     class Meta:
         model = Example
+        skip_postgeneration_save = True  # Post generation hooks only add related objects.
 
     @classmethod
     def create(cls, **kwargs: Any) -> Example:
@@ -123,6 +124,7 @@ class ReverseManyToManyFactory(DjangoModelFactory):
 
     class Meta:
         model = ReverseManyToMany
+        skip_postgeneration_save = True  # Post generation hooks only add related objects.
 
     @classmethod
     def create(cls, **kwargs: Any) -> ReverseManyToMany:
