@@ -4,7 +4,7 @@ import warnings
 from enum import Enum
 from functools import partial
 from inspect import getattr_static
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Generic, cast
 
 import graphene
 from django.forms import Form, ModelForm
@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from django.db import models
     from graphene.relay.node import NodeField
 
-    from .typing import Any, AnyUser, FieldNameStr, GQLInfo, Literal, PermCheck, Self
+    from .typing import Any, FieldNameStr, GQLInfo, Literal, PermCheck, Self
 
 
 __all__ = [
@@ -256,9 +256,13 @@ class DjangoNode(DjangoObjectType[TModel, TUser]):
         return to_global_id(cls.__name__, pk)
 
 
-class DjangoMutation(Mutation):
+# Type parameter defaults need Python 3.13 in the PEP 695 syntax.
+# 'Generic' must be first, since graphene's '__init_subclass__' does not call 'super().__init_subclass__()'.
+class DjangoMutation(Generic[TModel, TUser], Mutation):  # noqa: PYI059, UP046
     """
     Custom base class for GraphQL mutations that are backed by a Django model.
+    Subscribe with the model and the user type, e.g. `CreateMutation[Example, User]`,
+    to type the hooks for them. Without subscription, the defaults apply.
     Adds the following features to all types that inherit it:
 
     - For updates, convert all fields to optional fields, enabling partial updates.
@@ -562,7 +566,7 @@ class DjangoMutation(Mutation):
 
     @classmethod
     @validation_errors_to_graphql_errors
-    def mutate(cls, root: Any, info: GQLInfo, **kwargs: Any) -> Self:
+    def mutate(cls, root: Any, info: GQLInfo[TUser], **kwargs: Any) -> Self:
         input_data: dict[str, Any] = kwargs["input"]
 
         if cls._meta.model_operation == "delete":
@@ -574,13 +578,13 @@ class DjangoMutation(Mutation):
         return cls.custom_mutation(info, validated_data)
 
     @classmethod
-    def update_or_create(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
+    def update_or_create(cls, info: GQLInfo[TUser], input_data: dict[str, Any]) -> Self:
         maybe_instance = cls.get_instance(input_data)
 
         if cls._meta.model_operation == "create" and not cls.has_create_permissions(info, input_data):
             raise GQLCreatePermissionDeniedError
         if cls._meta.model_operation == "update" and not cls.has_update_permissions(
-            cast("models.Model", maybe_instance),
+            cast("TModel", maybe_instance),
             info,
             input_data,
         ):
@@ -598,9 +602,9 @@ class DjangoMutation(Mutation):
         return cls(**output)  # type: ignore[arg-type]
 
     @classmethod
-    def delete(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
+    def delete(cls, info: GQLInfo[TUser], input_data: dict[str, Any]) -> Self:
         # Only create mutations have no instance.
-        instance = cast("models.Model", cls.get_instance(input_data))
+        instance = cast("TModel", cls.get_instance(input_data))
         if not cls.has_delete_permissions(instance, info, input_data):
             raise GQLDeletePermissionDeniedError
 
@@ -609,12 +613,12 @@ class DjangoMutation(Mutation):
         return cls(deleted=bool(count))  # type: ignore[arg-type]
 
     @classmethod
-    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
+    def custom_mutation(cls, info: GQLInfo[TUser], input_data: dict[str, Any]) -> Self:
         """Override this method to perform custom mutations instead of the regular create, update or delete."""
         raise NotImplementedError(f"Custom model operation not defined for '{cls.__name__}'")  # noqa: EM102
 
     @classmethod
-    def validate_custom_mutation_input_data(cls, info: GQLInfo, input_data: dict[str, Any]) -> dict[str, Any]:
+    def validate_custom_mutation_input_data(cls, info: GQLInfo[TUser], input_data: dict[str, Any]) -> dict[str, Any]:
         if not cls.has_mutation_permission(info, input_data):
             raise GQLMutationPermissionDeniedError
 
@@ -627,8 +631,8 @@ class DjangoMutation(Mutation):
     def run_validation(
         cls,
         input_data: dict[str, Any],
-        info: GQLInfo,
-        maybe_instance: models.Model | None = None,
+        info: GQLInfo[TUser],
+        maybe_instance: TModel | None = None,
     ) -> Serializer | Form:
         # Subclass initialization makes sure that one of these is set.
         validator_class = cast("type[Serializer | Form]", cls._meta.serializer_class or cls._meta.form_class)
@@ -651,7 +655,7 @@ class DjangoMutation(Mutation):
         return validator
 
     @classmethod
-    def get_instance(cls, input_data: dict[str, Any]) -> models.Model | None:
+    def get_instance(cls, input_data: dict[str, Any]) -> TModel | None:
         if cls._meta.model_operation == "create":
             return None
         # Subclass initialization sets these for update and delete mutations.
@@ -659,10 +663,10 @@ class DjangoMutation(Mutation):
         model_class = cast("type[models.Model]", cls._meta.model_class)
         if lookup_field not in input_data:
             raise SerializerValidationError({lookup_field: "This field is required."})
-        return get_object_or_404(model_class, **{lookup_field: input_data[lookup_field]})
+        return cast("TModel", get_object_or_404(model_class, **{lookup_field: input_data[lookup_field]}))
 
     @classmethod
-    def get_serializer_output(cls, instance: models.Model) -> dict[str, Any]:
+    def get_serializer_output(cls, instance: TModel) -> dict[str, Any]:
         serializer = cast("type[Serializer]", cls._meta.output_serializer_class)()
 
         kwargs: dict[str, Any] = {}
@@ -675,17 +679,17 @@ class DjangoMutation(Mutation):
         return kwargs
 
     @classmethod
-    def get_form_output(cls, instance: models.Model) -> dict[str, Any]:
+    def get_form_output(cls, instance: TModel) -> dict[str, Any]:
         form = cast("type[Form]", cls._meta.output_form_class)()
         return {field_name: get_attribute(instance, [field_name]) for field_name in form.fields}
 
     @classmethod
-    def validate_deletion(cls, instance: models.Model, user: AnyUser) -> None:
+    def validate_deletion(cls, instance: TModel, user: TUser) -> None:
         """Implement to perform additional validation before the given instance is deleted."""
         return
 
     @classmethod
-    def has_mutation_permission(cls, info: GQLInfo, input_data: dict[str, Any]) -> bool:
+    def has_mutation_permission(cls, info: GQLInfo[TUser], input_data: dict[str, Any]) -> bool:
         return all(
             perm.has_mutation_permission(
                 user=info.context.user,
@@ -695,7 +699,7 @@ class DjangoMutation(Mutation):
         )
 
     @classmethod
-    def has_create_permissions(cls, info: GQLInfo, input_data: dict[str, Any]) -> bool:
+    def has_create_permissions(cls, info: GQLInfo[TUser], input_data: dict[str, Any]) -> bool:
         return all(
             perm.has_create_permission(
                 user=info.context.user,
@@ -705,7 +709,7 @@ class DjangoMutation(Mutation):
         )
 
     @classmethod
-    def has_update_permissions(cls, instance: models.Model, info: GQLInfo, input_data: dict[str, Any]) -> bool:
+    def has_update_permissions(cls, instance: TModel, info: GQLInfo[TUser], input_data: dict[str, Any]) -> bool:
         return all(
             perm.has_update_permission(
                 instance=instance,
@@ -716,7 +720,7 @@ class DjangoMutation(Mutation):
         )
 
     @classmethod
-    def has_delete_permissions(cls, instance: models.Model, info: GQLInfo, input_data: dict[str, Any]) -> bool:
+    def has_delete_permissions(cls, instance: TModel, info: GQLInfo[TUser], input_data: dict[str, Any]) -> bool:
         return all(
             perm.has_delete_permission(
                 instance=instance,
@@ -727,7 +731,7 @@ class DjangoMutation(Mutation):
         )
 
 
-class CreateMutation(DjangoMutation):
+class CreateMutation(DjangoMutation[TModel, TUser]):
     class Meta:
         abstract = True
 
@@ -736,7 +740,7 @@ class CreateMutation(DjangoMutation):
         super().__init_subclass_with_meta__(model_operation="create", **options)
 
 
-class UpdateMutation(DjangoMutation):
+class UpdateMutation(DjangoMutation[TModel, TUser]):
     class Meta:
         abstract = True
 
@@ -745,7 +749,7 @@ class UpdateMutation(DjangoMutation):
         super().__init_subclass_with_meta__(model_operation="update", **options)
 
 
-class DeleteMutation(DjangoMutation):
+class DeleteMutation(DjangoMutation[TModel, TUser]):
     class Meta:
         abstract = True
 
