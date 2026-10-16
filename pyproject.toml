@@ -128,9 +128,9 @@ django_settings_module = "example_project.config.settings"
 [tool.coverage.run]
 relative_files = true
 branch = true
-include = [
-    "graphene_django_extensions/*",
-    "gdx_pytest/*",
+source = [
+    "graphene_django_extensions",
+    "gdx_pytest",
 ]
 
 [tool.coverage.report]
