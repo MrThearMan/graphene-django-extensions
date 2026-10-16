@@ -74,7 +74,7 @@ class Example(models.Model):
                 violation_error_message="Example unique violation message.",
             ),
             models.CheckConstraint(
-                check=models.Q(name__icontains="foo"),
+                condition=models.Q(name__icontains="foo"),
                 name="check_example",
                 violation_error_message="Example constraint violation message.",
             ),

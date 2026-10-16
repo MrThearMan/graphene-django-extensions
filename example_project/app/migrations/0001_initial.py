@@ -179,15 +179,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="example",
             constraint=models.CheckConstraint(
-                **(
-                    {
-                        "check": models.Q(name__icontains="foo"),
-                    }
-                    if django.VERSION < (5, 1)
-                    else {
-                        "condition": models.Q(name__icontains="foo"),
-                    }
-                ),
+                condition=models.Q(name__icontains="foo"),
                 name="check_example",
                 violation_error_message="Example constraint violation message.",
             ),
