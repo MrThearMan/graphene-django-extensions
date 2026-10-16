@@ -19,7 +19,7 @@ from .typing import FieldError
 if TYPE_CHECKING:
     from rest_framework.exceptions import ErrorDetail
 
-    from .typing import Callable, SerializerErrorData, ValidationErrorType
+    from .typing import Any, Callable, Mapping, Sequence, SerializerErrorData, ValidationErrorType
 
 
 __all__ = [
@@ -110,8 +110,7 @@ class GQLValidationError(GraphQLError):
         detail = as_serializer_error(error)
         if graphene_settings.CAMELCASE_ERRORS:
             detail = camelize(detail)
-        detail = flatten_errors(detail)
-        errors = to_field_errors(detail)
+        errors = to_field_errors(flatten_errors(detail))
         super().__init__(
             message=gdx_settings.MUTATION_VALIDATION_ERROR_MESSAGE,
             extensions={"code": gdx_settings.MUTATION_VALIDATION_ERROR_CODE, "errors": errors},
@@ -151,16 +150,16 @@ def get_constraint_message(message: str) -> str:
         return postgres_check_constraint_message(relation, constraint, message)
 
     if (match := CONSTRAINT_PATTERNS[1].match(message)) is not None:
-        constraint: str = match.group("constraint")
+        constraint = match.group("constraint")
         return postgres_unique_constraint_message(constraint, message)
 
     if (match := CONSTRAINT_PATTERNS[2].match(message)) is not None:
-        constraint: str = match.group("constraint")
+        constraint = match.group("constraint")
         return sqlite_check_constraint_message(constraint, message)
 
     if (match := CONSTRAINT_PATTERNS[3].match(message)) is not None:
         fields: list[str] = match.group("fields").split(",")
-        relation: str = fields[0].split(".")[0]
+        relation = fields[0].split(".")[0]
         fields = [field.strip().split(".")[1] for field in fields]
         return sqlite_unique_constraint_message(relation, fields, message)
 
@@ -175,7 +174,7 @@ def postgres_check_constraint_message(relation: str, constraint: str, default_me
             if not isinstance(constr, models.CheckConstraint):
                 continue  # pragma: no cover
             if constr.name == constraint:
-                return constr.violation_error_message
+                return str(constr.violation_error_message)
     return default_message
 
 
@@ -185,7 +184,7 @@ def postgres_unique_constraint_message(constraint: str, default_message: str) ->
             if not isinstance(constr, models.UniqueConstraint):
                 continue  # pragma: no cover
             if constr.name == constraint:
-                return constr.violation_error_message
+                return str(constr.violation_error_message)
     return default_message
 
 
@@ -195,7 +194,7 @@ def sqlite_check_constraint_message(constraint: str, default_message: str) -> st
             if not isinstance(constr, models.CheckConstraint):
                 continue  # pragma: no cover
             if constr.name == constraint:
-                return constr.violation_error_message
+                return str(constr.violation_error_message)
     return default_message
 
 
@@ -207,11 +206,11 @@ def sqlite_unique_constraint_message(relation: str, fields: list[str], default_m
             if not isinstance(constr, models.UniqueConstraint):
                 continue  # pragma: no cover
             if set(constr.fields) == set(fields):
-                return constr.violation_error_message
+                return str(constr.violation_error_message)
     return default_message
 
 
-def flatten_errors(errors: dict[str, list[ErrorDetail | str] | SerializerErrorData]) -> SerializerErrorData:
+def flatten_errors(errors: Mapping[str, Sequence[ErrorDetail | str] | Mapping[str, Any]]) -> SerializerErrorData:
     """
     Flatten nested errors dict to a single level.
 
@@ -219,13 +218,13 @@ def flatten_errors(errors: dict[str, list[ErrorDetail | str] | SerializerErrorDa
     >>> flatten_errors(a)
     {"billing_address.city": ["msg1"], "billing_address.post_code": ["msg2"]}
     """
-    flattened_errors: dict[str, list[ErrorDetail]] = {}
+    flattened_errors: SerializerErrorData = {}
     for field, error in errors.items():
         if isinstance(error, dict):
             for inner_field, inner_error in flatten_errors(error).items():
                 flattened_errors[f"{field}.{inner_field}"] = inner_error
         else:
-            flattened_errors[field] = error
+            flattened_errors[field] = list(error)
 
     return flattened_errors
 

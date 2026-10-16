@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 from .errors import GQLNotFoundError
@@ -24,7 +25,7 @@ __all__ = [
 def get_object_or_404(model_class: type[models.Model], **kwargs: Any) -> models.Model:
     try:
         return model_class._default_manager.get(**kwargs)
-    except model_class.DoesNotExist as error:
+    except ObjectDoesNotExist as error:
         msg = f"`{model_class.__name__}` object matching query `{kwargs}` does not exist."
         raise GQLNotFoundError(msg) from error
 

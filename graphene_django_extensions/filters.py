@@ -23,6 +23,10 @@ from .settings import gdx_settings
 from .typing import FieldAliasToLookup, FilterFields, FilterSetMeta, UserDefinedFilterInput, UserDefinedFilterResult
 
 if TYPE_CHECKING:
+    from collections import OrderedDict
+
+    from django.db.models.expressions import Combinable
+
     from .typing import Any, OrderingFunc
 
 __all__ = [
@@ -68,13 +72,13 @@ class EnumChoiceFilter(EnumChoiceFilterMixin, django_filters.TypedChoiceFilter):
     This class uses GraphQL enums instead, which gives better autocomplete results.
     """
 
-    field_class = EnumChoiceField
+    field_class = EnumChoiceField  # type: ignore[assignment]
 
 
 class EnumMultipleChoiceFilter(EnumChoiceFilterMixin, django_filters.TypedMultipleChoiceFilter):
     """Same as above but supports multiple choices."""
 
-    field_class = EnumMultipleChoiceField
+    field_class = EnumMultipleChoiceField  # type: ignore[assignment]
 
 
 class UserDefinedFilter(django_filters.Filter):
@@ -147,7 +151,8 @@ class UserDefinedFilter(django_filters.Filter):
     def build_logical_filter(self, data: UserDefinedFilterInput, annotations: dict[str, Any], ordering: list[str]) -> Q:
         output = Q()
 
-        for operation in data.operations:
+        # "build_user_defined_filters" checks that "operations" is set.
+        for operation in data.operations:  # type: ignore[union-attr]
             result = self.build_user_defined_filters(operation)
             if result.annotations:  # pragma: no cover
                 annotations.update(result.annotations)
@@ -180,7 +185,8 @@ class UserDefinedFilter(django_filters.Filter):
         return normalized_fields
 
     def get_field_name(self, data: UserDefinedFilterInput) -> str:
-        alias: str = getattr(data.field, "name", data.field)
+        field: Any = data.field
+        alias: str = getattr(field, "name", field)
         return self.extra["fields"][alias]
 
 
@@ -190,20 +196,20 @@ class CustomOrderingFilter(django_filters.OrderingFilter):
     on its subclasses or filtersets it is defined on.
     """
 
-    base_field_class = OrderByField
-    field_class = forms.Field
+    base_field_class = OrderByField  # type: ignore[assignment]
+    field_class = forms.Field  # type: ignore[assignment]
 
     def filter(self, qs: models.QuerySet, value: list[str]) -> models.QuerySet:
         if value in EMPTY_VALUES:
             return qs
 
-        ordering: list[str] = []
+        ordering: list[str | Combinable] = []
 
         # Other filterset methods could potentially change the ordering,
         # so we need to check if the ordering has been changed from the default.
         # If it has, we shouldn't cancel that ordering.
-        current_ordering: list[str] = list(qs.query.order_by)
-        default_ordering: list[str] = list(qs.model._meta.ordering)
+        current_ordering: list[str | Combinable] = list(qs.query.order_by)
+        default_ordering: list[str | Combinable] = list(qs.model._meta.ordering)
         if current_ordering != default_ordering:  # pragma: no cover
             ordering = current_ordering
 
@@ -283,24 +289,24 @@ class ModelFilterSet(FilterSet):
     """
 
     _meta: FilterSetMeta
-    declared_filters: dict[str, django_filters.Filter]
 
     FILTER_DEFAULTS = FILTER_FOR_DBFIELD_DEFAULTS
 
     # Change the default filters for all relationships to not make
     # a database query to check if a filtered rows exists.
+    # Relations are not fields, but "django-filter" looks up filters for them from the same mapping.
     FILTER_DEFAULTS[models.ForeignKey] = {"filter_class": IntChoiceFilter}
     FILTER_DEFAULTS[models.OneToOneField] = {"filter_class": IntChoiceFilter}
     FILTER_DEFAULTS[models.ManyToManyField] = {"filter_class": IntMultipleChoiceFilter}
-    FILTER_DEFAULTS[models.OneToOneRel] = {"filter_class": IntChoiceFilter}
-    FILTER_DEFAULTS[models.ManyToOneRel] = {"filter_class": IntMultipleChoiceFilter}
-    FILTER_DEFAULTS[models.ManyToManyRel] = {"filter_class": IntMultipleChoiceFilter}
+    FILTER_DEFAULTS[models.OneToOneRel] = {"filter_class": IntChoiceFilter}  # type: ignore[index]
+    FILTER_DEFAULTS[models.ManyToOneRel] = {"filter_class": IntMultipleChoiceFilter}  # type: ignore[index]
+    FILTER_DEFAULTS[models.ManyToManyRel] = {"filter_class": IntMultipleChoiceFilter}  # type: ignore[index]
 
     class Meta(FilterSetMeta):
         pass
 
     @classmethod
-    def get_filters(cls) -> dict[str, django_filters.Filter]:
+    def get_filters(cls) -> OrderedDict[str, django_filters.Filter]:
         if cls._meta.model is not None:
             # Add a default ordering filter if none is defined, or extend an existing one.
             ordering_fields: list[str | tuple[str, str]] = getattr(cls.Meta, "order_by", ["pk"])
@@ -308,7 +314,7 @@ class ModelFilterSet(FilterSet):
 
             if isinstance(ordering_filter, CustomOrderingFilter):  # pragma: no cover
                 # Param map should be flipped so that OrderingFilter initializes correctly.
-                fields_map: dict[str, str] = {v: k for k, v in ordering_filter.param_map.items()}
+                fields_map: dict[str, str] = {v: k for k, v in (ordering_filter.param_map or {}).items()}
                 for field in ordering_fields:
                     if isinstance(field, tuple):
                         fields_map.setdefault(field[0], field[1])
@@ -338,7 +344,7 @@ class ModelFilterSet(FilterSet):
 
         for name, value in self.form.cleaned_data.items():
             field_filter: django_filters.Filter = self.filters[name]
-            method: str = field_filter._method  # type: ignore[assignment]
+            method: str = field_filter._method  # type: ignore[attr-defined]
             if method in combination_methods:
                 combined_values[method][name] = value
                 combined_filters[method] = field_filter

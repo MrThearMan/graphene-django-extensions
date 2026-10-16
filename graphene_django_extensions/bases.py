@@ -3,7 +3,7 @@ from __future__ import annotations
 import warnings
 from enum import Enum
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import graphene
 from django.forms import Form, ModelForm
@@ -127,7 +127,7 @@ class DjangoNode(DjangoObjectType):
         return queryset
 
     @classmethod
-    def __init_subclass_with_meta__(
+    def __init_subclass_with_meta__(  # type: ignore[override]
         cls,
         _meta: DjangoNodeOptions | None = None,
         model: type[models.Model] | None = None,
@@ -173,7 +173,7 @@ class DjangoNode(DjangoObjectType):
         if not options.get("skip_registry", False):
             _check_if_model_already_registered(cls, model)
 
-        super().__init_subclass_with_meta__(_meta=_meta, model=model, fields=fields, **options)
+        super().__init_subclass_with_meta__(_meta=_meta, model=model, fields=fields, **options)  # type: ignore[arg-type]
 
         if gdx_settings.EXPERIMENTAL_TRANSLATION_FIELDS:
             cls._modify_translatable_fields()
@@ -396,8 +396,8 @@ class DjangoMutation(Mutation):
         cls,
         _meta: DjangoMutationOptions,
         lookup_field: FieldNameStr | None,
-        serializer_class: type[ModelSerializer],
-        output_serializer_class: type[ModelSerializer] | None,
+        serializer_class: type[ModelSerializer | Serializer],
+        output_serializer_class: type[ModelSerializer | Serializer] | None,
         model_operation: Literal["create", "update"],
         **options: Any,
     ) -> None:
@@ -500,8 +500,8 @@ class DjangoMutation(Mutation):
         cls,
         _meta: DjangoMutationOptions,
         required_form_class: type[ModelForm | Form],
-        form_class: type[ModelForm, Form],
-        output_form_class: type[ModelForm, Form] | None,
+        form_class: type[ModelForm | Form],
+        output_form_class: type[ModelForm | Form] | None,
         **options: Any,
     ) -> None:
         if not issubclass(form_class, required_form_class):  # pragma: no cover
@@ -577,10 +577,15 @@ class DjangoMutation(Mutation):
 
         if cls._meta.model_operation == "create" and not cls.has_create_permissions(info, input_data):
             raise GQLCreatePermissionDeniedError
-        if cls._meta.model_operation == "update" and not cls.has_update_permissions(maybe_instance, info, input_data):
+        if cls._meta.model_operation == "update" and not cls.has_update_permissions(
+            cast("models.Model", maybe_instance),
+            info,
+            input_data,
+        ):
             raise GQLUpdatePermissionDeniedError
 
-        validator = cls.run_validation(input_data, info, maybe_instance)
+        # Create and update mutations validate with a model serializer or a model form.
+        validator = cast("ModelSerializer | ModelForm", cls.run_validation(input_data, info, maybe_instance))
         instance = validator.save()
 
         if cls._meta.serializer_class is not None:
@@ -592,7 +597,8 @@ class DjangoMutation(Mutation):
 
     @classmethod
     def delete(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
-        instance = cls.get_instance(input_data)
+        # Only create mutations have no instance.
+        instance = cast("models.Model", cls.get_instance(input_data))
         if not cls.has_delete_permissions(instance, info, input_data):
             raise GQLDeletePermissionDeniedError
 
@@ -622,7 +628,8 @@ class DjangoMutation(Mutation):
         info: GQLInfo,
         maybe_instance: models.Model | None = None,
     ) -> Serializer | Form:
-        validator_class: type[Serializer | Form] = cls._meta.serializer_class or cls._meta.form_class
+        # Subclass initialization makes sure that one of these is set.
+        validator_class = cast("type[Serializer | Form]", cls._meta.serializer_class or cls._meta.form_class)
 
         for key, maybe_enum in input_data.items():
             if isinstance(maybe_enum, Enum):
@@ -638,21 +645,23 @@ class DjangoMutation(Mutation):
 
         validator = validator_class(**validator_kwargs)
         if not validator.is_valid():
-            raise SerializerValidationError(validator.errors)
+            raise SerializerValidationError(validator.errors)  # type: ignore[arg-type]
         return validator
 
     @classmethod
     def get_instance(cls, input_data: dict[str, Any]) -> models.Model | None:
         if cls._meta.model_operation == "create":
             return None
-        lookup_field: str = cls._meta.lookup_field
+        # Subclass initialization sets these for update and delete mutations.
+        lookup_field = cast("str", cls._meta.lookup_field)
+        model_class = cast("type[models.Model]", cls._meta.model_class)
         if lookup_field not in input_data:  # pragma: no cover
             raise SerializerValidationError({lookup_field: "This field is required."})
-        return get_object_or_404(cls._meta.model_class, **{lookup_field: input_data[lookup_field]})
+        return get_object_or_404(model_class, **{lookup_field: input_data[lookup_field]})
 
     @classmethod
     def get_serializer_output(cls, instance: models.Model) -> dict[str, Any]:
-        serializer = cls._meta.output_serializer_class()
+        serializer = cast("type[Serializer]", cls._meta.output_serializer_class)()
 
         kwargs: dict[str, Any] = {}
         for field_name, field in serializer.fields.items():
@@ -665,7 +674,7 @@ class DjangoMutation(Mutation):
 
     @classmethod
     def get_form_output(cls, instance: models.Model) -> dict[str, Any]:
-        form = cls._meta.output_form_class()
+        form = cast("type[Form]", cls._meta.output_form_class)()
         return {field_name: get_attribute(instance, [field_name]) for field_name in form.fields}
 
     @classmethod
@@ -721,7 +730,7 @@ class CreateMutation(DjangoMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, **options: Any) -> None:
+    def __init_subclass_with_meta__(cls, **options: Any) -> None:  # type: ignore[override]
         super().__init_subclass_with_meta__(model_operation="create", **options)
 
 
@@ -730,7 +739,7 @@ class UpdateMutation(DjangoMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, **options: Any) -> None:
+    def __init_subclass_with_meta__(cls, **options: Any) -> None:  # type: ignore[override]
         super().__init_subclass_with_meta__(model_operation="update", **options)
 
 
@@ -739,7 +748,7 @@ class DeleteMutation(DjangoMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, **options: Any) -> None:
+    def __init_subclass_with_meta__(cls, **options: Any) -> None:  # type: ignore[override]
         super().__init_subclass_with_meta__(model_operation="delete", **options)
 
 
@@ -754,7 +763,7 @@ def _check_serializer_field_models_in_registry(
             field_model: type[models.Model] = field.Meta.model
         elif isinstance(field, ListSerializer) and isinstance(field.child, ModelSerializer):
             field = field.child  # noqa: PLW2901
-            field_model: type[models.Model] = field.Meta.model
+            field_model = field.Meta.model
         else:
             continue
 

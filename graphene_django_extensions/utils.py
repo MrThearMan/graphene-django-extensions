@@ -43,12 +43,8 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
             obj = None
         return get_nested(obj, *args, default=default)
 
-    obj = obj or {}
-    try:
-        return get_nested(obj.get(arg), *args, default=default)
-    except AttributeError:
-        obj = None
-        return get_nested(obj, *args, default=default)
+    value = obj.get(arg) if isinstance(obj, dict) else None
+    return get_nested(value, *args, default=default)
 
 
 @cache

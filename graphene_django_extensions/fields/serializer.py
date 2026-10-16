@@ -58,7 +58,7 @@ class EnumFriendlyChoiceField(serializers.ChoiceField):
         except KeyError:  # pragma: no cover
             self.fail("invalid_choice", input=data)
 
-    def to_representation(self, value: Any) -> Enum:  # pragma: no cover
+    def to_representation(self, value: Any) -> Any:  # pragma: no cover
         if value in ("", None):
             return value
         if isinstance(value, Enum):
@@ -76,7 +76,7 @@ class DurationField(serializers.IntegerField):
         super().__init__(**kwargs)
         self.validators.append(MinDurationValidator(0))
 
-    def to_internal_value(self, data: Any) -> dt.timedelta:
+    def to_internal_value(self, data: Any) -> dt.timedelta:  # type: ignore[override]
         if isinstance(data, dt.timedelta):
             return data
         if isinstance(data, int):
@@ -87,7 +87,7 @@ class DurationField(serializers.IntegerField):
             self.fail("invalid")
         return dt.timedelta(seconds=data)  # pragma: no cover
 
-    def to_representation(self, value: dt.timedelta) -> int:  # pragma: no cover
+    def to_representation(self, value: dt.timedelta) -> int:  # type: ignore[override]  # pragma: no cover
         return int(value.total_seconds())
 
     def get_attribute(self, instance: Any) -> int | None:

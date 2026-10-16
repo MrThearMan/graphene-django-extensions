@@ -36,21 +36,23 @@ class PreSaveInfo:
     related_info: RelatedFieldInfo
 
 
-class NotProvided:  # pragma: no cover
+class NotProvidedType:  # pragma: no cover
     def __bool__(self) -> bool:
         return False
 
 
-NotProvided = NotProvided()
+NotProvided = NotProvidedType()
 
 
-def _related_pre_and_post_save[**P, T](func: Callable[P, T]) -> Callable[P, T]:
+def _related_pre_and_post_save[**P, T: models.Model](func: Callable[P, T]) -> Callable[P, T]:
     """Handle related models before and after creating or updating the main model."""
 
     @wraps(func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> models.Model:
+    def wrapper(*args: Any, **kwargs: Any) -> T:
         self: NestingModelSerializer = args[0]
-        validated_data = next((arg for arg in args if isinstance(arg, dict)), kwargs.get("validated_data"))
+        validated_data: dict[str, Any] | None = next(
+            (arg for arg in args if isinstance(arg, dict)), kwargs.get("validated_data")
+        )
         if validated_data is None:  # pragma: no cover
             msg = "'validated_data' not found in args or kwargs"
             raise ValueError(msg)
@@ -96,7 +98,7 @@ class NestingModelSerializer(ModelSerializer):
         Get field value from attrs, or if not found, use a default value from
         1) the serializer model instance, or 2) the model field.
         """
-        default = self.Meta.model._meta.get_field(field).default
+        default = getattr(self.Meta.model._meta.get_field(field), "default", NOT_PROVIDED)
         default = getattr(self.instance, field, default)
         value = attrs.get(field, default)
         if value is NOT_PROVIDED:  # pragma: no cover
@@ -236,7 +238,7 @@ class NestingModelSerializer(ModelSerializer):
 
             # Delete related objects that were not created or modified.
             selector = {info.related_info.related_name: instance}
-            info.field.child.Meta.model.objects.filter(**selector).exclude(pk__in=pks).delete()
+            info.field.child.Meta.model.objects.filter(**selector).exclude(pk__in=pks).delete()  # type: ignore[attr-defined]
             return
 
         if isinstance(info.field, ManyRelatedField):

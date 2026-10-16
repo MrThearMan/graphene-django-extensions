@@ -20,8 +20,9 @@ from graphene_django_extensions.utils import get_operator_enum
 if TYPE_CHECKING:
     from django.db.models import Model
     from graphene.types.unmountedtype import UnmountedType
+    from graphql.pyutils import UndefinedType
 
-    from graphene_django_extensions.typing import Any, FieldAliasToLookup, Self, TypedDict
+    from graphene_django_extensions.typing import Any, FieldAliasToLookup, Self
 
 
 __all__ = [
@@ -65,7 +66,7 @@ class Duration(graphene.Scalar):
         return dt.timedelta(seconds=value)
 
     @staticmethod
-    def parse_literal(ast: graphql.ValueNode, _variables: Any = None) -> int | Undefined:  # pragma: no cover
+    def parse_literal(ast: graphql.ValueNode, _variables: Any = None) -> int | UndefinedType:  # pragma: no cover
         if isinstance(ast, graphql.IntValueNode):
             return int(ast.value)
         return Undefined
@@ -103,11 +104,11 @@ class TypedDictFieldMixin:
         dt.time: models.TimeField,
     }
 
-    def __init__(self, typed_dict: type[TypedDict], *arg: Any, **kwargs: Any) -> None:  # pragma: no cover
+    def __init__(self, typed_dict: type, *arg: Any, **kwargs: Any) -> None:  # pragma: no cover
         type_ = self.convert_typed_dict_to_graphene_type(typed_dict)
-        super().__init__(type_, *arg, **kwargs)
+        super().__init__(type_, *arg, **kwargs)  # type: ignore[call-arg]  # Mixed into a graphene field class.
 
-    def convert_typed_dict_to_graphene_type(self, typed_dict: type[TypedDict]) -> type[graphene.ObjectType]:
+    def convert_typed_dict_to_graphene_type(self, typed_dict: type) -> type[graphene.ObjectType]:
         graphene_types: dict[str, UnmountedType] = {}
         for field_name, type_ in typed_dict.__annotations__.items():
             model_field = self.CONVERSION_TABLE.get(type_)
@@ -153,7 +154,7 @@ class OrderingChoices(graphene.Enum):
             msg = "'Meta.fields' is required."
             raise TypeError(msg)
 
-        enum = StrEnum(f"{model.__name__}OrderingChoices", fields_map)
+        enum = StrEnum(f"{model.__name__}OrderingChoices", fields_map)  # type: ignore[misc]
         description = f"Ordering fields for the '{model.__name__}' model."
 
         super().__init_subclass_with_meta__(enum=enum, description=description, **options)

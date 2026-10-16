@@ -44,7 +44,7 @@ class ExampleDeleteMutation(DeleteMutation):
         permission_classes = [AllowAuthenticated]
 
     @classmethod
-    def validate_deletion(cls, instance: Example, user: AnyUser) -> None:
+    def validate_deletion(cls, instance: Example, user: AnyUser) -> None:  # type: ignore[override]
         if instance.number < 0:
             raise ValidationError({"number": "Number must be positive."})
 

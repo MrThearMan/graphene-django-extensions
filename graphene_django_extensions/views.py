@@ -26,7 +26,7 @@ class FileUploadGraphQLView(GraphQLView):
 
     def is_file_upload(self, request: HttpRequest) -> bool:
         content_type = self.get_content_type(request)
-        return content_type == "multipart/form-data" and request.FILES
+        return content_type == "multipart/form-data" and bool(request.FILES)
 
     def parse_file_uploads(self, request: HttpRequest) -> dict[str, Any]:
         operations = self.get_operations(request)

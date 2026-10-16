@@ -65,7 +65,7 @@ class IntChoiceField(models.IntegerField):  # pragma: no cover
         finally:
             self.choices = original_choices
 
-    def formfield(self, **kwargs: Any) -> Field:
+    def formfield(self, **kwargs: Any) -> Field | None:
         original_choices = self.choices
         try:
             self.choices = self.enum.choices

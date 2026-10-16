@@ -207,7 +207,8 @@ def _fields_to_dict(fields: str) -> dict[str, dict | None]:
     >>> _fields_to_dict("foo bar { baz }")
     {"foo": None, "bar": {"baz": None}}
     """
-    fields_dict = current_dict = {}
+    fields_dict: dict[str, Any] = {}
+    current_dict = fields_dict
     parents: list[str] = []
     previous_field: str = ""
 

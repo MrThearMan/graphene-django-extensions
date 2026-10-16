@@ -8,7 +8,7 @@ from graphene.utils.str_converters import to_camel_case
 if TYPE_CHECKING:
     from django.db.models import Choices, Model
 
-    from graphene_django_extensions.typing import Any, FieldAliasToLookup, FieldNameStr
+    from graphene_django_extensions.typing import Any, Callable, FieldAliasToLookup, FieldNameStr
 
 __all__ = [
     "EnumChoiceField",
@@ -20,16 +20,24 @@ __all__ = [
 ]
 
 
-class IntChoiceFieldMixin:
-    def __init__(self: forms.TypedChoiceField | forms.TypedMultipleChoiceField, **kwargs: Any) -> None:
+# Lets type checkers see the methods the mixin calls on the field class it is mixed into.
+if TYPE_CHECKING:
+    _ChoiceFieldBase = forms.ChoiceField
+else:
+    _ChoiceFieldBase = object
+
+
+class IntChoiceFieldMixin(_ChoiceFieldBase):
+    coerce: Callable[[Any], Any]
+
+    def __init__(self, **kwargs: Any) -> None:
         kwargs["coerce"] = int
         kwargs["empty_value"] = None
         super().__init__(**kwargs)
 
-    def valid_value(self: forms.TypedChoiceField | forms.TypedMultipleChoiceField, value: Any) -> bool:
+    def valid_value(self, value: Any) -> bool:
         if self.choices:  # pragma: no cover
-            parent: forms.TypedChoiceField = super()  # type: ignore[assignment]
-            return parent.valid_value(value)
+            return super().valid_value(value)
         try:
             self.coerce(value)
         except (ValueError, TypeError):  # pragma: no cover

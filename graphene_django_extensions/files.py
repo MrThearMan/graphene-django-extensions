@@ -8,7 +8,7 @@ https://github.com/jaydenseric/graphql-multipart-request-spec
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.core.files import File
 
@@ -19,6 +19,9 @@ __all__ = [
 
 from django.http import HttpResponseBadRequest
 from graphene_django.views import HttpError
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 def extract_files(variables: dict[str, Any] | list[Any], *, prefix: str = "") -> dict[File, list[str]]:
@@ -49,7 +52,7 @@ def extract_files(variables: dict[str, Any] | list[Any], *, prefix: str = "") ->
     """
     prefix = f"{prefix}." if prefix else prefix
     files: dict[File, list[str]] = defaultdict(list)
-    iterable = enumerate(variables) if isinstance(variables, list) else variables.items()
+    iterable: Iterable[tuple[Any, Any]] = enumerate(variables) if isinstance(variables, list) else variables.items()
 
     for key, value in iterable:
         if isinstance(value, File):
@@ -97,7 +100,7 @@ def place_files(operations: dict[str, Any], files_map: dict[str, list[str]], fil
     for key, values in files_map.items():
         for value in values:
             path: list[str] = value.split(".")
-            file: File = files.get(key)
+            file = files.get(key)
             if file is None:  # pragma: no cover
                 msg = f"File for path '{value}' not found in request files."
                 raise HttpError(HttpResponseBadRequest(msg))
@@ -107,7 +110,7 @@ def place_files(operations: dict[str, Any], files_map: dict[str, list[str]], fil
 
 def _place_file(file: File, path: list[str], operations: dict[str, Any] | list[Any]) -> None:
     """Handle placing a single file to a single path in the `operations` object."""
-    key: str | int = int(path[0]) if isinstance(operations, list) else path[0]
+    key: Any = int(path[0]) if isinstance(operations, list) else path[0]
 
     try:
         ops: Any = operations[key]

@@ -98,8 +98,9 @@ class GQLResponse:
         >>> self.edges
         [{"node": {"name": "bar"}}]
         """
+        query_object: Any = self.first_query_object
         try:
-            return self.first_query_object["edges"]
+            return query_object["edges"]
         except (KeyError, TypeError):  # pragma: no cover
             msg = f"Edges not found in response content: {self.json}"
             pytest.fail(msg, pytrace=False)
@@ -354,7 +355,7 @@ class GraphQLClient(Client):
         :params headers: Headers for the query.
         :params operation_name: Name of the operation to execute.
         """
-        variables: dict[str, Any] = variables or {}
+        variables = variables or {}
         if input_data is not None:
             variables.update({"input": input_data})
 
@@ -372,7 +373,7 @@ class GraphQLClient(Client):
         if operation_name is not None:  # pragma: no cover
             body["operationName"] = operation_name
 
-        data = json.dumps(body)
+        data: str | dict[str, Any] = json.dumps(body)
         if files:
             data = {
                 "operations": data,

@@ -96,13 +96,19 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
     """
     message = message or gdx_settings.FIELD_PERMISSION_ERROR_MESSAGE
 
+    # The check takes either the user only, or the user and the model instance.
+    perm_check: Callable[..., bool | None] = check
+
     def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+            # Resolver arguments are (root, info, ...).
+            root: Any = args[0]
+            info: Any = args[1]
             try:
-                result = check(args[1].context.user, args[0])
+                result = perm_check(info.context.user, root)
             except TypeError:
-                result = check(args[1].context.user)
+                result = perm_check(info.context.user)
 
             if result is None:  # pragma: no cover
                 return None
