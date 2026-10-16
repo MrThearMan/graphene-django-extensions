@@ -13,7 +13,7 @@ from django import db
 from django.core.files import File
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Generator
+    from collections.abc import Callable, Generator, Mapping, Sequence
 
 __all__ = [
     "capture_database_queries",
@@ -41,7 +41,7 @@ class QueryData:
 def _db_query_logger(  # noqa: PLR0913, PLR0917
     execute: Callable[..., Any],
     sql: str,
-    params: tuple[Any, ...],
+    params: Sequence[Any] | Mapping[str, Any] | None,
     many: bool,  # noqa: FBT001
     context: dict[str, Any],
     # Added with functools.partial()
@@ -55,8 +55,10 @@ def _db_query_logger(  # noqa: PLR0913, PLR0917
     """
     # Don't include transaction creation, as we aren't interested in them.
     if not sql.startswith("SAVEPOINT") and not sql.startswith("RELEASE SAVEPOINT"):
+        # Django accepts a list of params, but string formatting needs a tuple.
+        formatting_params = tuple(params) if isinstance(params, list) else params
         try:
-            query_cache.append(sql % params)
+            query_cache.append(sql % formatting_params)
         except TypeError:
             query_cache.append(sql)
     return execute(sql, params, many, context)

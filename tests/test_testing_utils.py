@@ -17,6 +17,13 @@ def test_capture_database_queries__params_interpolated():
     assert results.queries == ["SELECT 1"]
 
 
+def test_capture_database_queries__list_params_interpolated():
+    with capture_database_queries() as results, connection.cursor() as cursor:
+        cursor.execute("SELECT %s, %s", [1, 2])
+
+    assert results.queries == ["SELECT 1, 2"]
+
+
 def test_capture_database_queries__no_params():
     # Raw queries without parameters cannot be interpolated, so they are captured as is.
     with capture_database_queries() as results, connection.cursor() as cursor:
