@@ -2,6 +2,7 @@ import warnings
 from importlib import reload
 
 import pytest
+from graphene_django import settings as graphene_django_settings
 from graphene_django import views
 
 from example_project.app import nodes, schema
@@ -14,7 +15,9 @@ def reload_schema() -> None:
         warnings.simplefilter("ignore", category=GDXWarning)
         reload(nodes)
     reload(schema)
-    reload(views)
+    # Point the views to the reloaded graphene settings, which know about the new schema.
+    # Reloading the views module would replace its exception classes, which other modules have imported.
+    views.graphene_settings = graphene_django_settings.graphene_settings
 
 
 @pytest.fixture
