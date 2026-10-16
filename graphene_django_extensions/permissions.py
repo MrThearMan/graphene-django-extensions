@@ -82,7 +82,7 @@ class AllowSuperuser(BasePermission):
         return user.is_superuser
 
 
-def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callable[P, T]], Callable[P, T]]:
+def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callable[P, T]], Callable[P, T | None]]:
     """
     Decorator for GraphQL field resolvers, which will check if the request user has
     appropriate permissions to access the field based on the given check.
@@ -96,9 +96,9 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
     """
     message = message or gdx_settings.FIELD_PERMISSION_ERROR_MESSAGE
 
-    def decorator(func: Callable[P, T]) -> Callable[P, T]:
+    def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
         @wraps(func)
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
             try:
                 result = check(args[1].context.user, args[0])
             except TypeError:
