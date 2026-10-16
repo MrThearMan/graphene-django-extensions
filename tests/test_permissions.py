@@ -62,6 +62,18 @@ def test_restricted_field__check_with_user_and_instance():
     assert resolver(root, make_info(User(username="foo"))) == "value"
 
 
+def test_restricted_field__check_with_user_and_instance__error_in_check():
+    def check(user, obj):
+        msg = "Error in check"
+        raise TypeError(msg)
+
+    resolver = restricted_field(check)(resolve_value)
+
+    # The error is not hidden by calling the check again with the user only.
+    with pytest.raises(TypeError, match="Error in check"):
+        resolver(None, make_info(User()))
+
+
 def test_restricted_field__check_returns_none():
     resolver = restricted_field(lambda _user: None)(resolve_value)
 

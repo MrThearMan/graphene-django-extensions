@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
+from inspect import signature
 from typing import TYPE_CHECKING
 
 from .errors import GQLFieldPermissionDeniedError
@@ -98,6 +99,7 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
 
     # The check takes either the user only, or the user and the model instance.
     perm_check: Callable[..., bool | None] = check
+    takes_instance = _accepts_arguments(check, 2)
 
     def decorator(func: Callable[P, T]) -> Callable[P, T | None]:
         @wraps(func)
@@ -105,10 +107,7 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
             # Resolver arguments are (root, info, ...).
             root: Any = args[0]
             info: Any = args[1]
-            try:
-                result = perm_check(info.context.user, root)
-            except TypeError:
-                result = perm_check(info.context.user)
+            result = perm_check(info.context.user, root) if takes_instance else perm_check(info.context.user)
 
             if result is None:
                 return None
@@ -119,3 +118,12 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
         return wrapper
 
     return decorator
+
+
+def _accepts_arguments(func: Callable[..., Any], count: int) -> bool:
+    """Check whether the given function can be called with the given number of positional arguments."""
+    try:
+        signature(func).bind(*range(count))
+    except TypeError:
+        return False
+    return True
