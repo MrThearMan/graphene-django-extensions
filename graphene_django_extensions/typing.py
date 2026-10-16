@@ -21,10 +21,9 @@ from typing import (
     Union,
 )
 
-from django.core.handlers.wsgi import WSGIRequest
 from graphene.types.mountedtype import MountedType
 from graphene.types.unmountedtype import UnmountedType
-from graphql import GraphQLResolveInfo
+from query_optimizer.typing import GQLInfo, UserHintedWSGIRequest
 
 if TYPE_CHECKING:
     import django_filters
@@ -73,6 +72,7 @@ __all__ = [
     "TypeVar",
     "TypedDict",
     "Union",
+    "UserHintedWSGIRequest",
     "ValidationErrorType",
 ]
 
@@ -111,14 +111,6 @@ class OrderingFunc(Protocol):
 class FilterOverride(TypedDict):
     filter_class: type[django_filters.Filter]
     extra: Callable[[Field], dict[str, Any]]
-
-
-class UserHintedWSGIRequest(WSGIRequest):
-    user: AnyUser
-
-
-class GQLInfo(GraphQLResolveInfo):
-    context = UserHintedWSGIRequest
 
 
 class SerializerMeta:
