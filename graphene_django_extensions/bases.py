@@ -312,7 +312,7 @@ class DjangoMutation(Mutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(  # noqa: PLR0913
+    def __init_subclass_with_meta__(  # noqa: PLR0913, PLR0917
         cls,
         lookup_field: FieldNameStr | None = None,
         model: type[models.Model] | None = None,

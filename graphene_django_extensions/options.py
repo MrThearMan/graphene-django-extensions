@@ -27,7 +27,7 @@ class DjangoNodeOptions(OptimizedDjangoOptions):
 
 
 class DjangoMutationOptions(MutationOptions):
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         class_type: type[DjangoMutation],
         lookup_field: FieldNameStr | None,
