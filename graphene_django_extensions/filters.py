@@ -97,9 +97,9 @@ class UserDefinedFilter(django_filters.Filter):
 
         result = self.build_user_defined_filters(data)
 
-        if result.annotations:  # pragma: no cover
+        if result.annotations:
             qs = qs.annotate(**result.annotations)
-        if result.ordering:  # pragma: no cover
+        if result.ordering:
             qs = qs.order_by(*qs.query.order_by, *result.ordering)
 
         for ftr in result.filters:
@@ -118,9 +118,9 @@ class UserDefinedFilter(django_filters.Filter):
 
             for operation in data.operations:
                 result = self.build_user_defined_filters(operation)
-                if result.annotations:  # pragma: no cover
+                if result.annotations:
                     ann.update(result.annotations)
-                if result.ordering:  # pragma: no cover
+                if result.ordering:
                     ordering.extend(result.ordering)
 
                 filters.extend(result.filters)
@@ -154,9 +154,9 @@ class UserDefinedFilter(django_filters.Filter):
         # "build_user_defined_filters" checks that "operations" is set.
         for operation in data.operations:  # type: ignore[union-attr]
             result = self.build_user_defined_filters(operation)
-            if result.annotations:  # pragma: no cover
+            if result.annotations:
                 annotations.update(result.annotations)
-            if result.ordering:  # pragma: no cover
+            if result.ordering:
                 ordering.extend(result.ordering)
 
             for ftr in result.filters:
@@ -173,7 +173,7 @@ class UserDefinedFilter(django_filters.Filter):
 
     @staticmethod
     def _normalize_fields(model: type[Model], fields: FilterFields) -> FieldAliasToLookup:
-        if fields == ALL_FIELDS:  # pragma: no cover
+        if fields == ALL_FIELDS:
             return {to_camel_case(field.name): field.name for field in model._meta.get_fields()}
 
         normalized_fields: FieldAliasToLookup = {}
@@ -210,11 +210,11 @@ class CustomOrderingFilter(django_filters.OrderingFilter):
         # If it has, we shouldn't cancel that ordering.
         current_ordering: list[str | Combinable] = list(qs.query.order_by)
         default_ordering: list[str | Combinable] = list(qs.model._meta.ordering)
-        if current_ordering != default_ordering:  # pragma: no cover
+        if current_ordering != default_ordering:
             ordering = current_ordering
 
         for param in value:
-            if param in EMPTY_VALUES:  # pragma: no cover
+            if param in EMPTY_VALUES:
                 continue
 
             func_name = f"order_by_{param.removeprefix('-')}"
@@ -312,7 +312,7 @@ class ModelFilterSet(FilterSet):
             ordering_fields: list[str | tuple[str, str]] = getattr(cls.Meta, "order_by", ["pk"])
             ordering_filter = cls.declared_filters.get(gdx_settings.ORDERING_FILTER_NAME)
 
-            if isinstance(ordering_filter, CustomOrderingFilter):  # pragma: no cover
+            if isinstance(ordering_filter, CustomOrderingFilter):
                 # Param map should be flipped so that OrderingFilter initializes correctly.
                 fields_map: dict[str, str] = {v: k for k, v in (ordering_filter.param_map or {}).items()}
                 for field in ordering_fields:
@@ -361,6 +361,6 @@ class ModelFilterSet(FilterSet):
 
     @staticmethod
     def _verify_that_queryset(queryset: Any) -> None:
-        if not isinstance(queryset, models.QuerySet):  # pragma: no cover
+        if not isinstance(queryset, models.QuerySet):
             msg = f"Expected to receive a QuerySet from filters, but got {type(queryset).__name__} instead."
             raise TypeError(msg)

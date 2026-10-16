@@ -16,7 +16,7 @@ __all__ = [
 ]
 
 
-class StrChoiceField(models.CharField):  # pragma: no cover
+class StrChoiceField(models.CharField):
     """CharField for TextChoices that automatically sets 'max_length' to the length of the longest choice."""
 
     def __init__(self, enum: type[models.Choices], **kwargs: Any) -> None:
@@ -31,7 +31,7 @@ class StrChoiceField(models.CharField):  # pragma: no cover
         return name, path, args, kwargs
 
 
-class IntChoiceField(models.IntegerField):  # pragma: no cover
+class IntChoiceField(models.IntegerField):
     """
     IntegerField for IntegerChoices that sets 'min_value' and 'max_value' validators
     instead of regular choice validation. Useful when you don't want integer choices to be

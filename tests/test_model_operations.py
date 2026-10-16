@@ -1,10 +1,16 @@
 import re
 
 import pytest
+from django.contrib.sessions.models import Session
 
 from example_project.app.models import Example
 from graphene_django_extensions.errors import GQLNotFoundError
-from graphene_django_extensions.model_operations import RelatedFieldInfo, get_object_or_404, get_related_field_info
+from graphene_django_extensions.model_operations import (
+    RelatedFieldInfo,
+    get_model_lookup_field,
+    get_object_or_404,
+    get_related_field_info,
+)
 from tests.factories import ExampleFactory
 
 
@@ -106,7 +112,7 @@ def test_related_field_info():
     assert info.many_to_many is True
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_get_object_or_404():
     msg = "`Example` object matching query `{'pk': 1}` does not exist."
     with pytest.raises(GQLNotFoundError, match=re.escape(msg)):
@@ -114,3 +120,15 @@ def test_get_object_or_404():
 
     example = ExampleFactory.create()
     assert get_object_or_404(Example, pk=example.pk) == example
+
+
+def test_get_model_lookup_field__id_primary_key():
+    assert get_model_lookup_field(Example) == "pk"
+
+
+def test_get_model_lookup_field__other_primary_key():
+    assert get_model_lookup_field(Session) == "session_key"
+
+
+def test_get_model_lookup_field__given():
+    assert get_model_lookup_field(Example, "email") == "email"

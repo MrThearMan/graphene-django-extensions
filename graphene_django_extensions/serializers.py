@@ -36,7 +36,7 @@ class PreSaveInfo:
     related_info: RelatedFieldInfo
 
 
-class NotProvidedType:  # pragma: no cover
+class NotProvidedType:
     def __bool__(self) -> bool:
         return False
 
@@ -53,7 +53,7 @@ def _related_pre_and_post_save[**P, T: models.Model](func: Callable[P, T]) -> Ca
         validated_data: dict[str, Any] | None = next(
             (arg for arg in args if isinstance(arg, dict)), kwargs.get("validated_data")
         )
-        if validated_data is None:  # pragma: no cover
+        if validated_data is None:
             msg = "'validated_data' not found in args or kwargs"
             raise ValueError(msg)
 
@@ -101,7 +101,7 @@ class NestingModelSerializer(ModelSerializer):
         default = getattr(self.Meta.model._meta.get_field(field), "default", NOT_PROVIDED)
         default = getattr(self.instance, field, default)
         value = attrs.get(field, default)
-        if value is NOT_PROVIDED:  # pragma: no cover
+        if value is NOT_PROVIDED:
             return NotProvided  # This one is falsy
         return value
 
@@ -110,7 +110,7 @@ class NestingModelSerializer(ModelSerializer):
         return self.context["request"].user
 
     def get_update_or_create(self, data: dict[str, Any] | None) -> Model | None:
-        if data is None:  # pragma: no cover
+        if data is None:
             return None
 
         pk = data.pop("pk", None)
@@ -189,7 +189,7 @@ class NestingModelSerializer(ModelSerializer):
         key: str,
     ) -> PreSaveInfo | None:
         initial_data: Any = validated_data.pop(key, None)
-        if initial_data is None:  # pragma: no cover
+        if initial_data is None:
             return None
         return PreSaveInfo(field=field, initial_data=initial_data, related_info=related_info)
 
@@ -209,7 +209,7 @@ class NestingModelSerializer(ModelSerializer):
                 self._post_handle_many_to_many(instance, info)
 
     def _post_handle_reverse_one_to_one(self, instance: Model, info: PreSaveInfo) -> None:
-        if info.initial_data is None:  # pragma: no cover
+        if info.initial_data is None:
             related_instance = getattr(instance, info.related_info.field_name, None)
             if related_instance is not None:
                 setattr(related_instance, info.related_info.related_name, None)

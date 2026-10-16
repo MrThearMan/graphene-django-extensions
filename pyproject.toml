@@ -127,19 +127,16 @@ django_settings_module = "example_project.config.settings"
 
 [tool.coverage.run]
 relative_files = true
+branch = true
+include = [
+    "graphene_django_extensions/*",
+    "gdx_pytest/*",
+]
 
 [tool.coverage.report]
-omit = [
-    "tests/*",
-    "docs/*",
-    ".venv/*",
-    ".tox/*",
-]
-exclude_lines = [
-    "if TYPE_CHECKING:",
-    "except ImportError:",
-    "pragma: no cover",
-    "pass",
+fail_under = 100
+exclude_also = [
+    'if TYPE_CHECKING:',
 ]
 
 [tool.pytest.ini_options]

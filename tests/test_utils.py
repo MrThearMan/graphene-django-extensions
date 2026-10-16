@@ -12,7 +12,7 @@ from graphene_django_extensions.filters import UserDefinedFilter
 from graphene_django_extensions.testing import GraphQLClient, build_query
 from graphene_django_extensions.testing.utils import compare_unordered, parametrize_helper
 from graphene_django_extensions.typing import UserDefinedFilterInput
-from graphene_django_extensions.utils import get_nested
+from graphene_django_extensions.utils import get_nested, get_operator_enum
 
 Sentinel = object()
 
@@ -393,3 +393,26 @@ def test_compare_unordered__fail(a, b):
 )
 def test_compare_unordered__success(a, b):
     compare_unordered(a, b)
+
+
+def test_get_operator_enum(settings):
+    settings.GRAPHENE_DJANGO_EXTENSIONS = {
+        **settings.GRAPHENE_DJANGO_EXTENSIONS,
+        "EXTEND_USER_DEFINED_FILTER_OPERATIONS": [],
+    }
+
+    # The result is cached for the whole process, so call the uncached function.
+    assert get_operator_enum.__wrapped__() is Operation
+
+
+def test_get_operator_enum__extended_operations(settings):
+    settings.GRAPHENE_DJANGO_EXTENSIONS = {
+        **settings.GRAPHENE_DJANGO_EXTENSIONS,
+        "EXTEND_USER_DEFINED_FILTER_OPERATIONS": ["search"],
+    }
+
+    enum = get_operator_enum.__wrapped__()
+
+    assert enum.__name__ == "Operation"
+    assert enum.SEARCH.value == "SEARCH"
+    assert {member.name for member in Operation} < {member.name for member in enum}

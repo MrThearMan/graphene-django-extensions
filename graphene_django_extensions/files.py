@@ -101,7 +101,7 @@ def place_files(operations: dict[str, Any], files_map: dict[str, list[str]], fil
         for value in values:
             path: list[str] = value.split(".")
             file = files.get(key)
-            if file is None:  # pragma: no cover
+            if file is None:
                 msg = f"File for path '{value}' not found in request files."
                 raise HttpError(HttpResponseBadRequest(msg))
 
@@ -114,7 +114,7 @@ def _place_file(file: File, path: list[str], operations: dict[str, Any] | list[A
 
     try:
         ops: Any = operations[key]
-    except (KeyError, IndexError, TypeError) as error:  # pragma: no cover
+    except (KeyError, IndexError, TypeError) as error:
         msg = "File map does not lead to a null value."
         raise HttpError(HttpResponseBadRequest(msg)) from error
 
@@ -123,7 +123,7 @@ def _place_file(file: File, path: list[str], operations: dict[str, Any] | list[A
     if path_left:
         return _place_file(file, path_left, ops)
 
-    if ops is not None:  # pragma: no cover
+    if ops is not None:
         msg = "File map does not lead to a null value."
         raise HttpError(HttpResponseBadRequest(msg))
 

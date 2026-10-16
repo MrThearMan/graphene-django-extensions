@@ -36,7 +36,7 @@ class FileUploadGraphQLView(GraphQLView):
         return operations
 
     @staticmethod
-    def get_operations(request: HttpRequest) -> dict[str, Any]:  # pragma: no cover
+    def get_operations(request: HttpRequest) -> dict[str, Any]:
         operations_str: str | None = request.POST.get("operations")
         if not isinstance(operations_str, str):
             msg = "File upload must contain an `operations` value."
@@ -55,7 +55,7 @@ class FileUploadGraphQLView(GraphQLView):
         return operations
 
     @staticmethod
-    def get_map(request: HttpRequest) -> dict[str, list[str]]:  # pragma: no cover
+    def get_map(request: HttpRequest) -> dict[str, list[str]]:
         files_map_str: str | None = request.POST.get("map")
         if not isinstance(files_map_str, str):
             msg = "File upload must contain an `map` value."

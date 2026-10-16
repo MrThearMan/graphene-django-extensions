@@ -55,24 +55,24 @@ class Duration(graphene.Scalar):
 
     @staticmethod
     def serialize(value: Any) -> int | None:
-        if not isinstance(value, dt.timedelta):  # pragma: no cover
+        if not isinstance(value, dt.timedelta):
             return None
         return int(value.total_seconds())
 
     @staticmethod
     def parse_value(value: Any) -> dt.timedelta | None:
-        if not isinstance(value, int):  # pragma: no cover
+        if not isinstance(value, int):
             return None
         return dt.timedelta(seconds=value)
 
     @staticmethod
-    def parse_literal(ast: graphql.ValueNode, _variables: Any = None) -> int | UndefinedType:  # pragma: no cover
+    def parse_literal(ast: graphql.ValueNode, _variables: Any = None) -> int | UndefinedType:
         if isinstance(ast, graphql.IntValueNode):
             return int(ast.value)
         return Undefined
 
 
-class Upload(graphene.Scalar):  # pragma: no cover
+class Upload(graphene.Scalar):
     """Represents a file upload."""
 
     @staticmethod
@@ -104,7 +104,7 @@ class TypedDictFieldMixin:
         dt.time: models.TimeField,
     }
 
-    def __init__(self, typed_dict: type, *arg: Any, **kwargs: Any) -> None:  # pragma: no cover
+    def __init__(self, typed_dict: type, *arg: Any, **kwargs: Any) -> None:
         type_ = self.convert_typed_dict_to_graphene_type(typed_dict)
         super().__init__(type_, *arg, **kwargs)  # type: ignore[call-arg]  # Mixed into a graphene field class.
 
@@ -146,11 +146,11 @@ class OrderingChoices(graphene.Enum):
         fields_map: dict[str, str] | None = None,
         **options: Any,
     ) -> None:
-        if model is None:  # pragma: no cover
+        if model is None:
             msg = "'Meta.model' is required."
             raise TypeError(msg)
 
-        if fields_map is None:  # pragma: no cover
+        if fields_map is None:
             msg = "'Meta.fields' is required."
             raise TypeError(msg)
 
@@ -184,11 +184,11 @@ class UserDefinedFilterInputType(graphene.InputObjectType):
         if _meta is None:
             _meta = InputObjectTypeOptions(cls)
 
-        if model is None:  # pragma: no cover
+        if model is None:
             msg = "'Meta.model' is required."
             raise TypeError(msg)
 
-        if fields_map is None:  # pragma: no cover
+        if fields_map is None:
             msg = "'Meta.fields' is required."
             raise TypeError(msg)
 

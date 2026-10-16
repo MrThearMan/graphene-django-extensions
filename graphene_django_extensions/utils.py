@@ -49,7 +49,7 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
 
 @cache
 def get_operator_enum() -> type[Operation]:
-    if not gdx_settings.EXTEND_USER_DEFINED_FILTER_OPERATIONS:  # pragma: no cover
+    if not gdx_settings.EXTEND_USER_DEFINED_FILTER_OPERATIONS:
         return Operation
 
     current_members: dict[str, str] = {key: value.value for key, value in Operation._member_map_.items()}

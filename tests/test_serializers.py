@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import re
 from copy import deepcopy
 from typing import Any
@@ -9,6 +9,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.http import HttpRequest
 from rest_framework import __version__ as drf_version
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 
@@ -126,7 +127,7 @@ def get_example_data() -> dict[str, Any]:
         "name_en": "foo",
         "number": 1,
         "email": "foofoo@email.com",
-        "duration": int(datetime.timedelta(seconds=900).total_seconds()),
+        "duration": int(dt.timedelta(seconds=900).total_seconds()),
         "example_state": ExampleState.ACTIVE.value,
         "forward_one_to_one_field": {
             "name": "one",
@@ -188,7 +189,7 @@ def get_example_data_no_fields() -> dict[str, Any]:
         "name_en": "foo",
         "number": 1,
         "email": "foofoo@email.com",
-        "duration": int(datetime.timedelta(seconds=900).total_seconds()),
+        "duration": int(dt.timedelta(seconds=900).total_seconds()),
         "example_state": ExampleState.ACTIVE.value,
         "forward_one_to_one_field": f_o2o.pk,
         "forward_many_to_one_field": f_m2o.pk,
@@ -332,3 +333,151 @@ def test_nesting_model_serializer__integer_fields():
     assert example.reverse_one_to_one_rel.name == "four"
     assert r_o2m.name == "five"
     assert r_m2m.name == "six"
+
+
+def test_not_provided_is_falsy():
+    assert not NotProvided
+
+
+def test_nesting_model_serializer__all_fields():
+    class ForwardOneToOneAllFieldsSerializer(NestingModelSerializer):
+        class Meta:
+            model = ForwardOneToOne
+            fields = "__all__"
+
+    serializer = ForwardOneToOneAllFieldsSerializer()
+
+    assert ForwardOneToOneAllFieldsSerializer.Meta.fields == "__all__"
+    assert "name" in serializer.fields
+
+
+def test_nesting_model_serializer__create__validated_data_missing():
+    serializer = ExampleSerializer()
+
+    with pytest.raises(ValueError, match=re.escape("'validated_data' not found in args or kwargs")):
+        serializer.create(validated_data=None)
+
+
+def test_nesting_model_serializer__get_update_or_create__no_data():
+    serializer = ForwardOneToOneSerializer()
+
+    assert serializer.get_update_or_create(None) is None
+
+
+class ExampleNullableRelationsSerializer(NestingModelSerializer):
+    forward_many_to_many_fields = ForwardManyToManySerializer(many=True, allow_null=True, required=False)
+    reverse_one_to_one_rel = ReverseOneToOneSerializer(allow_null=True, required=False)
+
+    class Meta:
+        model = Example
+        fields = [
+            "pk",
+            "name",
+            "forward_many_to_many_fields",
+            "reverse_one_to_one_rel",
+        ]
+
+
+def test_nesting_model_serializer__many_to_many__null():
+    example = ExampleFactory.create(forward_many_to_many_fields=[ForwardManyToManyFactory.create()])
+
+    data = {"forward_many_to_many_fields": None}
+    serializer = ExampleNullableRelationsSerializer(instance=example, data=data, partial=True)
+    assert serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    # Null means that the relations are not updated.
+    assert example.forward_many_to_many_fields.count() == 1
+
+
+def test_nesting_model_serializer__many_to_many__null_items_are_skipped():
+    example = ExampleFactory.create()
+
+    data = {"forward_many_to_many_fields": [None, {"name": "foo"}]}
+    serializer = ExampleNullableRelationsSerializer(instance=example, data=data, partial=True)
+    assert serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    items = list(example.forward_many_to_many_fields.all())
+    assert len(items) == 1
+    assert items[0].name == "foo"
+
+
+def test_nesting_model_serializer__reverse_one_to_one__null__no_related_object():
+    example = ExampleFactory.create()
+
+    data = {"reverse_one_to_one_rel": None}
+    serializer = ExampleNullableRelationsSerializer(instance=example, data=data, partial=True)
+    assert serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    assert not ReverseOneToOne.objects.exists()
+
+
+def test_nesting_model_serializer__reverse_one_to_one__null__related_object_not_nullable():
+    example = ExampleFactory.create()
+    ReverseOneToOneFactory.create(example_field=example)
+
+    data = {"reverse_one_to_one_rel": None}
+    serializer = ExampleNullableRelationsSerializer(instance=example, data=data, partial=True)
+    assert serializer.is_valid(raise_exception=True)
+
+    # Unlinking the related object fails, since its relation to the example is not nullable.
+    msg = "NOT NULL constraint failed: app_reverseonetoone.example_field_id"
+    with pytest.raises(ValidationError, match=re.escape(msg)):
+        serializer.save()
+
+    assert ReverseOneToOne.objects.filter(example_field=example).exists()
+
+
+class ReverseOneToOnePlainSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReverseOneToOne
+        fields = ["pk", "name"]
+
+
+class ReverseOneToManyPlainSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReverseOneToMany
+        fields = ["pk", "name"]
+
+
+class ReverseManyToManyPlainSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReverseManyToMany
+        fields = ["pk", "name"]
+
+
+class ExamplePlainNestedSerializer(NestingModelSerializer):
+    reverse_one_to_one_rel = ReverseOneToOnePlainSerializer(required=False)
+    reverse_one_to_many_rels = ReverseOneToManyPlainSerializer(many=True, required=False)
+    reverse_many_to_many_rels = ReverseManyToManyPlainSerializer(many=True, required=False)
+
+    class Meta:
+        model = Example
+        fields = [
+            "pk",
+            "name",
+            "reverse_one_to_one_rel",
+            "reverse_one_to_many_rels",
+            "reverse_many_to_many_rels",
+        ]
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "model"),
+    [
+        ("reverse_one_to_one_rel", {"name": "foo"}, ReverseOneToOne),
+        ("reverse_one_to_many_rels", [{"name": "foo"}], ReverseOneToMany),
+        ("reverse_many_to_many_rels", [{"name": "foo"}], ReverseManyToMany),
+    ],
+)
+def test_nesting_model_serializer__reverse_relation__plain_model_serializer_is_ignored(field, value, model):
+    # Only nested 'NestingModelSerializers' and related fields are saved for reverse relations.
+    example = ExampleFactory.create()
+
+    serializer = ExamplePlainNestedSerializer(instance=example, data={field: value}, partial=True)
+    assert serializer.is_valid(raise_exception=True)
+    serializer.save()
+
+    assert not model.objects.exists()

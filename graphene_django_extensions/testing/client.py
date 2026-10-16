@@ -85,7 +85,7 @@ class GQLResponse:
         data = self.data or {}
         try:
             return next(iter(data.values()))
-        except StopIteration:  # pragma: no cover
+        except StopIteration:
             msg = f"No query object not found in response content: {self.json}"
             pytest.fail(msg, pytrace=False)
 
@@ -101,7 +101,7 @@ class GQLResponse:
         query_object: Any = self.first_query_object
         try:
             return query_object["edges"]
-        except (KeyError, TypeError):  # pragma: no cover
+        except (KeyError, TypeError):
             msg = f"Edges not found in response content: {self.json}"
             pytest.fail(msg, pytrace=False)
 
@@ -115,12 +115,12 @@ class GQLResponse:
         """
         try:
             return self.edges[index]["node"]
-        except (IndexError, TypeError):  # pragma: no cover
+        except (IndexError, TypeError):
             msg = f"Node {index!r} not found in response content: {self.json}"
             pytest.fail(msg, pytrace=False)
 
     @property
-    def has_errors(self) -> bool:  # pragma: no cover
+    def has_errors(self) -> bool:
         """Are there any errors in the response?"""
         return "errors" in self.json and self.json.get("errors") is not None
 
@@ -135,11 +135,11 @@ class GQLResponse:
         """
         try:
             return self.json["errors"]
-        except (KeyError, TypeError):  # pragma: no cover
+        except (KeyError, TypeError):
             msg = f"Errors not found in response content: {self.json}"
             pytest.fail(msg, pytrace=False)
 
-    def error_message(self, selector: int | str = 0) -> str:  # pragma: no cover
+    def error_message(self, selector: int | str = 0) -> str:
         """
         Return the error message from the errors list...
 
@@ -200,11 +200,11 @@ class GQLResponse:
         """
         try:
             return [error for item in self.errors for error in item.get("extensions", {}).get("errors", [])]
-        except (KeyError, TypeError):  # pragma: no cover
+        except (KeyError, TypeError):
             msg = f"Field errors not found in response content: {self.json}"
             pytest.fail(msg, pytrace=False)
 
-    def field_error_messages(self, field: str = "nonFieldErrors") -> list[str]:  # pragma: no cover
+    def field_error_messages(self, field: str = "nonFieldErrors") -> list[str]:
         """
         Return field error messages for desired field.
 
@@ -243,7 +243,7 @@ class GQLResponse:
 
         return messages
 
-    def error_code(self, selector: int | str = 0) -> str:  # pragma: no cover
+    def error_code(self, selector: int | str = 0) -> str:
         """
         Return the error code from the errors list.
 
@@ -275,7 +275,7 @@ class GQLResponse:
                 msg = f"Field 'extensions' not found in error content: {self.json}"
                 pytest.fail(msg, pytrace=False)
 
-    def field_error_codes(self, field: str = "nonFieldErrors") -> list[str]:  # pragma: no cover
+    def field_error_codes(self, field: str = "nonFieldErrors") -> list[str]:
         """
         Return field error codes for desired field.
 
@@ -329,7 +329,7 @@ class GQLResponse:
         """
         return any(any(e.match(error["message"]) is not None for e in SCHEMA_ERRORS) for error in self.errors)
 
-    def assert_query_count(self, count: int) -> None:  # pragma: no cover
+    def assert_query_count(self, count: int) -> None:
         if len(self.queries) != count:
             msg = f"Expected {count} queries, got {len(self.queries)}.\n{self.query_log}"
             pytest.fail(msg, pytrace=False)
@@ -370,7 +370,7 @@ class GraphQLClient(Client):
         body: dict[str, Any] = {"query": query}
         if variables:
             body["variables"] = variables
-        if operation_name is not None:  # pragma: no cover
+        if operation_name is not None:
             body["operationName"] = operation_name
 
         data: str | dict[str, Any] = json.dumps(body)

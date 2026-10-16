@@ -36,11 +36,11 @@ class IntChoiceFieldMixin(_ChoiceFieldBase):
         super().__init__(**kwargs)
 
     def valid_value(self, value: Any) -> bool:
-        if self.choices:  # pragma: no cover
+        if self.choices:
             return super().valid_value(value)
         try:
             self.coerce(value)
-        except (ValueError, TypeError):  # pragma: no cover
+        except (ValueError, TypeError):
             return False
         return True
 

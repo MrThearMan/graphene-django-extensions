@@ -17,14 +17,14 @@ def graphql():  # noqa: ANN201
 
 
 @pytest.fixture
-def query_counter():  # pragma: no cover  # noqa: ANN201
+def query_counter():  # noqa: ANN201
     from graphene_django_extensions.testing.utils import capture_database_queries  # noqa: PLC0415
 
     return capture_database_queries
 
 
 @pytest.fixture
-def mock_png():  # pragma: no cover  # noqa: ANN201
+def mock_png():  # noqa: ANN201
     from graphene_django_extensions.testing.utils import create_mock_png  # noqa: PLC0415
 
     return create_mock_png()

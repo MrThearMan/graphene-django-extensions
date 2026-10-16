@@ -48,7 +48,7 @@ REMOVED_SETTINGS: dict[str, str | None] = {
 }
 
 
-def _validate_experimental_translation_fields_kind(value: Any) -> None:  # pragma: no cover
+def _validate_experimental_translation_fields_kind(value: Any) -> None:
     if value not in ("list", "types"):
         msg = (
             f"Value `{value}` is not valid for `EXPERMENTAL_TRANSLATION_FIELDS_KIND`. "
@@ -76,13 +76,13 @@ setting_changed.connect(reload_my_settings)
 
 def enum_name(field: models.Field) -> str:
     # If using `StrChoiceField` or `IntChoiceField`, use the stored enum name.
-    if hasattr(field, "enum") and field.enum is not None:  # pragma: no cover
+    if hasattr(field, "enum") and field.enum is not None:
         return field.enum.__name__
     # Otherwise, generate the name from the field name.
     return "".join(s.capitalize() for s in field.name.split("_"))
 
 
-if not hasattr(settings, "GRAPHENE"):  # pragma: no cover
+if not hasattr(settings, "GRAPHENE"):
     settings.GRAPHENE = {}
 
 settings.GRAPHENE.setdefault("DJANGO_CHOICE_FIELD_ENUM_CUSTOM_NAME", "graphene_django_extensions.settings.enum_name")

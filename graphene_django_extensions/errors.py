@@ -172,7 +172,7 @@ def postgres_check_constraint_message(relation: str, constraint: str, default_me
             continue
         for constr in model._meta.constraints:
             if not isinstance(constr, models.CheckConstraint):
-                continue  # pragma: no cover
+                continue
             if constr.name == constraint:
                 return str(constr.violation_error_message)
     return default_message
@@ -182,7 +182,7 @@ def postgres_unique_constraint_message(constraint: str, default_message: str) ->
     for model in apps.get_models():
         for constr in model._meta.constraints:
             if not isinstance(constr, models.UniqueConstraint):
-                continue  # pragma: no cover
+                continue
             if constr.name == constraint:
                 return str(constr.violation_error_message)
     return default_message
@@ -192,7 +192,7 @@ def sqlite_check_constraint_message(constraint: str, default_message: str) -> st
     for model in apps.get_models():
         for constr in model._meta.constraints:
             if not isinstance(constr, models.CheckConstraint):
-                continue  # pragma: no cover
+                continue
             if constr.name == constraint:
                 return str(constr.violation_error_message)
     return default_message
@@ -204,7 +204,7 @@ def sqlite_unique_constraint_message(relation: str, fields: list[str], default_m
             continue
         for constr in model._meta.constraints:
             if not isinstance(constr, models.UniqueConstraint):
-                continue  # pragma: no cover
+                continue
             if set(constr.fields) == set(fields):
                 return str(constr.violation_error_message)
     return default_message

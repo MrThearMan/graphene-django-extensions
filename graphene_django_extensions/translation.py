@@ -110,7 +110,7 @@ class TranslationsField(graphene.Field):
     def wrap_resolve(self, parent_resolver: Callable) -> Callable:
         if isinstance(parent_resolver, partial):  # shorthand for default resolver
             return self.field_resolver
-        return parent_resolver  # pragma: no cover
+        return parent_resolver
 
     def field_resolver(self, root: models.Model, info: GQLInfo) -> dict[str, str]:
         return {lang: getattr(root, f"{self.field_name}_{lang}") for lang in self.languages}
@@ -126,7 +126,7 @@ class LanguageListField(graphene.Field):
     def wrap_resolve(self, parent_resolver: Callable) -> Callable:
         if isinstance(parent_resolver, partial):  # shorthand for default resolver
             return self.field_resolver
-        return parent_resolver  # pragma: no cover
+        return parent_resolver
 
     def field_resolver(self, root: models.Model, info: GQLInfo) -> list[dict[str, str]]:
         return [{"language": lang, "value": getattr(root, f"{self.field_name}_{lang}")} for lang in self.languages]

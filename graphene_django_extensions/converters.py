@@ -210,7 +210,7 @@ def convert_serializer_field_to_duration(field: DurationField) -> type[Duration]
 def convert_serializer_field_to_enum(field: ChoiceField) -> Enum:
     # `EnumFriendlyChoiceField` can have a reference to the enum class for consistent naming
     # of the same enum in different places (nodes, mutations, filters, etc.)
-    if hasattr(field, "enum") and field.enum is not None:  # pragma: no cover
+    if hasattr(field, "enum") and field.enum is not None:
         name = field.enum.__name__
     else:
         name = field.field_name or field.source or "Choices"
@@ -219,7 +219,7 @@ def convert_serializer_field_to_enum(field: ChoiceField) -> Enum:
 
 
 @get_graphene_type_from_serializer_field.register
-def convert_to_one_related(field: RelatedField) -> type[graphene.Scalar]:  # pragma: no cover
+def convert_to_one_related(field: RelatedField) -> type[graphene.Scalar]:
     # The stubs type "queryset" as a manager descriptor, which does not apply to serializer fields.
     qs: models.QuerySet | None = field.queryset  # type: ignore[arg-type,assignment]
     # Read-only related fields don't have the queryset, so we can't determine the exact type
@@ -239,7 +239,7 @@ def convert_to_one_related(field: RelatedField) -> type[graphene.Scalar]:  # pra
 
 @get_graphene_type_from_serializer_field.register
 def convert_to_many_related(field: ManyRelatedField) -> tuple[type[graphene.List], type[graphene.Scalar]]:
-    return graphene.List, get_graphene_type_from_serializer_field(field.child_relation)  # pragma: no cover
+    return graphene.List, get_graphene_type_from_serializer_field(field.child_relation)
 
 
 @get_graphene_type_from_serializer_field.register

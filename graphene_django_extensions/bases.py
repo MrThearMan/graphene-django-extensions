@@ -119,7 +119,7 @@ class DjangoNode(DjangoObjectType):
 
     @classmethod
     def Connection(cls, **kwargs: Any) -> DjangoConnectionField:  # noqa: N802
-        return DjangoConnectionField(cls, **kwargs)  # pragma: no cover
+        return DjangoConnectionField(cls, **kwargs)
 
     @classmethod
     def filter_queryset(cls, queryset: models.QuerySet, info: GQLInfo) -> models.QuerySet:
@@ -136,19 +136,19 @@ class DjangoNode(DjangoObjectType):
         restricted_fields: dict[FieldNameStr, PermCheck] | None = None,
         **options: Any,
     ) -> None:
-        if model is None:  # pragma: no cover
+        if model is None:
             msg = "`Meta.model` is required."
             raise ValueError(msg)
 
-        if not is_valid_django_model(model):  # pragma: no cover
+        if not is_valid_django_model(model):
             msg = f"`Meta.model` needs to be a Model-class, received: `{model}`."
             raise TypeError(msg)
 
-        if fields is None:  # pragma: no cover
+        if fields is None:
             msg = "`Meta.fields` is required."
             raise ValueError(msg)
 
-        if not (fields == ALL_FIELDS or isinstance(fields, Sequence)):  # pragma: no cover
+        if not (fields == ALL_FIELDS or isinstance(fields, Sequence)):
             msg = f"`Meta.fields` is should be a Sequence of field names or `{ALL_FIELDS}`, received: `{fields}`."
             raise TypeError(msg)
 
@@ -200,7 +200,7 @@ class DjangoNode(DjangoObjectType):
     @classmethod
     def _add_field_restrictions(cls, fields: Fields, restricted_fields: dict[FieldNameStr, PermCheck]) -> None:
         for field_name, check in restricted_fields.items():
-            if fields != ALL_FIELDS and field_name not in fields:  # pragma: no cover
+            if fields != ALL_FIELDS and field_name not in fields:
                 msg = f"Field `{field_name}` not in `Meta.fields`."
                 raise ValueError(msg)
 
@@ -355,10 +355,8 @@ class DjangoMutation(Mutation):
                     **options,
                 )
 
-            msg = (  # pragma: no cover
-                "`Meta.serializer_class` or `Meta.form_class` is required for create and update mutations."
-            )
-            raise ValueError(msg)  # pragma: no cover
+            msg = "`Meta.serializer_class` or `Meta.form_class` is required for create and update mutations."
+            raise ValueError(msg)
 
         if model_operation == "delete":
             return cls.__init_subclass_delete__(
@@ -368,7 +366,7 @@ class DjangoMutation(Mutation):
                 **options,
             )
 
-        if cls.custom_mutation == DjangoMutation.custom_mutation:  # pragma: no cover
+        if cls.custom_mutation == DjangoMutation.custom_mutation:
             msg = "`custom_mutation` must be overridden in subclasses for custom mutations."
             raise ValueError(msg)
 
@@ -388,8 +386,8 @@ class DjangoMutation(Mutation):
                 **options,
             )
 
-        msg = "`Meta.serializer_class` or `Meta.form_class` is required for custom mutations."  # pragma: no cover
-        raise ValueError(msg)  # pragma: no cover
+        msg = "`Meta.serializer_class` or `Meta.form_class` is required for custom mutations."
+        raise ValueError(msg)
 
     @classmethod
     def __init_subclass_update_or_create__(
@@ -401,7 +399,7 @@ class DjangoMutation(Mutation):
         model_operation: Literal["create", "update"],
         **options: Any,
     ) -> None:
-        if not issubclass(serializer_class, ModelSerializer):  # pragma: no cover
+        if not issubclass(serializer_class, ModelSerializer):
             msg = "`Meta.serializer_class` needs to be a ModelSerializer subclass."
             raise TypeError(msg)
 
@@ -412,7 +410,7 @@ class DjangoMutation(Mutation):
             serializer_class = convert_serializer_fields_to_not_required(serializer_class, lookup_field)
 
         output_serializer_class = output_serializer_class or serializer_class
-        if not issubclass(output_serializer_class, ModelSerializer):  # pragma: no cover
+        if not issubclass(output_serializer_class, ModelSerializer):
             msg = "`Meta.output_serializer_class` needs to be a ModelSerializer subclass."
             raise TypeError(msg)
 
@@ -451,13 +449,13 @@ class DjangoMutation(Mutation):
         model: type[models.Model] | None,
         **options: Any,
     ) -> None:
-        if model is None:  # pragma: no cover
+        if model is None:
             msg = "`Meta.model` is required."
             raise ValueError(msg)
 
         lookup_field = get_model_lookup_field(model, lookup_field)
         input_field = graphene.ID(required=True)
-        if lookup_field != "pk":  # pragma: no cover
+        if lookup_field != "pk":
             input_field = convert_django_field(model._meta.get_field(lookup_field))
 
         input_fields: GQLFields = {lookup_field: input_field}
@@ -475,12 +473,12 @@ class DjangoMutation(Mutation):
         output_serializer_class: type[Serializer] | None,
         **options: Any,
     ) -> None:
-        if not issubclass(serializer_class, Serializer):  # pragma: no cover
+        if not issubclass(serializer_class, Serializer):
             msg = "`Meta.serializer_class` needs to be a Serializer subclass."
             raise TypeError(msg)
 
         output_serializer_class = output_serializer_class or serializer_class
-        if not issubclass(output_serializer_class, Serializer):  # pragma: no cover
+        if not issubclass(output_serializer_class, Serializer):
             msg = "`Meta.output_serializer_class` needs to be a Serializer subclass."
             raise TypeError(msg)
 
@@ -504,12 +502,12 @@ class DjangoMutation(Mutation):
         output_form_class: type[ModelForm | Form] | None,
         **options: Any,
     ) -> None:
-        if not issubclass(form_class, required_form_class):  # pragma: no cover
+        if not issubclass(form_class, required_form_class):
             msg = f"`Meta.form_class` needs to be a {required_form_class.__name__} subclass."
             raise TypeError(msg)
 
         output_form_class = output_form_class or form_class
-        if not issubclass(output_form_class, required_form_class):  # pragma: no cover
+        if not issubclass(output_form_class, required_form_class):
             msg = f"`Meta.output_form_class` needs to be a {required_form_class.__name__} subclass."
             raise TypeError(msg)
 
@@ -550,7 +548,7 @@ class DjangoMutation(Mutation):
         input_fields = yank_fields_from_attrs(attrs=input_fields, _as=InputField)
 
         input_class: type[InputObjectType] = options.pop("input_class", InputObjectType)
-        if not issubclass(input_class, InputObjectType):  # pragma: no cover
+        if not issubclass(input_class, InputObjectType):
             msg = "`input_class` must be a subclass of `graphene.InputObjectType`."
             raise TypeError(msg)
 
@@ -607,7 +605,7 @@ class DjangoMutation(Mutation):
         return cls(deleted=bool(count))  # type: ignore[arg-type]
 
     @classmethod
-    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:  # pragma: no cover
+    def custom_mutation(cls, info: GQLInfo, input_data: dict[str, Any]) -> Self:
         """Override this method to perform custom mutations instead of the regular create, update or delete."""
         raise NotImplementedError(f"Custom model operation not defined for '{cls.__name__}'")  # noqa: EM102
 
@@ -655,7 +653,7 @@ class DjangoMutation(Mutation):
         # Subclass initialization sets these for update and delete mutations.
         lookup_field = cast("str", cls._meta.lookup_field)
         model_class = cast("type[models.Model]", cls._meta.model_class)
-        if lookup_field not in input_data:  # pragma: no cover
+        if lookup_field not in input_data:
             raise SerializerValidationError({lookup_field: "This field is required."})
         return get_object_or_404(model_class, **{lookup_field: input_data[lookup_field]})
 
@@ -666,7 +664,7 @@ class DjangoMutation(Mutation):
         kwargs: dict[str, Any] = {}
         for field_name, field in serializer.fields.items():
             if not field.write_only:
-                if isinstance(field, SerializerMethodField):  # pragma: no cover
+                if isinstance(field, SerializerMethodField):
                     kwargs[field_name] = field.to_representation(instance)
                 else:
                     kwargs[field_name] = field.get_attribute(instance)
@@ -680,7 +678,7 @@ class DjangoMutation(Mutation):
     @classmethod
     def validate_deletion(cls, instance: models.Model, user: AnyUser) -> None:
         """Implement to perform additional validation before the given instance is deleted."""
-        return  # pragma: no cover
+        return
 
     @classmethod
     def has_mutation_permission(cls, info: GQLInfo, input_data: dict[str, Any]) -> bool:
@@ -768,7 +766,7 @@ def _check_serializer_field_models_in_registry(
             continue
 
         type_ = global_registry.get_type_for_model(field_model)
-        if type_ is None:  # pragma: no cover
+        if type_ is None:
             # This error is in place since the mutation class needs to know the ObjectTypes
             # of the models of nested model serializer fields when converting them to ObjectTypes,
             # but currently does not properly warn against this error itself. See this line in
@@ -795,7 +793,7 @@ def _check_if_model_already_registered(object_type: type[DjangoObjectType], mode
     # unexpected behavior if the object types are not identical.
     global_registry = get_global_registry()
     existing = global_registry.get_type_for_model(model)
-    if existing is not None:  # pragma: no cover
+    if existing is not None:
         model_path = f"{model.__module__}.{model.__name__}"
         exising_path = f"{existing.__module__}.{existing.__name__}"
         new_path = f"{object_type.__module__}.{object_type.__name__}"

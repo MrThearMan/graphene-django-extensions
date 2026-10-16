@@ -36,7 +36,7 @@ class IntegerPrimaryKeyField(serializers.PrimaryKeyRelatedField, serializers.Int
         attribute = super().get_attribute(instance)
         if isinstance(attribute, PKOnlyObject) and attribute.pk:
             return IntPkOnlyObject(pk=attribute.pk)
-        return None  # pragma: no cover
+        return None
 
 
 class EnumFriendlyChoiceField(serializers.ChoiceField):
@@ -49,16 +49,16 @@ class EnumFriendlyChoiceField(serializers.ChoiceField):
         super().__init__(choices, **kwargs)
 
     def to_internal_value(self, data: Any) -> str:
-        if data == "" and self.allow_blank:  # pragma: no cover
+        if data == "" and self.allow_blank:
             return ""
-        if isinstance(data, Enum):  # pragma: no cover
+        if isinstance(data, Enum):
             data = data.value
         try:
             return self.choice_strings_to_values[str(data)]
-        except KeyError:  # pragma: no cover
+        except KeyError:
             self.fail("invalid_choice", input=data)
 
-    def to_representation(self, value: Any) -> Any:  # pragma: no cover
+    def to_representation(self, value: Any) -> Any:
         if value in ("", None):
             return value
         if isinstance(value, Enum):
@@ -81,17 +81,17 @@ class DurationField(serializers.IntegerField):
             return data
         if isinstance(data, int):
             return dt.timedelta(seconds=data)
-        try:  # pragma: no cover
+        try:
             data = int(data)
-        except (ValueError, TypeError):  # pragma: no cover
+        except (ValueError, TypeError):
             self.fail("invalid")
-        return dt.timedelta(seconds=data)  # pragma: no cover
+        return dt.timedelta(seconds=data)
 
-    def to_representation(self, value: dt.timedelta) -> int:  # type: ignore[override]  # pragma: no cover
+    def to_representation(self, value: dt.timedelta) -> int:  # type: ignore[override]
         return int(value.total_seconds())
 
     def get_attribute(self, instance: Any) -> int | None:
         value = super().get_attribute(instance)
         if isinstance(value, dt.timedelta):
             return int(value.total_seconds())
-        return value  # pragma: no cover
+        return value

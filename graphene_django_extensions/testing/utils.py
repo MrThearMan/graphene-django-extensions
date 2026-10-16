@@ -57,7 +57,7 @@ def _db_query_logger(  # noqa: PLR0913, PLR0917
     if not sql.startswith("SAVEPOINT") and not sql.startswith("RELEASE SAVEPOINT"):
         try:
             query_cache.append(sql % params)
-        except TypeError:  # pragma: no cover
+        except TypeError:
             query_cache.append(sql)
     return execute(sql, params, many, context)
 
@@ -88,7 +88,7 @@ def parametrize_helper[TNamedTuple: NamedTuple](__tests: dict[str, TNamedTuple],
             argvalues=values,
             ids=list(__tests),
         )
-    except AttributeError as error:  # pragma: no cover
+    except AttributeError as error:
         msg = "Improper configuration. Did you use a NamedTuple for TNamedTuple?"
         raise RuntimeError(msg) from error
 

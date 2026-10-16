@@ -30,7 +30,7 @@ __all__ = [
 
 class BasePermission:
     @classmethod
-    def has_permission(cls, user: AnyUser) -> bool:  # pragma: no cover
+    def has_permission(cls, user: AnyUser) -> bool:
         return False
 
     @classmethod
@@ -66,19 +66,19 @@ class AllowAny(BasePermission):
 
 class AllowAuthenticated(BasePermission):
     @classmethod
-    def has_permission(cls, user: AnyUser) -> bool:  # pragma: no cover
+    def has_permission(cls, user: AnyUser) -> bool:
         return user.is_authenticated
 
 
 class AllowStaff(BasePermission):
     @classmethod
-    def has_permission(cls, user: AnyUser) -> bool:  # pragma: no cover
+    def has_permission(cls, user: AnyUser) -> bool:
         return user.is_staff
 
 
 class AllowSuperuser(BasePermission):
     @classmethod
-    def has_permission(cls, user: AnyUser) -> bool:  # pragma: no cover
+    def has_permission(cls, user: AnyUser) -> bool:
         return user.is_superuser
 
 
@@ -110,9 +110,9 @@ def restricted_field(check: PermCheck, *, message: str = "") -> Callable[[Callab
             except TypeError:
                 result = perm_check(info.context.user)
 
-            if result is None:  # pragma: no cover
+            if result is None:
                 return None
-            if result:  # pragma: no cover
+            if result:
                 return func(*args, **kwargs)
             raise GQLFieldPermissionDeniedError(message=message)
 

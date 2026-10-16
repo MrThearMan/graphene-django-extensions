@@ -1,6 +1,13 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ErrorDetail
 
-from graphene_django_extensions.errors import flatten_errors, get_constraint_message, to_field_errors
+from graphene_django_extensions import errors
+from graphene_django_extensions.errors import (
+    GQLValidationError,
+    flatten_errors,
+    get_constraint_message,
+    to_field_errors,
+)
 
 
 def test_get_constraint_message__check_postgres():
@@ -68,3 +75,20 @@ def test_to_field_errors():
         {"field": "city", "message": "msg2", "code": "bar"},
         {"field": "post_code", "message": "msg3", "code": ""},
     ]
+
+
+def test_graphql_validation_error__camelcase_errors(monkeypatch):
+    monkeypatch.setattr(errors.graphene_settings, "CAMELCASE_ERRORS", True)
+
+    error = GQLValidationError(DjangoValidationError({"example_state": ["Invalid state."]}))
+
+    assert error.extensions["errors"] == [{"field": "exampleState", "message": "Invalid state.", "code": "invalid"}]
+
+
+def test_graphql_validation_error__no_camelcase_errors(monkeypatch):
+    # "errors" holds a reference to the settings object, which overriding the "GRAPHENE" setting replaces.
+    monkeypatch.setattr(errors.graphene_settings, "CAMELCASE_ERRORS", False)
+
+    error = GQLValidationError(DjangoValidationError({"example_state": ["Invalid state."]}))
+
+    assert error.extensions["errors"] == [{"field": "example_state", "message": "Invalid state.", "code": "invalid"}]
