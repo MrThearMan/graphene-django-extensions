@@ -17,13 +17,15 @@ from typing import (
     Self,
     TypeAlias,
     TypedDict,
-    TypeVar,
     Union,
 )
 
 from graphene.types.mountedtype import MountedType
 from graphene.types.unmountedtype import UnmountedType
-from query_optimizer.typing import GQLInfo, UserHintedWSGIRequest
+from query_optimizer.typing import GQLInfo, TModel, TUser, UserHintedWSGIRequest
+
+# Type parameter defaults are new in Python 3.13.
+from typing_extensions import TypeVar
 
 if TYPE_CHECKING:
     import django_filters
@@ -68,6 +70,9 @@ __all__ = [
     "SerializerErrorData",
     "SerializerMeta",
     "StrEnum",
+    "TData",
+    "TModel",
+    "TUser",
     "TypeAlias",
     "TypeVar",
     "TypedDict",
@@ -92,6 +97,10 @@ type FilterFields = Sequence[FieldLookupStr | tuple[FieldLookupStr, FilterAliasS
 type ValidationErrorType = DjangoValidationError | SerializerValidationError
 type SerializerErrorData = dict[str, list[ErrorDetail | str]]
 type GQLFields = dict[str, MountedType | UnmountedType]
+
+# Subscribe the generic base classes with these and 'TModel' and 'TUser' to type their hooks
+# for a specific model, user or validated data. Without subscription, the defaults apply.
+TData = TypeVar("TData", bound=Mapping[str, Any], default=dict[str, Any])
 
 
 class NodeConnectionType[T: Model](Protocol):
