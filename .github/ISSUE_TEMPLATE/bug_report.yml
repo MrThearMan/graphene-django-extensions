@@ -35,17 +35,10 @@ body:
         If you are not using the latest version, please try to also reproduce the bug
         on the latest version before opening the issue.
       options:
+        - "0.4.10"
         - "0.4.9"
         - "0.4.8"
         - "0.4.7"
-        - "0.4.6"
-        - "0.4.5"
-        - "0.4.4"
-        - "0.4.3"
-        - "0.4.2"
-        - "0.4.1"
-        - "0.4.0"
-        - "0.3.6"
     validations:
       required: true
   - type: dropdown
@@ -55,10 +48,10 @@ body:
       description: >-
         Please note that python versions not available below are not supported.
       options:
+        - "3.15"
+        - "3.14"
         - "3.13"
         - "3.12"
-        - "3.11"
-        - "3.10"
     validations:
       required: true
   - type: dropdown
