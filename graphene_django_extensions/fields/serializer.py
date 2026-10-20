@@ -11,7 +11,7 @@ from rest_framework.relations import PKOnlyObject
 if TYPE_CHECKING:
     from django.db.models import Model
 
-    from graphene_django_extensions.typing import Any
+    from graphene_django_extensions.typing import Any, Sequence
 
 
 __all__ = [
@@ -42,7 +42,7 @@ class IntegerPrimaryKeyField(serializers.PrimaryKeyRelatedField, serializers.Int
 class EnumFriendlyChoiceField(serializers.ChoiceField):
     """ChoiceField that works with enum inputs as well."""
 
-    def __init__(self, choices: list[tuple[Any, Any]], **kwargs: Any) -> None:
+    def __init__(self, choices: Sequence[Any], **kwargs: Any) -> None:
         # Enum can be provided as a keyword argument, used for mutation input enum naming.
         # See: `graphene_django_extensions.converters.convert_serializer_field_to_enum`
         self.enum: Enum | None = kwargs.pop("enum", None)
