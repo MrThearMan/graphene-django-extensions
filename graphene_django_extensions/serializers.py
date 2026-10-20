@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from django.db.models import Model
     from rest_framework.fields import Field
 
-    from .typing import Any, AnyUser, Callable, Self
+    from .typing import Any, AnyUser, Callable, Mapping, Self
 
 
 __all__ = [
@@ -97,7 +97,7 @@ class NestingModelSerializer(ModelSerializer[TModel], Generic[TModel, TData]):  
             cls.Meta.fields = add_translatable_fields(cls.Meta.model, cls.Meta.fields, remove_base_fields=False)
         return super().__new__(cls, *args, **kwargs)
 
-    def get_or_default(self, field: str, attrs: dict[str, Any]) -> Any:
+    def get_or_default(self, field: str, attrs: Mapping[str, Any]) -> Any:
         """
         Get field value from attrs, or if not found, use a default value from
         1) the serializer model instance, or 2) the model field.
