@@ -82,7 +82,6 @@ class NestingModelSerializer(ModelSerializer[TModel], Generic[TModel, TData]):  
     to type `create` and `update` for them. Without subscription, the defaults apply.
     """
 
-    instance: TModel
     serializer_related_field = IntegerPrimaryKeyField  # Related fields defined in Meta are integers by default
     serializer_choice_field = EnumFriendlyChoiceField  # Converts enums to string correctly
     serializer_field_mapping = ModelSerializer.serializer_field_mapping | {
