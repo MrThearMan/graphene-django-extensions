@@ -91,6 +91,10 @@ class ExampleNode(DjangoNode[Example, MyUser]):
 
 `GQLInfo` is generic over the user type in the same way.
 
+If the model's default manager uses a custom queryset class, give that class as the third type,
+e.g. `DjangoNode[Example, MyUser, ExampleQuerySet]`. Then the methods of the custom queryset
+are typed in the hooks. See [filtering in the query optimizer docs][optimizer filtering].
+
 #### Field
 
 - args:
@@ -139,6 +143,7 @@ Subclasses can be configured through the `Meta`-class. Here are the most useful 
 | `restricted_fields`  | `dict[str, PermCheck]`       | Optional. Adds [permission checks] to the resolvers of the fields as defined in the dict.   |
 
 
+[optimizer filtering]: https://mrthearman.github.io/graphene-django-query-optimizer/filtering/
 [permissions page]: https://mrthearman.github.io/graphene-django-extensions/permissions/
 [permission classes]: https://mrthearman.github.io/graphene-django-extensions/permissions/#permission-classes
 [permission checks]: https://mrthearman.github.io/graphene-django-extensions/permissions/#restricted-fields
