@@ -74,12 +74,12 @@ test = [
     "django-graphiql-debug-toolbar==0.2.0",
 ]
 docs = [
-    "zensical==0.0.70",
+    "zensical==0.0.71",
     "pymdown-extensions==12.3",
     "pygments==2.21.0",
 ]
 lint = [
-    "prek==0.5.5",
+    "prek==0.5.6",
     "ruff==0.17.1",
     "mypy==2.4.0",
     "django-stubs==6.1.2",
