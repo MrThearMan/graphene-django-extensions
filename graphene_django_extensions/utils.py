@@ -7,10 +7,10 @@ from query_optimizer.filter_info import get_filter_info
 
 from .constants import Operation
 from .settings import gdx_settings
-from .typing import StrEnum
+from .typing import Mapping, StrEnum
 
 if TYPE_CHECKING:
-    from .typing import Any
+    from .typing import Any, Sequence
 
 __all__ = [
     "get_filter_info",
@@ -19,10 +19,10 @@ __all__ = [
 ]
 
 
-def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None) -> Any:
+def get_nested(obj: Mapping[Any, Any] | Sequence[Any] | None, /, *args: str | int, default: Any = None) -> Any:
     """
-    Get value from a nested structure containing dicts with string keys or lists,
-    where the keys and list indices might not exist.
+    Get value from a nested structure containing mappings with string keys or sequences,
+    where the keys and sequence indices might not exist.
 
     1) `data["foo"][0]["bar"]["baz"]`
      - Might raise a `KeyError` or `IndexError` if any of the keys or indices don't exist.
@@ -43,7 +43,7 @@ def get_nested(obj: dict | list | None, /, *args: str | int, default: Any = None
             obj = None
         return get_nested(obj, *args, default=default)
 
-    value = obj.get(arg) if isinstance(obj, dict) else None
+    value = obj.get(arg) if isinstance(obj, Mapping) else None
     return get_nested(value, *args, default=default)
 
 

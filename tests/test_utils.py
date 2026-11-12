@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import Any, NamedTuple
+from types import MappingProxyType
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import pytest
 from django.db import models
@@ -14,11 +15,14 @@ from graphene_django_extensions.testing.utils import compare_unordered, parametr
 from graphene_django_extensions.typing import UserDefinedFilterInput
 from graphene_django_extensions.utils import get_nested, get_operator_enum
 
+if TYPE_CHECKING:
+    from graphene_django_extensions.typing import Mapping, Sequence
+
 Sentinel = object()
 
 
 class GetNestedParams(NamedTuple):
-    value: dict | list | None
+    value: Mapping[Any, Any] | Sequence[Any] | None
     args: list[str | int]
     default: Any
     expected: Any
@@ -36,6 +40,18 @@ class GetNestedParams(NamedTuple):
             "Two layer dict": GetNestedParams(
                 value={"foo": {"bar": 1}},
                 args=["foo", "bar"],
+                default=Sentinel,
+                expected=1,
+            ),
+            "Mapping that is not a dict": GetNestedParams(
+                value=MappingProxyType({"foo": 1}),
+                args=["foo"],
+                default=Sentinel,
+                expected=1,
+            ),
+            "Sequence that is not a list": GetNestedParams(
+                value=({"foo": 1},),
+                args=[0, "foo"],
                 default=Sentinel,
                 expected=1,
             ),

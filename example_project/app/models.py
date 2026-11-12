@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from typing import Self
+
 from django.db import models
 
 __all__ = [
     "Example",
+    "ExampleQuerySet",
     "ExampleState",
     "ForwardManyToMany",
     "ForwardManyToOne",
@@ -40,6 +43,11 @@ class ExampleState(models.TextChoices):
     INACTIVE = "INACTIVE"
 
 
+class ExampleQuerySet(models.QuerySet["Example"]):
+    def active(self) -> Self:
+        return self.filter(example_state=ExampleState.ACTIVE)
+
+
 class Example(models.Model):
     name = models.CharField(max_length=255)
     number = models.IntegerField()
@@ -61,6 +69,8 @@ class Example(models.Model):
         ForwardManyToMany,
         related_name="example_rels",
     )
+
+    objects = ExampleQuerySet.as_manager()
 
     # Translation fields
     name_en: str | None

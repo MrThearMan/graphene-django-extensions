@@ -22,7 +22,7 @@ from typing import (
 
 from graphene.types.mountedtype import MountedType
 from graphene.types.unmountedtype import UnmountedType
-from query_optimizer.typing import GQLInfo, TModel, TUser, UserHintedWSGIRequest
+from query_optimizer.typing import GQLInfo, TModel, TQuerySet, TUser, UserHintedWSGIRequest
 
 # Type parameter defaults are new in Python 3.13.
 from typing_extensions import TypeVar
@@ -72,6 +72,7 @@ __all__ = [
     "StrEnum",
     "TData",
     "TModel",
+    "TQuerySet",
     "TUser",
     "TypeAlias",
     "TypeVar",
@@ -99,8 +100,8 @@ type ValidationErrorType = DjangoValidationError | SerializerValidationError
 type SerializerErrorData = dict[str, list[ErrorDetail | str]]
 type GQLFields = dict[str, MountedType | UnmountedType]
 
-# Subscribe the generic base classes with these and 'TModel' and 'TUser' to type their hooks
-# for a specific model, user or validated data. Without subscription, the defaults apply.
+# Subscribe the generic base classes with these and 'TModel', 'TUser' and 'TQuerySet' to type their hooks
+# for a specific model, user, queryset or validated data. Without subscription, the defaults apply.
 TData = TypeVar("TData", bound=Mapping[str, Any], default=dict[str, Any])
 
 
