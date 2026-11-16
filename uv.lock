@@ -513,7 +513,7 @@ requires-dist = [
     { name = "django-settings-holder", specifier = ">=0.1.2" },
     { name = "djangorestframework", specifier = ">=3.18.3" },
     { name = "graphene-django", specifier = ">=3.0.0" },
-    { name = "graphene-django-query-optimizer", specifier = ">=0.11.0" },
+    { name = "graphene-django-query-optimizer", specifier = ">=0.11.1" },
     { name = "pillow", marker = "extra == 'files'", specifier = ">=12.3.0" },
     { name = "typing-extensions", specifier = ">=4.16.0" },
 ]
@@ -545,7 +545,7 @@ test = [
 
 [[package]]
 name = "graphene-django-query-optimizer"
-version = "0.11.0"
+version = "0.11.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
@@ -556,9 +556,9 @@ dependencies = [
     { name = "graphql-relay" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/50/8d/83a7111e242730e534e51f1e203c46e5062b43098ba2c35e17e9fe554877/graphene_django_query_optimizer-0.11.0.tar.gz", hash = "sha256:aec095e119f86d00b3914dfce17c3c61b66b026b8fd4efc3d26e33d4625d7e68", size = 25746, upload-time = "2026-10-16T09:17:07.653Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/be/67e258dc789973840d7a500073d64b2d91adc76ce00c9c68a271ed71facc/graphene_django_query_optimizer-0.11.1.tar.gz", hash = "sha256:c1bd6439cfcf63405a456c0982752d203eb0cb3feaee7cd35af4dd4479d2357d", size = 25899, upload-time = "2026-11-15T06:33:33.984Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1a/1c/bfa8c781488af6b951f1e23602e17d3b4d7420fd6ac9a7c80c79a5c3f074/graphene_django_query_optimizer-0.11.0-py3-none-any.whl", hash = "sha256:ef9d3685630f5a84577b75fb1cd9ae1f1547fe2e700ebcc2b07d825692217758", size = 32674, upload-time = "2026-10-16T09:17:06.717Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/27/f71ba36b58de739bff41f67a4d91d730b8d04821cf84bd875704c993422f/graphene_django_query_optimizer-0.11.1-py3-none-any.whl", hash = "sha256:c3c8188fbd8f53f5355a54ccebe052100f097ad4c0e21c5b9afcf1292832a720", size = 32805, upload-time = "2026-11-15T06:33:33.064Z" },
 ]
 
 [[package]]
