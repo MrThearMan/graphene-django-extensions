@@ -68,19 +68,19 @@ dev = [
 test = [
     "pytest==9.2.0",
     "pytest-django==4.14.0",
-    "coverage==7.17.3",
+    "coverage==7.17.4",
     "nox==2026.10.20",
     "factory-boy==3.3.3",
     "django-graphiql-debug-toolbar==0.2.0",
 ]
 docs = [
-    "zensical==0.1.1",
-    "pymdown-extensions==13.1",
+    "zensical==0.1.3",
+    "pymdown-extensions==13.1.2",
     "pygments==2.21.0",
 ]
 lint = [
     "prek==0.5.11",
-    "ruff==0.17.5",
+    "ruff==0.17.6",
     "mypy==2.4.1",
     "django-stubs==6.1.2",
     "djangorestframework-stubs==3.18.2",
